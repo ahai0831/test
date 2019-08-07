@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <LibcaresVersion>c-ares-1.15.0</LibcaresVersion>
+    <LibcaresPath>$(ProjectDir)..\..\..\..\third_party\c-ares\</LibcaresPath>
+    <LibcaresSourcePath>$(LibcaresPath)$(LibcaresVersion)\src\$(LibcaresVersion)\</LibcaresSourcePath>
+    <LibcaresIncludeSetupPath>$(LibcaresPath)$(LibcaresVersion)\include\</LibcaresIncludeSetupPath>
+    <LibcaresLibSetupPath>$(LibcaresPath)$(LibcaresVersion)\lib\</LibcaresLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(LibcaresLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>libcares</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0600;CARES_BUILDING_LIBRARY;CARES_STATICLIB;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(LibcaresSourcePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>"$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(LibcaresPath)$(LibcaresVersion).tar.gz" "$(LibcaresPath)$(LibcaresVersion)\src\"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>for %%i in (ares.h ares_build.h ares_rules.h ares_version.h) do xcopy "$(LibcaresSourcePath)%%i" "$(LibcaresIncludeSetupPath)" /Y /C /R /Q /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="LibcaresVersion">
+      <Value>$(LibcaresVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibcaresPath">
+      <Value>$(LibcaresPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibcaresSourcePath">
+      <Value>$(LibcaresSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibcaresIncludeSetupPath">
+      <Value>$(LibcaresIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibcaresLibSetupPath">
+      <Value>$(LibcaresLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

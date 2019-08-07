@@ -1,7 +1,0 @@
-EXPORTS
-	CreateAst @1
-	StartSliceDownload @2
-	RegisterSliceDownloadSubscription @3
-	CancelSubscription @4
-	StopDownload @5
-	DestroyAst @6

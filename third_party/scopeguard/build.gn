@@ -1,0 +1,15 @@
+source_set("scopeguard") {
+  sources = [
+    "include/scopeguard.h",
+  ]
+
+  public = [
+    "include/scopeguard.h",
+  ]
+
+  all_dependent_configs = [ ":Default_config" ]
+}
+
+config("Default_config") {
+  include_dirs = [ "include/" ]
+}

@@ -1,0 +1,15 @@
+source_set("rxcpp") {
+  sources = [
+    "include/rxcpp/rx.hpp",
+  ]
+
+  public = [
+    "include/rxcpp/rx.hpp",
+  ]
+
+  all_dependent_configs = [ ":Default_config" ]
+}
+
+config("Default_config") {
+  include_dirs = [ "include/" ]
+}
