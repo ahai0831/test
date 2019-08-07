@@ -1,0 +1,15 @@
+source_set("concurrentqueue") {
+  sources = [
+    "include/concurrentqueue.h",
+  ]
+
+  public = [
+    "include/concurrentqueue.h",
+  ]
+
+  all_dependent_configs = [ ":Default_config" ]
+}
+
+config("Default_config") {
+  include_dirs = [ "include/" ]
+}

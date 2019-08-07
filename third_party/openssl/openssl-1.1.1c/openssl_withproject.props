@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <OpensslPath>$(ProjectDir)..\..\..\..\third_party\openssl\openssl-1.1.1c\</OpensslPath>
+    <OpensslIncludePath>$(OpensslPath)include\$(Platform)\</OpensslIncludePath>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(OpensslIncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USE_OPENSSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(OpensslPath)lib\$(Platform)\$(Configuration)\libcrypto.lib;$(OpensslPath)lib\$(Platform)\$(Configuration)\libssl.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="OpensslPath">
+      <Value>$(OpensslPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OpensslIncludePath">
+      <Value>$(OpensslIncludePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
