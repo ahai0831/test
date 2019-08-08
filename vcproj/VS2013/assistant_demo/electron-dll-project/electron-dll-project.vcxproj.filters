@@ -25,8 +25,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\src\ele-dll\Source.def">
-      <Filter>Resource Files</Filter>
+    <None Include="Source.def">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>
