@@ -36,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "third_party", "third_party"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "httpbusiness", "..\third_party\httpbusiness\httpbusiness.vcxproj", "{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "electron-dll-project", "electron-dll-project\electron-dll-project.vcxproj", "{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -116,6 +118,13 @@ Global
 		{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}.Release|Win32.Build.0 = Release|Win32
 		{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}.Release|x64.ActiveCfg = Release|x64
 		{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}.Release|x64.Build.0 = Release|x64
+		{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}.Debug|Win32.Build.0 = Debug|Win32
+		{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}.Debug|x64.ActiveCfg = Debug|Win32
+		{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}.Release|Win32.ActiveCfg = Release|Win32
+		{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}.Release|Win32.Build.0 = Release|Win32
+		{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}.Release|x64.ActiveCfg = Release|x64
+		{114A8ABA-6FF9-4C4D-B070-99FFC153DC2D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
