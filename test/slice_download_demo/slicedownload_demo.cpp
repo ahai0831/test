@@ -9,11 +9,11 @@
 int main() {
   auto a2_ptr = std::make_shared<assistant::Assistant_v2>();
   rx_assistant::rx_assistant_factory ast_factory(a2_ptr);
-  std::string req_str("https://download.cloud.189.cn/file/downloadFile.action?dt=51&expired=1564909358845&sk=87ce179e-0305-40e1-9578-93986a0ec365&ufi=8152222650355362&zyc=5&token=cloud16&sig=qTklsKx9VnTTfXSDHdnOgY%2FgoJY%3D");
+  std::string req_str("http://download.cloud.189.cn/download/client/android/cloud189_v8.1.2_1564572280003.apk");
       
 
   SlicedownloadMastercontrol sdl(a2_ptr);
-  sdl.AsyncProcess(req_str, "xp2.iso");
+  sdl.AsyncProcess(req_str, "cloud189_v8.1.2_1564572280003.apk");
   auto another_thread = std::thread([&sdl]() {
     // 	std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     // 	sdl.AsyncStop();

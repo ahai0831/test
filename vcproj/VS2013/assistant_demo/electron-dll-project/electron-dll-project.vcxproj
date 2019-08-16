@@ -67,6 +67,7 @@
     <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
     <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-ele-dll.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -82,6 +83,7 @@
     <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
     <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-ele-dll.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -97,6 +99,7 @@
     <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
     <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-ele-dll.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -112,6 +115,7 @@
     <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
     <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-ele-dll.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -137,7 +141,6 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>Source.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -151,7 +154,6 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ModuleDefinitionFile>Source.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -169,7 +171,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>Source.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -187,7 +188,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>Source.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -197,7 +197,7 @@
     <ClCompile Include="..\..\..\..\src\ele-dll\electron-dll-proj.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Source.def" />
+    <None Include="..\..\..\..\src\ele-dll\Source.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
