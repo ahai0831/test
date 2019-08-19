@@ -29,7 +29,6 @@
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_fds.c" />
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_free_hostent.c" />
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_free_string.c" />
-    <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_getenv.c" />
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_gethostbyaddr.c" />
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_gethostbyname.c" />
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_getnameinfo.c" />

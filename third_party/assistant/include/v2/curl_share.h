@@ -105,7 +105,8 @@ struct a7_3 {
   void CleanRedundant() {
     if (_list->size() > 1) {
       /// 利用_list的首项构造新List，直接交换
-      _list->swap(List{std::move(_list->front())});
+      auto i = List{std::move(_list->front())};
+      _list->swap(i);
     }
   }
   void AddNew() { _list->emplace_front(std::make_shared<a7_1>()); }

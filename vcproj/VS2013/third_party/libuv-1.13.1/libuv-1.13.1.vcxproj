@@ -163,7 +163,6 @@
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\poll.c" />
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\process-stdio.c" />
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\process.c" />
-    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\req.c" />
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\signal.c" />
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\snprintf.c" />
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\stream.c" />

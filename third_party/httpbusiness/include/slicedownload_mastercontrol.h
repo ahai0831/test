@@ -111,7 +111,7 @@ struct SlicedownloadMastercontrol {
           ast_factory.iterator_result(first_req_obs, iterate_req_callback);
 
       /// 处理分片下载assistant::HttpRequest(const HttpResult&)
-      auto solve_206_callback = [this](rx_assistant::HttpResult& result) {
+      auto solve_206_callback = [this](const rx_assistant::HttpResult& result) {
         /// begin_lambda: solve_206_callback
 
         /// TODO: 非3xx以及200，需要进行异常处理
@@ -142,7 +142,8 @@ struct SlicedownloadMastercontrol {
                             ? range1 + max_slice_size - 1
                             : current_total_length - 1;
           auto tuple = std::make_tuple(range1, range2);
-          slice_queue.Enqueue(std::make_unique<decltype(tuple)>(tuple));
+          auto i = std::make_unique<decltype(tuple)>(tuple);
+          slice_queue.Enqueue(i);
           current_sliced_size = range2 + 1;
         } while (current_sliced_size < current_total_length);
         /// 初始化worker
@@ -188,29 +189,22 @@ struct SlicedownloadMastercontrol {
                 .ref_count();
 
         smoothspeed_stream =
-            speed_stream
-                .window_toggle(speed_stream.take(1),
-                               [](UintType) {
-                                 return rxcpp::observable<>::timer(
-                                     std::chrono::system_clock::now());
-                               })
-                .merge(speed_stream.window_toggle(
-                           speed_stream.take(1),
-                           [=](UintType) {
-                             return rxcpp::observable<>::timer(
-                                 std::chrono::milliseconds(speed_interval + 1));
+            speed_stream.take(1)
+                .merge(speed_stream.take(2).average().map(
+                           [](double ave_oe) -> UintType {
+                             return static_cast<UintType>(ave_oe);
                            }),
-                       speed_stream.window_toggle(
-                           speed_stream,
-                           [=](UintType) {
-                             return rxcpp::observable<>::timer(
-                                 std::chrono::milliseconds(2 * speed_interval +
-                                                           1));
+                       speed_stream.pairwise().pairwise().map(
+                           [](const std::tuple<
+                               const std::tuple<UintType, UintType>&,
+                               const std::tuple<UintType, UintType>&>& v)
+                               -> UintType {
+                             return static_cast<UintType>(
+                                 (std::get<0>(std::get<0>(v)) +
+                                  std::get<1>(std::get<0>(v)) +
+                                  std::get<1>(std::get<1>(v))) /
+                                 3);
                            }))
-                .flat_map(
-                    [](rxcpp::observable<UintType> oe) { return oe.average(); },
-                    [](rxcpp::observable<UintType> oe, double ave_oe)
-                        -> UintType { return static_cast<UintType>(ave_oe); })
                 .take_while(
                     [this](UintType) -> bool { return !finished_flag; });
       }
