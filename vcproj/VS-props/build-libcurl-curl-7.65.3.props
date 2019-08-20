@@ -17,10 +17,10 @@
       <PreprocessorDefinitions>CURL_STATICLIB;BUILDING_LIBCURL;_WIN32_WINNT=0x0501;WINVER=0x0501;USE_WINDOWS_SSPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(LibcurlSourcePath)lib\;$(LibcurlSourcePath)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <DisableSpecificWarnings></DisableSpecificWarnings>
     </ClCompile>
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <PreBuildEvent>
       <Command>"$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(LibcurlPath)$(LibcurlVersion).tar.gz" "$(LibcurlPath)$(LibcurlVersion)\src\"</Command>

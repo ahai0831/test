@@ -57,9 +57,6 @@
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_free_string.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_getenv.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\c-ares\c-ares-1.15.0\src\c-ares-1.15.0\ares_gethostbyaddr.c">
       <Filter>Source Files</Filter>
     </ClCompile>

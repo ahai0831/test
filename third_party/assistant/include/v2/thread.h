@@ -7,7 +7,7 @@
 
 #ifdef ASSISTANT_USE_STD_THREAD
 #include <ThreadPool.h>
-#endif // ASSISTANT_USE_STD_THREAD
+#endif  // ASSISTANT_USE_STD_THREAD
 #include <uv.h>
 
 typedef void (*thread_worker_cb)(void *data);
@@ -31,7 +31,7 @@ struct a1_1 {
     }
   }
 };
-#endif // ASSISTANT_USE_STD_THREAD
+#endif  // ASSISTANT_USE_STD_THREAD
 
 /// 可作为标准库线程模型的替代品
 /// libuv提供的线程（仅可被join）
@@ -41,7 +41,7 @@ struct a1_1_uv {
   uv_thread_t thread;
 
  public:
-  a1_1_uv() : thread({0}){};
+  a1_1_uv() : thread((void *)(0)){};
   void ThreadCreate(thread_worker_cb worker, void *data) {
     uv_thread_create(&thread, worker, data);
   }
@@ -60,7 +60,7 @@ struct threadpool_closure {
   threadpool_closure() : pool(4) {}
   void Run(Callback worker, Data data) { pool.enqueue(worker, data); }
 };
-#endif // ASSISTANT_USE_STD_THREAD
+#endif  // ASSISTANT_USE_STD_THREAD
 
 /// libuv_threadpool_closure
 /// 由于存在对wrapper的内存分配和释放

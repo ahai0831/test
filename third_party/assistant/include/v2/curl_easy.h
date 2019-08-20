@@ -335,7 +335,10 @@ struct easy_map_closure {
     }
     return value;
   }
-  void Clear() { map.swap(decltype(map)()); }
+  void Clear() {
+    auto i = decltype(map)();
+    map.swap(i);
+  }
   iterator begin() { return map.begin(); }
   const_iterator begin() const { return map.begin(); }
   iterator end() { return map.end(); }

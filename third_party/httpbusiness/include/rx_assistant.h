@@ -17,6 +17,8 @@ struct HttpResult {
       : req(std::move(res_req)), res(std::move(res_res)) {}
   HttpResult(HttpResult&& httpresult)
       : req(std::move(httpresult.req)), res(std::move(httpresult.res)) {}
+  HttpResult(const HttpResult&) = default;
+  HttpResult& operator=(const HttpResult&) = default;
 };
 
 struct rx_assistant_factory {
@@ -104,7 +106,8 @@ struct rx_assistant_factory {
       return callback(res, iterate_req)
                  ? ast_factory.iterator_result(ast_factory.create(iterate_req),
                                                callback)
-                 : rxcpp::observable<>::just(res);
+                 : (rxcpp::observable<rx_assistant::HttpResult>)
+                       rxcpp::observable<>::just(res);
     });
   }
 

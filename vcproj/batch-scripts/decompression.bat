@@ -15,7 +15,7 @@ REM 如果7Z工具cab包被占用，反复自旋
 )
 
 REM 检测7Z工具是否被解压，未解压，则处理
->nul 2>&1 dir "%7z_dir%" ||(
+>nul 2>&1 dir "%tools_7z_dir%" ||(
     >nul 2>&1 mkdir "%tools_7z_dir%"
     >nul expand "%tools_dir%7z.cab" -f:* %tools_7z_dir% &&(
         >nul 2>&1 del /f /q "%tools_dir%7z.cab.lock"

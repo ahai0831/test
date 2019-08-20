@@ -92,8 +92,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\x_sig.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\x_spki.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\x_val.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_null.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_posix.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_win.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\async.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\async_err.c" />
@@ -181,7 +179,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cmac\cm_pmeth.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_asn1.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_att.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_cd.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_dd.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_enc.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_env.c" />
@@ -264,12 +261,8 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dsa\dsa_prn.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dsa\dsa_sign.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dsa\dsa_vrf.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_dl.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_dlfcn.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_err.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_lib.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_openssl.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_vms.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_win32.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\ec\curve25519.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\ec\curve448\arch_32\f_impl.c" />
@@ -361,11 +354,9 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_rc2.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_rc4.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_rc4_hmac_md5.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_rc5.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_seed.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_sm4.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_xcbc_d.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\m_md2.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\m_md4.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\m_md5.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\m_md5_sha1.c" />
@@ -491,8 +482,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\randfile.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_err.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_lib.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_unix.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_vms.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_win.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rc2\rc2cfb64.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rc2\rc2ofb64.c" />
@@ -554,8 +543,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\store\store_lib.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\store\store_register.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\store\store_strings.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\threads_none.c" />
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\threads_pthread.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\threads_win.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\ts\ts_asn1.c" />
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\ts\ts_conf.c" />
@@ -660,8 +647,6 @@
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\charmap.h" />
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\standard_methods.h" />
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\tbl_standard.h" />
-    <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_null.h" />
-    <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_posix.h" />
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_win.h" />
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\async_locl.h" />
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\bf\bf_locl.h" />

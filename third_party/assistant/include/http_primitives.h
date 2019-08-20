@@ -59,7 +59,10 @@ struct StringMap {
     Get(header_key, header_value);
     return header_value;
   }
-  void Clear() { _str_map.swap(decltype(_str_map)()); }
+  void Clear() {
+    auto i = decltype(_str_map)();
+    _str_map.swap(i);
+  }
   HeaderMap::iterator begin() { return _str_map.begin(); }
   HeaderMap::const_iterator begin() const { return _str_map.begin(); }
   HeaderMap::iterator end() { return _str_map.end(); }
@@ -87,6 +90,8 @@ struct StringMap {
   /// 移动构造方法
   StringMap(StringMap&& map) { swap(map); };
   void swap(StringMap& _Right) { _str_map.swap(_Right._str_map); }
+  StringMap(const StringMap&) = default;
+  StringMap& operator=(const StringMap&) = default;
 };
 
 typedef struct HttpRequest_v1 HttpRequest;
@@ -169,7 +174,7 @@ struct HttpResponse_v1 {
     virtual bool Valid() const { return false; };
     /// 子类无需改写此方法，直接用即可
     virtual size_t Returnvalue(size_t value) const final {
-      (nullptr != retval_callback) ? retval_callback(value) : nullptr;
+      (nullptr != retval_callback) ? retval_callback(value) : (void)(0);
       return value;
     };
     /// 支持默认构造方法

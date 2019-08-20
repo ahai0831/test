@@ -78,9 +78,6 @@
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\process-stdio.c">
       <Filter>Source Files\win</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\req.c">
-      <Filter>Source Files\win</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.13.1\src\libuv-1.13.1\src\win\signal.c">
       <Filter>Source Files\win</Filter>
     </ClCompile>

@@ -303,8 +303,8 @@ Assistant_v2::Assistant_v2() : thread_closure(std::make_unique<a1_0>()) {}
 Assistant_v2::~Assistant_v2() = default;
 /// 调用网络库发起异步请求
 void Assistant_v2::AsyncHttpRequest(const assistant::HttpRequest &request) {
-  thread_closure->request_queue.Enqueue(
-      std::make_unique<assistant::HttpRequest>(request));
+  auto i = std::make_unique<assistant::HttpRequest>(request);
+  thread_closure->request_queue.Enqueue(i);
   thread_closure->request_notify.Notify();
 }
 /// 调用网络库发起同步请求

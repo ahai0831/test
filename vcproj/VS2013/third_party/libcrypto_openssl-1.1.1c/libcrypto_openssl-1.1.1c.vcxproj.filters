@@ -429,12 +429,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\x_val.c">
       <Filter>Source Files\crypto\asn1</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_null.c">
-      <Filter>Source Files\crypto\async\arch</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_posix.c">
-      <Filter>Source Files\crypto\async\arch</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_win.c">
       <Filter>Source Files\crypto\async\arch</Filter>
     </ClCompile>
@@ -696,9 +690,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_att.c">
       <Filter>Source Files\crypto\cms</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_cd.c">
-      <Filter>Source Files\crypto\cms</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\cms\cms_dd.c">
       <Filter>Source Files\crypto\cms</Filter>
     </ClCompile>
@@ -933,22 +924,10 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dsa\dsa_vrf.c">
       <Filter>Source Files\crypto\dsa</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_dl.c">
-      <Filter>Source Files\crypto\dso</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_dlfcn.c">
-      <Filter>Source Files\crypto\dso</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_err.c">
       <Filter>Source Files\crypto\dso</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_lib.c">
-      <Filter>Source Files\crypto\dso</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_openssl.c">
-      <Filter>Source Files\crypto\dso</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_vms.c">
       <Filter>Source Files\crypto\dso</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\dso\dso_win32.c">
@@ -1200,9 +1179,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_rc4_hmac_md5.c">
       <Filter>Source Files\crypto\evp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_rc5.c">
-      <Filter>Source Files\crypto\evp</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\e_seed.c">
       <Filter>Source Files\crypto\evp</Filter>
     </ClCompile>
@@ -1234,9 +1210,6 @@
       <Filter>Source Files\crypto\evp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\evp_pkey.c">
-      <Filter>Source Files\crypto\evp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\m_md2.c">
       <Filter>Source Files\crypto\evp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\evp\m_md4.c">
@@ -1570,12 +1543,6 @@
       <Filter>Source Files\crypto\rand</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_lib.c">
-      <Filter>Source Files\crypto\rand</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_unix.c">
-      <Filter>Source Files\crypto\rand</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_vms.c">
       <Filter>Source Files\crypto\rand</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\rand\rand_win.c">
@@ -2091,12 +2058,6 @@
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\o_time.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\threads_none.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\threads_pthread.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\threads_win.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
@@ -2128,12 +2089,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\asn1\tbl_standard.h">
       <Filter>Source Files\crypto\asn1</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_null.h">
-      <Filter>Source Files\crypto\async\arch</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_posix.h">
-      <Filter>Source Files\crypto\async\arch</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\openssl\openssl-1.1.1c\src\openssl-1.1.1c\crypto\async\arch\async_win.h">
       <Filter>Source Files\crypto\async\arch</Filter>

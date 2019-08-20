@@ -51,7 +51,8 @@ struct safeset_closure {
   ~safeset_closure() {
     std::lock_guard<decltype(mutex)> lock(mutex);
     /// 显式地清理并释放内存；令临时变量就地析构
-    set.swap(SetType{});
+    auto i = decltype(set)();
+    set.swap(i);
   }
 
  private:
@@ -144,7 +145,8 @@ struct safemap_closure {
   ~safemap_closure() {
     std::lock_guard<decltype(mutex)> lock(mutex);
     /// 显式地清理并释放内存；令临时变量就地析构
-    map.swap(MapType{});
+    auto i = decltype(map)();
+    map.swap(i);
   }
 
  private:
