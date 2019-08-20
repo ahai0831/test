@@ -199,6 +199,9 @@
   <ItemGroup>
     <None Include="..\..\..\..\src\ele-dll\Source.def" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\..\src\ele-dll\electron-dll-proj.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
