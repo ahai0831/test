@@ -21,6 +21,7 @@
 *.opensdf
 *.ipch
 *.aps
+*.log
 
 **/*.vcxproj.user
 
