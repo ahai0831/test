@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <GoogletestVersion>googletest-release-1.8.1</GoogletestVersion>
+    <GoogletestPath>$(ProjectDir)..\..\..\..\third_party\googletest\</GoogletestPath>
+    <GoogletestSourcePath>$(GoogletestPath)$(GoogletestVersion)\src\$(GoogletestVersion)\</GoogletestSourcePath>
+    <GoogletestIncludeSetupPath>$(GoogletestPath)$(GoogletestVersion)\include\</GoogletestIncludeSetupPath>
+    <GoogletestLibSetupPath>$(GoogletestPath)$(GoogletestVersion)\lib\</GoogletestLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(GoogletestLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>googletest</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_VARIADIC_MAX=10;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(GoogletestSourcePath)googletest\;$(GoogletestSourcePath)googletest\include\;$(GoogletestSourcePath)googlemock\;$(GoogletestSourcePath)googlemock\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4616</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>"$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(GoogletestPath)$(GoogletestVersion).tar.gz" "$(GoogletestPath)$(GoogletestVersion)\src\"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(GoogletestSourcePath)googletest\include\gtest" "$(GoogletestIncludeSetupPath)gtest\" /Y /C /R /Q /S /E /D
+xcopy "$(GoogletestSourcePath)googlemock\include\gmock" "$(GoogletestIncludeSetupPath)gmock\" /Y /C /R /Q /S /E /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="GoogletestVersion">
+      <Value>$(GoogletestVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="GoogletestPath">
+      <Value>$(GoogletestPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="GoogletestSourcePath">
+      <Value>$(GoogletestSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="GoogletestIncludeSetupPath">
+      <Value>$(GoogletestIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="GoogletestLibSetupPath">
+      <Value>$(GoogletestLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

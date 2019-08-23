@@ -15,16 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\test\slice_download_demo\slicedownload_main.cpp">
+    <ClCompile Include="..\..\..\..\third_party\googletest\googletest-release-1.8.1\src\googletest-release-1.8.1\googletest\src\gtest-all.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\test\slice_download_demo\slicedownload_test.cpp">
+    <ClCompile Include="..\..\..\..\third_party\googletest\googletest-release-1.8.1\src\googletest-release-1.8.1\googlemock\src\gmock-all.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\test\slice_download_demo\slicedownload_test.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
