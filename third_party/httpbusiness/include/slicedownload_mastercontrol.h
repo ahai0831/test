@@ -233,7 +233,6 @@ struct SlicedownloadMastercontrol {
 
   /// 注册异步回调
   /// 返回uuid
-  /// TODO: 增加根据uuid取消特定订阅的方法
   std::string RegSpeedCallback(OnnextCb onnext_cb) {
     std::string flag;
     if (processing_flag) {
@@ -249,6 +248,15 @@ struct SlicedownloadMastercontrol {
       flag = assistant::uuid::generate();
       subscription_map.Put(flag, std::move(smoothspeed_stream.subscribe(
                                      onnext_cb, oncomplete_cb)));
+    }
+    return flag;
+  }
+  /// 根据uuid取消特定订阅的方法，返回值为true代表取消订阅成功
+  bool UnregSpeedCallback(const std::string& uuid) {
+    bool flag = false;
+    rxcpp::composite_subscription subscrition;
+    if (flag = subscription_map.Take(uuid, subscrition)) {
+      subscrition.unsubscribe();
     }
     return flag;
   }
