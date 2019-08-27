@@ -19,6 +19,7 @@ for /r %%j in (*.vcxproj,*.filters,*.sln) do (
     @REM if *.sln, modify it.
     if \".sln\"==\"%%~xj\" (
         echo Update %%~nxj
+        for %%h in ("!target_file_path!") do rd /s /q "%%~dph.vs" >nul 2>&1
         sed -i 's:# Visual Studio 2013:# Visual Studio 15:g' "!target_file_path!"
         sed -i 's:^VisualStudioVersion = .*$:VisualStudioVersion = 15.0.28307.421:g' "!target_file_path!"
     )

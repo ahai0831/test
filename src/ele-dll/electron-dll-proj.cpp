@@ -62,30 +62,41 @@ extern "C" char *StartSliceDownload(char *sDownloadURL, char *sDownloadPath,
 extern "C" char *RegisterSliceDownloadSubscription(
     f4download::OnNext fNext, f4download::OnComplete fComplete,
     char *sDownloadID, int64_t nAst) {
-  char *csRegID = nullptr;
-  if (nullptr != sDownloadID) {
-    auto ptrA_v2 = (Assist_Type *)nAst;
-    auto pIter = ptrA_v2->downloadInfo.find(sDownloadID);
-    if (pIter != ptrA_v2->downloadInfo.end()) {
-      auto &downloadCtrl = std::get<1>(pIter->second);
-      auto speedNext = [fNext](uint64_t ns) {
-        auto sspeed = std::to_string(ns);
-        std::string sRaw = R"({"real_speed":")";
-        sRaw += sspeed;
-        sRaw += '\"';
-        sRaw += '}';
-        fNext(sRaw.c_str());
-      };
-      if (nullptr != downloadCtrl) {
-        auto sRegID = downloadCtrl->RegSpeedCallback(speedNext, fComplete);
-        auto reg_ptr = std::make_unique<std::string>(std::move(sRegID));
-        csRegID = const_cast<char *>(reg_ptr->data());
-        ptrA_v2->regisStrings.emplace(
-            sRegID, std::make_tuple(std::move(reg_ptr), sDownloadID));
-      }
+  char *flag = nullptr;
+  do {
+    if (nullptr == sDownloadID) {
+      break;
     }
-  }
-  return csRegID;
+    const std::string download_uuid(sDownloadID);
+    Assist_Type &ast = *(Assist_Type *)nAst;
+    auto iter = ast.downloadInfo.find(download_uuid);
+    if (ast.downloadInfo.end() == iter) {
+      break;
+    }
+    /// 取出下载总控
+    SlicedownloadMastercontrol &slicedownload = *std::get<1>(iter->second);
+    /// 注册订阅
+    /// uint64_t -> const char *适配器
+    auto next_lambda = [fNext, &slicedownload](uint64_t v) -> void {
+      /// 临时解决方案 TODO: 替换为使用json库进行json字符串生成
+      char buffer[256] = {'\0'};
+      /// 临时解决方案：拼接所需json字符串
+      _snprintf(buffer, 255,
+                "{\"smooth_speed\":\"%" PRIu64 "\",\"total_length\":\"%" PRIu64
+                "\",\"completed_length\":\"%" PRIu64 "\",\"in_progress\":%s}",
+                v, slicedownload.total_length.load(),
+                slicedownload.processed_bytes.load(),
+                slicedownload.inprocess_flag ? "true" : "false");
+      fNext(buffer);
+    };
+    auto subscription_uuid = std::make_unique<std::string>(
+        slicedownload.RegSpeedCallback(next_lambda, fComplete));
+    /// 保存订阅的uuid
+    flag = const_cast<char *>(subscription_uuid->data());
+    ast.regisStrings.emplace(
+        flag, std::make_tuple(std::move(subscription_uuid), download_uuid));
+  } while (false);
+  return flag;
 }
 
 extern "C" bool CancelSubscription(char *sRegisterID, int64_t nAst) {

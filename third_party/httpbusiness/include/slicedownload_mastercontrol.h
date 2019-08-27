@@ -25,9 +25,15 @@ struct SlicedownloadMastercontrol {
   /// TODO: 考虑到direct_url涉及到多线程读写，后续需利用读写锁封装
   std::string direct_url;
   std::string file_path;
+
+ public:
   std::atomic_int64_t total_length;
   /// 反映实际进度的字节数
   std::atomic_int64_t processed_bytes;
+  /// 标志位: 传输是否已实际开始
+  std::atomic_bool inprocess_flag;
+
+ private:
   std::atomic_int32_t current_worker;
   safequeue_closure<std::tuple<int64_t, int64_t>> slice_queue;
   std::promise<void> fin_signal;
@@ -59,6 +65,7 @@ struct SlicedownloadMastercontrol {
       : netframe(assistant_v2),
         total_length(0),
         processed_bytes(0),
+        inprocess_flag({false}),
         current_worker(0),
         processing_flag({false}),
         stop_flag({false}),
@@ -159,6 +166,7 @@ struct SlicedownloadMastercontrol {
           if (nullptr != item) {
             ++current_worker;
             worker_awake(std::get<0>(*item), std::get<1>(*item));
+            inprocess_flag = true;
           } else {
             break;
           }
@@ -233,7 +241,6 @@ struct SlicedownloadMastercontrol {
 
   /// 注册异步回调
   /// 返回uuid
-  /// TODO: 增加根据uuid取消特定订阅的方法
   std::string RegSpeedCallback(OnnextCb onnext_cb) {
     std::string flag;
     if (processing_flag) {
@@ -249,6 +256,15 @@ struct SlicedownloadMastercontrol {
       flag = assistant::uuid::generate();
       subscription_map.Put(flag, std::move(smoothspeed_stream.subscribe(
                                      onnext_cb, oncomplete_cb)));
+    }
+    return flag;
+  }
+  /// 根据uuid取消特定订阅的方法，返回值为true代表取消订阅成功
+  bool UnregSpeedCallback(const std::string& uuid) {
+    bool flag = false;
+    rxcpp::composite_subscription subscrition;
+    if (flag = subscription_map.Take(uuid, subscrition)) {
+      subscrition.unsubscribe();
     }
     return flag;
   }
