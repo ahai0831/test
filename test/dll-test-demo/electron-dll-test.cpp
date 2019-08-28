@@ -23,23 +23,27 @@ std::promise<void> finish_promise = std::promise<void>();
 
 int main(int argc, char *argv[]) {
   HINSTANCE dllLoad = LoadLibrary(L"electron-dll-project.dll");
-  Creat cst = nullptr;
+  Creat getAssist = nullptr;
   Start startDownload = nullptr;
-  Register reg = nullptr;
+  Register regSpeedbackup = nullptr;
+  Cancel unregSelected = nullptr;
   if (dllLoad) {
-    cst = (Creat)GetProcAddress(dllLoad, "CreateAst");
+    getAssist = (Creat)GetProcAddress(dllLoad, "CreateAst");
     startDownload = (Start)GetProcAddress(dllLoad, "StartSliceDownload");
-    reg =
+    regSpeedbackup =
         (Register)GetProcAddress(dllLoad, "RegisterSliceDownloadSubscription");
-    auto ast = cst();
+	unregSelected = (Cancel)GetProcAddress(dllLoad, "CancelSubscription");
+    auto assist_ptr = getAssist();
     auto sDownloadID = startDownload(
         "http://download.cloud.189.cn/download/client/android/"
         "cloud189_v8.1.2_1564572280003.apk",
-        "D:/1.apk", ast);
-    auto fNext1 = [](const char *a) { printf("a is %s\n", a); };
+        "D:/1.apk", assist_ptr);
+    auto fNext1 = [](const char *a) {
+		printf("a is %s\n", a); 
+	};
     auto fComp1 = []() { finish_promise.set_value(); };
     auto finish_future = finish_promise.get_future();
-    auto sRegID = reg(fNext1, fComp1, sDownloadID, ast);
+    auto sRegID = regSpeedbackup(fNext1, fComp1, sDownloadID, assist_ptr);
     finish_future.get();
   } else {
     std::cout << "fail to load dll file.\n";
