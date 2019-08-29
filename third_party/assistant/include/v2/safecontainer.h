@@ -89,6 +89,10 @@ struct safemap_closure {
     std::lock_guard<decltype(mutex)> lock(mutex);
     return map.emplace(key, value).second;
   }
+  bool Emplace(Key& key, Value& value) {
+	  std::lock_guard<decltype(mutex)> lock(mutex);
+	  return map.emplace(std::move(key), std::move(value)).second;
+  }
   /// 查询Key对应的Value，失败则返回 false
   bool Get(const Key& key, Value& value) {
     std::lock_guard<decltype(mutex)> lock(mutex);
