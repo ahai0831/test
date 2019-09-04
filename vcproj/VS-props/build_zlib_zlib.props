@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <ZlibVersion>zlib-1.2.11</ZlibVersion>
+    <ZlibPath>$(ProjectDir)..\..\..\..\third_party\zlib\</ZlibPath>
+    <ZlibSourcePath>$(ZlibPath)$(ZlibVersion)\src\$(ZlibVersion)\</ZlibSourcePath>
+    <ZlibIncludeSetupPath>$(ZlibPath)$(ZlibVersion)\include\</ZlibIncludeSetupPath>
+    <ZlibLibSetupPath>$(ZlibPath)$(ZlibVersion)\lib\</ZlibLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(ZlibLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>zlib</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ZlibSourcePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="ZlibVersion">
+      <Value>$(ZlibVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="ZlibPath">
+      <Value>$(ZlibPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="ZlibSourcePath">
+      <Value>$(ZlibSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="ZlibIncludeSetupPath">
+      <Value>$(ZlibIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="ZlibLibSetupPath">
+      <Value>$(ZlibLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

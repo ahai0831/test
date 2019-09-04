@@ -81,10 +81,10 @@
     <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
     <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.13.1\libuv_withproject.props" />
-    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_withproject.props" />
-    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
     <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
     <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
     <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
