@@ -19,29 +19,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v2.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\http_primitives.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_easy.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_global.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_multi.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_share.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_transfercallback.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\safecontainer.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\safequeue.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\thread.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\tools.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uuid.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_async.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_poll.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_timer.h" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\adler32.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\compress.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\contrib\minizip\ioapi.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\contrib\minizip\unzip.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\contrib\minizip\zip.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\crc32.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\deflate.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\gzclose.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\gzlib.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\gzread.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\gzwrite.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\infback.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\inffast.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\inflate.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\inftrees.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\trees.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\uncompr.c" />
+    <ClCompile Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\zutil.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\third_party\assistant\include\Assistant_v2.inc" />
+    <ClInclude Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\zconf.h" />
+    <ClInclude Include="..\..\..\..\third_party\zlib\zlib-1.2.11\src\zlib-1.2.11\zlib.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0BABF827-88BF-4475-97AB-F2BD7622CA00}</ProjectGuid>
+    <ProjectGuid>{FCA05400-6B72-4CDD-A30B-DB724229DD28}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>assistant</RootNamespace>
+    <RootNamespace>zlib</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,31 +79,27 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_zlib_zlib.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_zlib_zlib.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_zlib_zlib.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_zlib_zlib.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />

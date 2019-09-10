@@ -18,30 +18,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v2.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\http_primitives.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_easy.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_global.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_multi.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_share.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_transfercallback.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\safecontainer.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\safequeue.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\thread.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\tools.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uuid.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_async.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_poll.h" />
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_timer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\..\third_party\assistant\include\Assistant_v2.inc" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0BABF827-88BF-4475-97AB-F2BD7622CA00}</ProjectGuid>
+    <ProjectGuid>{5CB20B71-5B65-483F-8872-944866E9670D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>assistant</RootNamespace>
+    <RootNamespace>libuv</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,31 +55,27 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build-libuv-1.20.3.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build-libuv-1.20.3.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build-libuv-1.20.3.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build-libuv-1.20.3.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
@@ -115,6 +91,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -163,6 +142,57 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\fs-poll.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\inet.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\threadpool.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\uv-common.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\version.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\async.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\core.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\detect-wakeup.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\dl.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\error.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\fs-event.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\fs.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\getaddrinfo.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\getnameinfo.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\handle.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\loop-watcher.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\pipe.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\poll.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\process-stdio.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\process.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\signal.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\snprintf.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\stream.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\tcp.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\thread.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\timer.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\tty.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\udp.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\util.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\winapi.c" />
+    <ClCompile Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\winsock.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\include\tree.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\include\uv-errno.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\include\uv-threadpool.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\include\uv-version.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\include\uv-win.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\include\uv.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\heap-inl.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\queue.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\uv-common.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\atomicops-inl.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\handle-inl.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\internal.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\req-inl.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\stream-inl.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\winapi.h" />
+    <ClInclude Include="..\..\..\..\third_party\libuv\libuv-1.20.3\src\libuv-1.20.3\src\win\winsock.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

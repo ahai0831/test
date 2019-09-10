@@ -23,7 +23,10 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>"$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(GoogletestPath)$(GoogletestVersion).tar.gz" "$(GoogletestPath)$(GoogletestVersion)\src\"</Command>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(GoogletestPath)$(GoogletestVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(GoogletestPath)$(GoogletestVersion).tar.gz" "$(GoogletestPath)$(GoogletestVersion)\src\"</Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>xcopy "$(GoogletestSourcePath)googletest\include\gtest" "$(GoogletestIncludeSetupPath)gtest\" /Y /C /R /Q /S /E /D
