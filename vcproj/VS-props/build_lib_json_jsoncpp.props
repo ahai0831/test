@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <JsoncppVersion>jsoncpp-1.8.4</JsoncppVersion>
+    <JsoncppPath>$(ProjectDir)..\..\..\..\third_party\jsoncpp\</JsoncppPath>
+    <JsoncppSourcePath>$(JsoncppPath)$(JsoncppVersion)\src\$(JsoncppVersion)\</JsoncppSourcePath>
+    <JsoncppIncludeSetupPath>$(JsoncppPath)$(JsoncppVersion)\include\</JsoncppIncludeSetupPath>
+    <JsoncppLibSetupPath>$(JsoncppPath)$(JsoncppVersion)\lib\</JsoncppLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(JsoncppLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>lib_json</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(JsoncppSourcePath)include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(JsoncppPath)$(JsoncppVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(JsoncppPath)$(JsoncppVersion).tar.gz" "$(JsoncppPath)$(JsoncppVersion)\src\"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(JsoncppSourcePath)include\json" "$(JsoncppIncludeSetupPath)json\" /Y /C /R /Q /S /E /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="JsoncppVersion">
+      <Value>$(JsoncppVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JsoncppPath">
+      <Value>$(JsoncppPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JsoncppSourcePath">
+      <Value>$(JsoncppSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JsoncppIncludeSetupPath">
+      <Value>$(JsoncppIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JsoncppLibSetupPath">
+      <Value>$(JsoncppLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
