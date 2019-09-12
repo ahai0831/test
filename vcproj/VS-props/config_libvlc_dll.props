@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <VlcVersion>vlc-3.0.8</VlcVersion>
+    <VlcPath>$(ProjectDir)..\..\..\..\third_party\vlc\</VlcPath>
+    <VlcBinPath>$(VlcPath)$(VlcVersion)\bin\$(Platform)\</VlcBinPath>
+    <VlcLibSetupPath>$(VlcPath)$(VlcVersion)\lib\$(Platform)\</VlcLibSetupPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <PreBuildEvent Condition="'$(Platform)'=='Win32'">
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(VlcPath)$(VlcVersion)-win32.csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(VlcPath)$(VlcVersion)-win32.7z" "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win32\"
+@REM copy file
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win32\$(VlcVersion)\libvlc.dll" "$(VlcBinPath)"  /Y /C /R /Q /D
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win32\$(VlcVersion)\libvlccore.dll" "$(VlcBinPath)"  /Y /C /R /Q /D
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win32\$(VlcVersion)\plugins" "$(VlcBinPath)plugins\"  /Y /C /R /Q /S /E /D
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win32\$(VlcVersion)\sdk\include" "$(VlcPath)$(VlcVersion)\include\"  /Y /C /R /Q /S /E /D
+@REM generate import library
+&gt;nul 2&gt;&amp;1 md "$(VlcLibSetupPath)"
+echo EXPORTS&gt;"$(VlcLibSetupPath)libvlc.def"
+for /f "usebackq tokens=4,* delims=_ " %%i in (`dumpbin /exports "$(VlcBinPath)libvlc.dll"`) do if %%i==libvlc echo %%i_%%j&gt;&gt;"$(VlcLibSetupPath)libvlc.def"
+lib /def:"$(VlcLibSetupPath)libvlc.def" /out:"$(VlcLibSetupPath)libvlc.lib" /machine:x86</Command>
+    </PreBuildEvent>
+    <PreBuildEvent Condition="'$(Platform)'=='x64'">
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(VlcPath)$(VlcVersion)-win64.csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(VlcPath)$(VlcVersion)-win64.7z" "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win64\"
+@REM copy file
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win64\$(VlcVersion)\libvlc.dll" "$(VlcBinPath)"  /Y /C /R /Q /D
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win64\$(VlcVersion)\libvlccore.dll" "$(VlcBinPath)"  /Y /C /R /Q /D
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win64\$(VlcVersion)\plugins" "$(VlcBinPath)plugins\"  /Y /C /R /Q /S /E /D
+xcopy "$(VlcPath)$(VlcVersion)\$(VlcVersion)-win64\$(VlcVersion)\sdk\include" "$(VlcPath)$(VlcVersion)\include\"  /Y /C /R /Q /S /E /D
+@REM generate import library
+&gt;nul 2&gt;&amp;1 md "$(VlcLibSetupPath)"
+echo EXPORTS&gt;"$(VlcLibSetupPath)libvlc.def"
+for /f "usebackq tokens=4,* delims=_ " %%i in (`dumpbin /exports "$(VlcBinPath)libvlc.dll"`) do if %%i==libvlc echo %%i_%%j&gt;&gt;"$(VlcLibSetupPath)libvlc.def"
+lib /def:"$(VlcLibSetupPath)libvlc.def" /out:"$(VlcLibSetupPath)libvlc.lib" /machine:x64</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(VlcPath)$(VlcVersion)\bin\$(Platform)" "$(OutDir)" /Y /C /R /Q /S /E /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="VlcVersion">
+      <Value>$(VlcVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="VlcPath">
+      <Value>$(VlcPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="VlcBinPath">
+      <Value>$(VlcBinPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="VlcLibSetupPath">
+      <Value>$(VlcLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
