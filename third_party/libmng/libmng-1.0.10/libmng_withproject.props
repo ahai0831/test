@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <LibmngPath>$(ProjectDir)..\..\..\..\third_party\libmng\libmng-1.0.10\</LibmngPath>
+    <LibmngIncludePath>$(LibmngPath)include\</LibmngIncludePath>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(LibmngIncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+   </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(LibmngPath)lib\$(Platform)\$(Configuration)\mng.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="LibmngPath">
+      <Value>$(LibmngPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibmngIncludePath">
+      <Value>$(LibmngIncludePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <LibpsdVersion>N/A</LibpsdVersion>
+    <LibpsdPath>$(ProjectDir)..\..\..\..\third_party\libpsd\</LibpsdPath>
+    <LibpsdSourcePath>$(LibpsdPath)src\</LibpsdSourcePath>
+    <LibpsdIncludeSetupPath>$(LibpsdPath)include\</LibpsdIncludeSetupPath>
+    <LibpsdLibSetupPath>$(LibpsdPath)lib\</LibpsdLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(LibpsdLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>libpsd</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(LibpsdSourcePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4267;4091;4311;4312</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>for %%i in (libpsd.h psd_types.h) do xcopy "$(LibpsdSourcePath)%%i" "$(LibpsdIncludeSetupPath)" /Y /C /R /Q /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="LibpsdVersion">
+      <Value>$(LibpsdVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpsdPath">
+      <Value>$(LibpsdPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpsdSourcePath">
+      <Value>$(LibpsdSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpsdIncludeSetupPath">
+      <Value>$(LibpsdIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpsdLibSetupPath">
+      <Value>$(LibpsdLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

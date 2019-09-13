@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <JbigkitVersion>jbigkit-2.1</JbigkitVersion>
+    <JbigkitPath>$(ProjectDir)..\..\..\..\third_party\jbigkit\</JbigkitPath>
+    <JbigkitSourcePath>$(JbigkitPath)$(JbigkitVersion)\src\$(JbigkitVersion)\</JbigkitSourcePath>
+    <JbigkitIncludeSetupPath>$(JbigkitPath)$(JbigkitVersion)\include\</JbigkitIncludeSetupPath>
+    <JbigkitLibSetupPath>$(JbigkitPath)$(JbigkitVersion)\lib\</JbigkitLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(JbigkitLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>jbig</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(JbigkitSourcePath)libjbig\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4005;4244;4267</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="JbigkitVersion">
+      <Value>$(JbigkitVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitPath">
+      <Value>$(JbigkitPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitSourcePath">
+      <Value>$(JbigkitSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitIncludeSetupPath">
+      <Value>$(JbigkitIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitLibSetupPath">
+      <Value>$(JbigkitLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

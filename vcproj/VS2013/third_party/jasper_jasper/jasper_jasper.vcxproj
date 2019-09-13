@@ -1,0 +1,260 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_cm.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_debug.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_getopt.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_icc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_iccdata.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_image.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_init.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_malloc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_seq.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_stream.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_string.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_tmr.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_tvp.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\base\jas_version.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\bmp\bmp_cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\bmp\bmp_dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\bmp\bmp_enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jp2\jp2_cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jp2\jp2_dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jp2\jp2_enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_bs.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_cs.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_math.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mct.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mqcod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mqdec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mqenc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_qmfb.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t1cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t1dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t1enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t2cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t2dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t2enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_tagtree.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_tsfb.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_util.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpg\jpg_dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpg\jpg_enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpg\jpg_val.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\mif\mif_cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pgx\pgx_cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pgx\pgx_dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pgx\pgx_enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pnm\pnm_cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pnm\pnm_dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pnm\pnm_enc.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\ras\ras_cod.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\ras\ras_dec.c" />
+    <ClCompile Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\ras\ras_enc.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\bmp\bmp_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\bmp\bmp_enc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jasper.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_cm.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_config.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_debug.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_dll.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_fix.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_getopt.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_icc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_image.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_init.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_malloc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_math.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_seq.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_stream.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_string.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_tmr.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_tvp.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_types.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\include\jasper\jas_version.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jp2\jp2_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jp2\jp2_dec.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_bs.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_cs.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_dec.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_enc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_fix.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_flt.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_math.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mct.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mqcod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mqdec.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_mqenc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_qmfb.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t1cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t1dec.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t1enc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t2cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t2dec.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_t2enc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_tagtree.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_tsfb.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpc\jpc_util.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpg\jpg_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpg\jpg_enc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\jpg\jpg_jpeglib.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\mif\mif_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pgx\pgx_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pgx\pgx_enc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pnm\pnm_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\pnm\pnm_enc.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\ras\ras_cod.h" />
+    <ClInclude Include="..\..\..\..\third_party\jasper\jasper-version-2.0.16\src\jasper-version-2.0.16\src\libjasper\ras\ras_enc.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A4379A39-2CE1-4DA5-9C10-D9AE07A8477B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>jasper</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_jasper_jasper.props" />
+    <Import Project="..\..\..\..\third_party\IJG_jpeg\jpeg-9c\jpeg_include_withproject.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_jasper_jasper.props" />
+    <Import Project="..\..\..\..\third_party\IJG_jpeg\jpeg-9c\jpeg_include_withproject.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_jasper_jasper.props" />
+    <Import Project="..\..\..\..\third_party\IJG_jpeg\jpeg-9c\jpeg_include_withproject.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_jasper_jasper.props" />
+    <Import Project="..\..\..\..\third_party\IJG_jpeg\jpeg-9c\jpeg_include_withproject.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

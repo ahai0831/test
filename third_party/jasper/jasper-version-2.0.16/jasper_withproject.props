@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <JasperPath>$(ProjectDir)..\..\..\..\third_party\jasper\jasper-version-2.0.16\</JasperPath>
+    <JasperIncludePath>$(JasperPath)include\</JasperIncludePath>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(JasperIncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+   </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(JasperPath)lib\$(Platform)\$(Configuration)\jasper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="JasperPath">
+      <Value>$(JasperPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JasperIncludePath">
+      <Value>$(JasperIncludePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

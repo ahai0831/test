@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\adjustment.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\bevel_emboss.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\bitmap.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\blend.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\boundary.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\brightness_contrast.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\channel_image.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\channel_mixer.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\color.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\color_balance.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\color_mode.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\color_overlay.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\curves.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\descriptor.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\drop_shadow.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\effects.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\file_header.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\fixed.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\gaussian_blur.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\gradient_blend.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\gradient_fill.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\gradient_map.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\gradient_overlay.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\hue_saturation.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\image_data.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\image_resource.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\inner_glow.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\inner_shadow.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\invert.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\layer_mask.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\levels.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\outer_glow.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\pattern.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\pattern_fill.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\pattern_overlay.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\photo_filter.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\posterize.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\psd.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\psd_system.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\psd_zip.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\rect.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\satin.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\selective_color.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\solid_color.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\stream.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\stroke.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\threshold.c" />
+    <ClCompile Include="..\..\..\..\third_party\libpsd\src\type_tool.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\libpsd.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_bitmap.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_blend.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_color.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_config.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_descriptor.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_fixed.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_gradient.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_math.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_rect.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_stream.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_system.h" />
+    <ClInclude Include="..\..\..\..\third_party\libpsd\src\psd_types.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BD1D83B3-D93A-4608-AD25-5E76017DC3C6}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>libpsd</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_libpsd_libpsd.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_include_withproject.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_libpsd_libpsd.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_include_withproject.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_libpsd_libpsd.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_include_withproject.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\build_libpsd_libpsd.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_include_withproject.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
