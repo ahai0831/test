@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <JasperVersion>jasper-version-2.0.16</JasperVersion>
+    <JasperPath>$(ProjectDir)..\..\..\..\third_party\jasper\</JasperPath>
+    <JasperSourcePath>$(JasperPath)$(JasperVersion)\src\$(JasperVersion)\</JasperSourcePath>
+    <JasperIncludeSetupPath>$(JasperPath)$(JasperVersion)\include\</JasperIncludeSetupPath>
+    <JasperLibSetupPath>$(JasperPath)$(JasperVersion)\lib\</JasperLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(JasperLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>jasper</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(JasperSourcePath)src\libjasper\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4244;4267;4101;4996;4018</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(JasperPath)$(JasperVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(JasperPath)$(JasperVersion).tar.gz" "$(JasperPath)$(JasperVersion)\src\"
+@REM apply patch
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(JasperPath)patch_$(JasperVersion).7z" "$(JasperPath)$(JasperVersion)\src\"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(JasperSourcePath)src\libjasper\include" "$(JasperIncludeSetupPath)" /Y /C /R /Q /S /E /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="JasperVersion">
+      <Value>$(JasperVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JasperPath">
+      <Value>$(JasperPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JasperSourcePath">
+      <Value>$(JasperSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JasperIncludeSetupPath">
+      <Value>$(JasperIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JasperLibSetupPath">
+      <Value>$(JasperLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

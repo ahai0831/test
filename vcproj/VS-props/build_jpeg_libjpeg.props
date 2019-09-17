@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <LibjpegVersion>jpeg-9c</LibjpegVersion>
+    <LibjpegPath>$(ProjectDir)..\..\..\..\third_party\IJG_jpeg\</LibjpegPath>
+    <LibjpegSourcePath>$(LibjpegPath)$(LibjpegVersion)\src\$(LibjpegVersion)\</LibjpegSourcePath>
+    <LibjpegIncludeSetupPath>$(LibjpegPath)$(LibjpegVersion)\include\</LibjpegIncludeSetupPath>
+    <LibjpegLibSetupPath>$(LibjpegPath)$(LibjpegVersion)\lib\</LibjpegLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(LibjpegLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>jpeg</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(LibjpegSourcePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="LibjpegVersion">
+      <Value>$(LibjpegVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibjpegPath">
+      <Value>$(LibjpegPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibjpegSourcePath">
+      <Value>$(LibjpegSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibjpegIncludeSetupPath">
+      <Value>$(LibjpegIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibjpegLibSetupPath">
+      <Value>$(LibjpegLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

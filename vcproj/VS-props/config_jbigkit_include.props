@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <JbigkitVersion>jbigkit-2.1</JbigkitVersion>
+    <JbigkitPath>$(ProjectDir)..\..\..\..\third_party\jbigkit\</JbigkitPath>
+    <JbigkitSourcePath>$(JbigkitPath)$(JbigkitVersion)\src\$(JbigkitVersion)\</JbigkitSourcePath>
+    <JbigkitIncludeSetupPath>$(JbigkitPath)$(JbigkitVersion)\include\</JbigkitIncludeSetupPath>
+    <JbigkitLibSetupPath>$(JbigkitPath)$(JbigkitVersion)\lib\</JbigkitLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <PreBuildEvent>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(JbigkitPath)$(JbigkitVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(JbigkitPath)$(JbigkitVersion).tar.gz" "$(JbigkitPath)$(JbigkitVersion)\src\"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>for %%i in (jbig.h jbig_ar.h) do xcopy "$(JbigkitSourcePath)libjbig\%%i" "$(JbigkitIncludeSetupPath)" /Y /C /R /Q /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="JbigkitVersion">
+      <Value>$(JbigkitVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitPath">
+      <Value>$(JbigkitPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitSourcePath">
+      <Value>$(JbigkitSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitIncludeSetupPath">
+      <Value>$(JbigkitIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="JbigkitLibSetupPath">
+      <Value>$(JbigkitLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

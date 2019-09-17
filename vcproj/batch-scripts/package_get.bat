@@ -13,14 +13,14 @@ for /f "usebackq skip=1 tokens=1,2,3 delims=," %%i in ("%target_csv_file%") do (
     >nul 2>&1 dir "%%i" ||(
         echo [info]Download %%i ...************************************************
         echo [info]Try %%j
-        call "%~dp0aria2c.bat" -s3 -x3 -k3M -c %%j
+        call "%~dp0aria2c.bat" -o%%i -s3 -x3 -k3M -c %%j
         echo [info]************************************************
     )
     @REM download file if resume from break point
     >nul 2>&1 dir "%%i.aria2" &&(
         echo [info]Download %%i ...************************************************
         echo [info]Try %%j
-        call "%~dp0aria2c.bat" -s3 -x3 -k3M -c %%j
+        call "%~dp0aria2c.bat" -o%%i -s3 -x3 -k3M -c %%j
         echo [info]************************************************
     )
     @REM check file

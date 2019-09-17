@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <TiffVersion>tiff-4.0.10</TiffVersion>
+    <TiffPath>$(ProjectDir)..\..\..\..\third_party\tiff\</TiffPath>
+    <TiffSourcePath>$(TiffPath)$(TiffVersion)\src\$(TiffVersion)\</TiffSourcePath>
+    <TiffIncludeSetupPath>$(TiffPath)$(TiffVersion)\include\</TiffIncludeSetupPath>
+    <TiffLibSetupPath>$(TiffPath)$(TiffVersion)\lib\</TiffLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(TiffLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>tiff</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;JPEG_SUPPORT=1;JBIG_SUPPORT=1;ZIP_SUPPORT=1;HAVE_SNPRINTF=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(TiffSourcePath)libtiff\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4312;4311</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(TiffPath)$(TiffVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(TiffPath)$(TiffVersion).tar.gz" "$(TiffPath)$(TiffVersion)\src\"
+@REM generate tif_config.h
+echo F|xcopy "$(TiffSourcePath)libtiff\tif_config.vc.h" "$(TiffSourcePath)libtiff\tif_config.h" /Y /C /R /Q /D &gt;nul
+@REM generate tiffconf.h
+echo F|xcopy "$(TiffSourcePath)libtiff\tiffconf.vc.h" "$(TiffSourcePath)libtiff\tiffconf.h" /Y /C /R /Q /D &gt;nul</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>for %%i in (tiffiop.h tiffvers.h tiffio.h tif_config.h tif_dir.h tiff.h tiffconf.h) do xcopy "$(TiffSourcePath)libtiff\%%i" "$(TiffIncludeSetupPath)" /Y /C /R /Q /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="TiffVersion">
+      <Value>$(TiffVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="TiffPath">
+      <Value>$(TiffPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="TiffSourcePath">
+      <Value>$(TiffSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="TiffIncludeSetupPath">
+      <Value>$(TiffIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="TiffLibSetupPath">
+      <Value>$(TiffLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <LibdcrVersion>N/A</LibdcrVersion>
+    <LibdcrPath>$(ProjectDir)..\..\..\..\third_party\libdcr\</LibdcrPath>
+    <LibdcrSourcePath>$(LibdcrPath)src\</LibdcrSourcePath>
+    <LibdcrIncludeSetupPath>$(LibdcrPath)include\</LibdcrIncludeSetupPath>
+    <LibdcrLibSetupPath>$(LibdcrPath)lib\</LibdcrLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(LibdcrLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>libdcr</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(LibdcrSourcePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PostBuildEvent>
+      <Command>for %%i in (libdcr.h) do xcopy "$(LibdcrSourcePath)%%i" "$(LibdcrIncludeSetupPath)" /Y /C /R /Q /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="LibdcrVersion">
+      <Value>$(LibdcrVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibdcrPath">
+      <Value>$(LibdcrPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibdcrSourcePath">
+      <Value>$(LibdcrSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibdcrIncludeSetupPath">
+      <Value>$(LibdcrIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibdcrLibSetupPath">
+      <Value>$(LibdcrLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

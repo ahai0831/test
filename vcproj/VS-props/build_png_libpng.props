@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <LibpngVersion>libpng-1.6.37</LibpngVersion>
+    <LibpngPath>$(ProjectDir)..\..\..\..\third_party\libpng\</LibpngPath>
+    <LibpngSourcePath>$(LibpngPath)$(LibpngVersion)\src\$(LibpngVersion)\</LibpngSourcePath>
+    <LibpngIncludeSetupPath>$(LibpngPath)$(LibpngVersion)\include\</LibpngIncludeSetupPath>
+    <LibpngLibSetupPath>$(LibpngPath)$(LibpngVersion)\lib\</LibpngLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(LibpngLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>png</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(LibpngSourcePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(LibpngPath)$(LibpngVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(LibpngPath)$(LibpngVersion).tar.xz" "$(LibpngPath)$(LibpngVersion)\src\"
+@REM generate pnglibconf.h
+echo F|xcopy "$(LibpngSourcePath)scripts\pnglibconf.h.prebuilt" "$(LibpngSourcePath)pnglibconf.h" /Y /C /R /Q /D &gt;nul</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>for %%i in (png.h pngstruct.h pnginfo.h pnglibconf.h pngconf.h) do xcopy "$(LibpngSourcePath)%%i" "$(LibpngIncludeSetupPath)" /Y /C /R /Q /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="LibpngVersion">
+      <Value>$(LibpngVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpngPath">
+      <Value>$(LibpngPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpngSourcePath">
+      <Value>$(LibpngSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpngIncludeSetupPath">
+      <Value>$(LibpngIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="LibpngLibSetupPath">
+      <Value>$(LibpngLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
