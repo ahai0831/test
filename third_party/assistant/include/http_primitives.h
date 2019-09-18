@@ -121,6 +121,9 @@ struct HttpRequest_v1 {
         body(_body),
         solve_func(std::move(_solve_func)),
         extends(_extends) {}
+  HttpRequest_v1(const std::string& _method, const std::string& _url,
+                 const std::string& _body)
+      : method(_method), url(_url), body(_body) {}
   explicit HttpRequest_v1(const std::string& _url) : method("GET"), url(_url){};
   explicit HttpRequest_v1(Opts opts) {
     switch (opts) {
