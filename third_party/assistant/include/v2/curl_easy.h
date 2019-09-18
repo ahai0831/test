@@ -97,7 +97,27 @@ struct a3_2 {
     auto &req = *request;
     auto &res = *response;
     auto &easy_handle = easy->get_easy();
+
     curl_easy_setopt(easy_handle, CURLOPT_URL, req.url.c_str());
+    /// TODO: 根据http方法进行不同的处理
+
+    /// Solve http-post
+    if (req.method == "POST") {
+      curl_off_t length_of_data = req.body.size();
+      curl_easy_setopt(easy_handle, CURLOPT_POSTFIELDSIZE_LARGE,
+                       length_of_data);
+      curl_easy_setopt(easy_handle, CURLOPT_POSTFIELDS, req.body.c_str());
+    }
+    /// Solve http-put, send a long string.
+    if (req.method == "PUT") {
+      curl_off_t length_of_data = req.body.size();
+      curl_easy_setopt(easy_handle, CURLOPT_POSTFIELDSIZE_LARGE,
+                       length_of_data);
+      curl_easy_setopt(easy_handle, CURLOPT_POSTFIELDS, req.body.c_str());
+      curl_easy_setopt(easy_handle, CURLOPT_CUSTOMREQUEST, "PUT");
+    }
+    /// Todo: 增加上传文件所需的写回调处理
+    printf("Do request: %s\n", req.url.c_str());
     /// config some write callback of easy handle transfer
     void *response_callback_data = res.data;
     curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, response_callback_data);
