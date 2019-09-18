@@ -94,11 +94,10 @@ struct a3_2 {
   std::unique_ptr<assistant::HttpResponse> response;
   static void SetEasyInfo(decltype(request) &request,
                           decltype(response) &response, decltype(easy) &easy) {
-    auto &req = *request.get();
-    auto &res = *response.get();
+    auto &req = *request;
+    auto &res = *response;
     auto &easy_handle = easy->get_easy();
     curl_easy_setopt(easy_handle, CURLOPT_URL, req.url.c_str());
-    printf("Do request: %s\n", req.url.c_str());
     /// config some write callback of easy handle transfer
     void *response_callback_data = res.data;
     curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, response_callback_data);
@@ -233,9 +232,14 @@ struct a3_2 {
     curl_easy_setopt(easy_handle, CURLOPT_NOSIGNAL, 1L);
     /// abort if connect cost more than 10 seconds
     curl_easy_setopt(easy_handle, CURLOPT_CONNECTTIMEOUT_MS, 10000L);
-    /// abort if slower than 1 bytes/sec during 60 seconds
+    /// abort if slower than 1 bytes/sec during 60(default) seconds
     curl_easy_setopt(easy_handle, CURLOPT_LOW_SPEED_LIMIT, 1L);
     curl_easy_setopt(easy_handle, CURLOPT_LOW_SPEED_TIME, 60L);
+    std::string transfer_timeout;
+    if (req.extends.Get("transfer_timeout", transfer_timeout)) {
+      int32_t timeout = atol(transfer_timeout.c_str());
+      curl_easy_setopt(easy_handle, CURLOPT_LOW_SPEED_TIME, timeout);
+    }
     /// By default: Don't verify server's name and certificate
     curl_easy_setopt(easy_handle, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(easy_handle, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -246,14 +250,17 @@ struct a3_2 {
     curl_easy_setopt(easy_handle, CURLOPT_BUFFERSIZE, CURL_MAX_READ_SIZE);
   }
   static void GetEasyInfo(decltype(easy) &easy, decltype(response) &response) {
-    auto &res = *response.get();
+    auto &res = *response;
     auto &easy_handle = easy->get_easy();
     /// 尽快销毁写回调对象，以将文件写入磁盘
     if (nullptr != res.transfer_callback) {
       res.transfer_callback->Destroy();
       res.transfer_callback = nullptr;
     }
-
+    /// check and save CURLcode
+    if (CURLE_OK != easy->result) {
+      res.extends.Set("CURLcode", std::to_string(easy->result));
+    }
     /// pickup infos from easy handle
     long res_code;
     curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &res_code);
