@@ -29,8 +29,9 @@ struct rx_assistant_factory {
   typedef std::function<bool(const rx_assistant::HttpResult&,
                              assistant::HttpRequest&)>
       IteratorResultDelegate;
-  /// TODO:
-  /// 考虑到潜在的"重试"和幂等重试间隔策略，后续也许可增加IteratorObservableDelegate
+  typedef std::function<bool(const rx_assistant::HttpResult&,
+                             assistant::HttpRequest&, int32_t&)>
+      DelayedIteratorResultDelegate;
 
  public:
   explicit rx_assistant_factory(
@@ -63,6 +64,50 @@ struct rx_assistant_factory {
             request_ptr->solve_func.swap(subscriber_func);
             assistant_ptr->AsyncHttpRequest(*request_ptr);
             request_ptr->solve_func.swap(subscriber_func);
+          }
+        });
+  }
+  /// create_with_delay
+  /// 参数：const assistant::HttpRequest& 异步请求的Request
+  /// 参数：const int32_t 延时，单位毫秒数
+  /// 参数：const rxcpp::observe_on_one_worker 定时器所在线程
+  /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
+  /// 请求结果（包含原始Request以及Response）的数据源
+  /// 特殊情况：当assistant::Assistant_v2的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+  rxcpp::observable<rx_assistant::HttpResult> create_with_delay(
+      const assistant::HttpRequest& async_request,
+      const int32_t delay_milliseconds,
+      const rxcpp::observe_on_one_worker timer_worker) {
+    auto request_ptr = std::make_shared<assistant::HttpRequest>(async_request);
+    auto assistant_weak = _assistant_weak;
+    return rxcpp::observable<>::create<rx_assistant::HttpResult>(
+        [request_ptr, assistant_weak, delay_milliseconds,
+         timer_worker](rxcpp::subscriber<rx_assistant::HttpResult> s) -> void {
+          // 		  auto assistant_ptr = assistant_weak.lock();
+          if (s.is_subscribed() /* && nullptr != assistant_ptr*/) {
+            /// 必须以值捕获的方式，保持rxcpp::subscriber<rx_assistant::HttpResult>生命周期
+            decltype(request_ptr->solve_func) subscriber_func =
+                [s](assistant::HttpResponse& res,
+                    assistant::HttpRequest& req) -> void {
+              /// 同理，由于移动构造后，会导致subscriber引用计数归零，需要临时保持subscriber生命周期
+              auto keep_subscriber = req.solve_func;
+              keep_subscriber.swap(req.solve_func);
+              s.on_next(std::move(rx_assistant::HttpResult(req, res)));
+              s.on_completed();
+            };
+            /// 在delay特定时间后的timer的回调中，启动网络请求
+            auto time_delay = rxcpp::observable<>::timer(
+                std::chrono::milliseconds(delay_milliseconds), timer_worker);
+            time_delay.subscribe([request_ptr, assistant_weak,
+                                  subscriber_func](int) {
+              auto assistant_ptr = assistant_weak.lock();
+              if (nullptr != assistant_ptr) {
+                decltype(request_ptr->solve_func) tmp_func = subscriber_func;
+                request_ptr->solve_func.swap(tmp_func);
+                assistant_ptr->AsyncHttpRequest(*request_ptr);
+                request_ptr->solve_func.swap(tmp_func);
+              }
+            });
           }
         });
   }
@@ -106,8 +151,42 @@ struct rx_assistant_factory {
       return callback(res, iterate_req)
                  ? ast_factory.iterator_result(ast_factory.create(iterate_req),
                                                callback)
-                 : (rxcpp::observable<rx_assistant::HttpResult>)
-                       rxcpp::observable<>::just(res);
+                 : static_cast<rxcpp::observable<rx_assistant::HttpResult>>(
+                       rxcpp::observable<>::just(res));
+    });
+  }
+  /// iterator_with_delay_result
+  /// 参数：const rxcpp::observable<rx_assistant::HttpResult>&
+  /// 上一个异步请求的请求结果的数据源
+  /// 参数：std::function<bool(const rx_assistant::HttpResult&,
+  /// assistant::HttpRequest&)>
+  /// 传入参数为rx_assistant::HttpResult，输出HttpRequest，返回值为迭代是否继续的bool值的回调
+  /// 利用同一个Delegate将rx_assistant::HttpResult转换为下一个将要调用的HttpRequest，Delegate返回值为true意味着继续迭代
+  /// Delegate返回值为false意味着迭代结束
+  /// 参数：const rxcpp::observe_on_one_worker 定时器所在线程
+  /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
+  /// 请求结果（包含原始Request以及Response）的数据源
+  /// 特殊情况：当assistant::Assistant_v2的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+  rxcpp::observable<rx_assistant::HttpResult> iterator_with_delay_result(
+      const rxcpp::observable<rx_assistant::HttpResult>& obs,
+      DelayedIteratorResultDelegate callback,
+      const rxcpp::observe_on_one_worker timer_worker) {
+    auto assistant_weak = _assistant_weak;
+    return obs.flat_map([assistant_weak, callback,
+                         timer_worker](rx_assistant::HttpResult res)
+                            -> rxcpp::observable<rx_assistant::HttpResult> {
+      rx_assistant_factory ast_factory(assistant_weak);
+      assistant::HttpRequest iterate_req("");
+      int32_t delay_milliseconds = 0;
+      return callback(res, iterate_req, delay_milliseconds)
+                 ? ast_factory.iterator_with_delay_result(
+                       delay_milliseconds > 0
+                           ? ast_factory.create_with_delay(
+                                 iterate_req, delay_milliseconds, timer_worker)
+                           : ast_factory.create(iterate_req),
+                       callback, timer_worker)
+                 : static_cast<rxcpp::observable<rx_assistant::HttpResult>>(
+                       rxcpp::observable<>::just(res));
     });
   }
 

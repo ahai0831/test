@@ -17,6 +17,7 @@
 #include <rxcpp/rx.hpp>
 
 #include "rx_assistant.h"
+#include "speed_counter.h"
 
 struct SlicedownloadMastercontrol {
  private:
@@ -27,37 +28,30 @@ struct SlicedownloadMastercontrol {
   std::string file_path;
 
  public:
+  /// 此文件实际字节数
   std::atomic_int64_t total_length;
-  /// 反映实际进度的字节数
+  /// 传输实际进度的字节数(可能回滚)
   std::atomic_int64_t processed_bytes;
-  /// 标志位: 传输是否已实际开始
-  std::atomic_bool inprocess_flag;
+  /// 标志位: 传输阶段是否已实际开始
+  /// worker数量
+  std::atomic_int32_t current_worker;
+  //////////////////////////////////////////////////////////////////////////
+  /// 错误处理，此任务遇到的累计总错误数
+  std::atomic_int32_t total_error_count;
+  /// 错误处理，当前错误计数器，可重置
+  std::atomic_int32_t error_count;
 
  private:
-  std::atomic_int32_t current_worker;
   safequeue_closure<std::tuple<int64_t, int64_t>> slice_queue;
   std::promise<void> fin_signal;
-  /// uuid, stop process
-  /// 标记有连接未完成；避免SyncProcess被多次调用
+  /// 标记此对象AsyncProcess()被调用，避免重复调用
   std::atomic_bool processing_flag;
+  /// 集合：各worker对应http请求的uuid，用于停止传输、限速等
   assistant::safeset_closure<std::string> uuid_set;
-  /// 标记外部已经请求连接停止，不应发起新连接
+  /// 标记外部调用AsyncStop()以请求连接停止，不应发起新连接
   std::atomic_bool stop_flag;
-  /// 标记传输已结束（含成功或失败）；无连接进行中
-  /// 未来也不再有任何连接发起
-  std::atomic_bool finished_flag;
-  /// 计速流程
-  /// 传输实际的字节数（由于允许回滚，可能大于processed_bytes）
-  typedef uint64_t UintType;
-  std::atomic<UintType> finished_bytes;
-  std::unique_ptr<rxcpp::observe_on_one_worker> test_identify;
-  rxcpp::observable<UintType> speed_stream;
-  rxcpp::observable<UintType> smoothspeed_stream;
-  /// 保障退出时不发生内存泄露，显式地取消所有订阅
-  assistant::safemap_closure<std::string, rxcpp::composite_subscription>
-      subscription_map;
-  typedef std::function<void(uint64_t)> OnnextCb;
-  typedef std::function<void(void)> OncompleteCb;
+  /// 分片下载计速器
+  httpbusiness::speed_counter slicedl_speedcounter;
 
  public:
   explicit SlicedownloadMastercontrol(
@@ -65,12 +59,11 @@ struct SlicedownloadMastercontrol {
       : netframe(assistant_v2),
         total_length(0),
         processed_bytes(0),
-        inprocess_flag({false}),
         current_worker(0),
         processing_flag({false}),
         stop_flag({false}),
-        finished_flag({false}),
-        finished_bytes(0) {}
+        total_error_count(0),
+        error_count(0) {}
   /// 阻塞式处理分片下载流程
   /// 应仅被调用一次，后续调用无效
   void AsyncProcess(const std::string& url, const std::string& filepath) {
@@ -103,19 +96,63 @@ struct SlicedownloadMastercontrol {
       first_req.extends.Set("range", "0-0");
       first_req.extends.Set("header_only", "true");
       auto first_req_obs = ast_factory.create(first_req);
-      /// 不为30x则停止迭代
-      auto iterate_req_callback = [](const rx_assistant::HttpResult& result,
-                                     assistant::HttpRequest& req) -> bool {
+      auto delayed_iterate_req_callback =
+          [this](const rx_assistant::HttpResult& result,
+                 assistant::HttpRequest& req,
+                 int32_t& delayed_milliseconds) -> bool {
         bool flag = false;
-        if (flag = (3 == result.res.status_code / 100)) {
-          req.extends.Set("range", "0-0");
-          req.extends.Set("header_only", "true");
-          req.url = result.res.extends.Get("redirect_url");
-        }
+        const int32_t error_count_limits = 10;
+        do {
+          /// 取curlcode
+          int32_t code = 0;
+          std::string str_CURLcode;
+          if (result.res.extends.Get("CURLcode", str_CURLcode)) {
+            code = atol(str_CURLcode.c_str());
+            /// 由于Set("header_only", "true"); code可能为42(0x2a)
+            if (0x2a == code) {
+              code = 0;
+            }
+          }
+          /// 3xx 继续重定向
+          if (0 == code && 3 == result.res.status_code / 100) {
+            req.extends.Set("range", "0-0");
+            req.extends.Set("header_only", "true");
+            req.url = result.res.extends.Get("redirect_url");
+            flag = true;
+            /// 重置当时的错误计数器
+            error_count = 0;
+            break;
+          }
+          /// 2xx 调用链终点：无需继续处理
+          if (0 == code && 2 == result.res.status_code / 100) {
+            flag = false;
+            /// 重置当时的错误计数器
+            error_count = 0;
+            break;
+          }
+          //////////////////////////////////////////////////////////////////////////
+          /// 未处理的情况，均视为发生错误，增加错误计数
+          total_error_count += 1;
+		  const auto currernt_error_count = error_count.fetch_add(1) + 1;
+          /// 未到调用链终点，则应delay一段时间后重试
+		  if (currernt_error_count <= error_count_limits) {
+            req = assistant::HttpRequest(result.req);
+            delayed_milliseconds =
+				static_cast<int32_t>(pow(1.5f, currernt_error_count - 1)) * 1000;
+            flag = true;
+            break;
+          }
+          /// error_count 超过限制作为调用链的终点
+          flag = false;
+          break;
+
+        } while (false);
         return flag;
       };
-      auto iterate_req_obs =
-          ast_factory.iterator_result(first_req_obs, iterate_req_callback);
+
+      auto iterate_req_obs = ast_factory.iterator_with_delay_result(
+          first_req_obs, delayed_iterate_req_callback,
+          slicedl_speedcounter.speed_counter_thread());
 
       /// 处理分片下载assistant::HttpRequest(const HttpResult&)
       auto solve_206_callback = [this](const rx_assistant::HttpResult& result) {
@@ -158,7 +195,7 @@ struct SlicedownloadMastercontrol {
         do {
           if (stop_flag) {
             if (0 == current_worker) {
-              finished_flag = true;
+              slicedl_speedcounter.finished_flag = true;
             }
             break;
           }
@@ -166,7 +203,6 @@ struct SlicedownloadMastercontrol {
           if (nullptr != item) {
             ++current_worker;
             worker_awake(std::get<0>(*item), std::get<1>(*item));
-            inprocess_flag = true;
           } else {
             break;
           }
@@ -175,47 +211,6 @@ struct SlicedownloadMastercontrol {
       };  /// end_lambda: solve_206_callback
 
       iterate_req_obs.subscribe(solve_206_callback);
-      /// 如果finished_flag未点亮，则启动计速流程
-      if (!finished_flag) {
-        /// 1000ms 计速间隔，瞬时速率更新频率
-        const UintType speed_interval = 1000ULL;
-        /// 3 * 1000ms 对瞬时速率的平滑区间
-        const UintType max_smooth_num = 3ULL;
-
-        test_identify = std::make_unique<rxcpp::observe_on_one_worker>(
-            rxcpp::schedulers::make_scheduler<rxcpp::schedulers::new_thread>());
-        speed_stream =
-            rxcpp::observable<>::interval(
-                std::chrono::milliseconds(speed_interval), *test_identify)
-                .take_while([this](int) -> bool { return !finished_flag; })
-                .map([this](int) -> UintType { return finished_bytes.load(); })
-                .pairwise()
-                .map([](std::tuple<UintType, UintType> v) -> UintType {
-                  return std::get<1>(v) - std::get<0>(v);
-                })
-                .publish()
-                .ref_count();
-
-        smoothspeed_stream =
-            speed_stream.take(1)
-                .merge(speed_stream.take(2).average().map(
-                           [](double ave_oe) -> UintType {
-                             return static_cast<UintType>(ave_oe);
-                           }),
-                       speed_stream.pairwise().pairwise().map(
-                           [](const std::tuple<
-                               const std::tuple<UintType, UintType>&,
-                               const std::tuple<UintType, UintType>&>& v)
-                               -> UintType {
-                             return static_cast<UintType>(
-                                 (std::get<0>(std::get<0>(v)) +
-                                  std::get<1>(std::get<0>(v)) +
-                                  std::get<1>(std::get<1>(v))) /
-                                 3);
-                           }))
-                .take_while(
-                    [this](UintType) -> bool { return !finished_flag; });
-      }
     } while (false);
   }
   /// 阻塞式等待流程结束
@@ -225,48 +220,19 @@ struct SlicedownloadMastercontrol {
       future.wait();
     }
   }
-  ~SlicedownloadMastercontrol() {
-    /// 为什么需要若干延时才能避免内存泄露
-    /// 初步看，需要等待rx的worker线程自我销毁
-    /// 将所有订阅取消即可迫使worker线程销毁
-    /// 在析构中取消所有订阅更合理
-    subscription_map.ForeachDelegate(
-        [](std::string, rxcpp::composite_subscription cs) {
-          if (cs.is_subscribed()) {
-            cs.unsubscribe();
-          }
-        });
-  }
+  ~SlicedownloadMastercontrol() = default;
   /// TODO: 可查询结果，若未传完，则返回传输进行中，若已传完，则返回结果
 
   /// 注册异步回调
   /// 返回uuid
-  std::string RegSpeedCallback(OnnextCb onnext_cb) {
-    std::string flag;
-    if (processing_flag) {
-      flag = assistant::uuid::generate();
-      subscription_map.Put(flag,
-                           std::move(smoothspeed_stream.subscribe(onnext_cb)));
-    }
-    return flag;
-  }
-  std::string RegSpeedCallback(OnnextCb onnext_cb, OncompleteCb oncomplete_cb) {
-    std::string flag;
-    if (processing_flag) {
-      flag = assistant::uuid::generate();
-      subscription_map.Put(flag, std::move(smoothspeed_stream.subscribe(
-                                     onnext_cb, oncomplete_cb)));
-    }
-    return flag;
+  std::string RegSpeedCallback(
+      httpbusiness::speed_counter::OnnextCb onnext_cb,
+      httpbusiness::speed_counter::OncompleteCb oncomplete_cb) {
+    return slicedl_speedcounter.RegSubscription(onnext_cb, oncomplete_cb);
   }
   /// 根据uuid取消特定订阅的方法，返回值为true代表取消订阅成功
   bool UnregSpeedCallback(const std::string& uuid) {
-    bool flag = false;
-    rxcpp::composite_subscription subscrition;
-    if (flag = subscription_map.Take(uuid, subscrition)) {
-      subscrition.unsubscribe();
-    }
-    return flag;
+    return slicedl_speedcounter.UnregSubscription(uuid);
   }
 
   /// 异步使此任务停止传输
@@ -310,7 +276,7 @@ struct SlicedownloadMastercontrol {
     req.solve_func = std::bind(&SlicedownloadMastercontrol::done_callback, this,
                                std::placeholders::_1, std::placeholders::_2);
     req.retval_func = [this](uint64_t value) {
-      finished_bytes += value;
+      slicedl_speedcounter.finished_bytes += value;
       processed_bytes += value;
     };
     auto assistant_v2 = netframe.lock();
@@ -342,7 +308,7 @@ struct SlicedownloadMastercontrol {
       /// worker不应继续工作
       if (--current_worker == 0) {
         /// 计速流程停止
-        finished_flag = true;
+        slicedl_speedcounter.finished_flag = true;
         /// 同步型总控对应的处理
         fin_signal.set_value();
       }

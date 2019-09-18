@@ -114,7 +114,7 @@ extern "C" char *RegisterSliceDownloadSubscription(
                 "\",\"completed_length\":\"%" PRIu64 "\",\"in_progress\":%s}",
                 v, slicedownload.total_length.load(),
                 slicedownload.processed_bytes.load(),
-                slicedownload.inprocess_flag ? "true" : "false");
+                slicedownload.current_worker > 0 ? "true" : "false");
             fNext(buffer);
           };
           subscription_uuid = std::make_unique<std::string>(

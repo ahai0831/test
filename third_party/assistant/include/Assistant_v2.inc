@@ -96,6 +96,21 @@ struct a1_0 {
   /// 线程模型的守护对象，析构时一定会执行的保护性回调
   scopeguard_internal::ScopeGuard thread_model_guard;
 
+ public:
+  typedef std::function<void(assistant::HttpRequest &)> HttprequestPileDelegate;
+  typedef std::function<void(assistant::HttpResponse &)>
+      HttpresponsePileDelegate;
+  static assistant::safevector_closure<HttprequestPileDelegate>
+      &HttprequestPile() {
+    static assistant::safevector_closure<HttprequestPileDelegate> pile;
+    return pile;
+  }
+  static assistant::safevector_closure<HttpresponsePileDelegate>
+      &HttpresponsePile() {
+    static assistant::safevector_closure<HttpresponsePileDelegate> pile;
+    return pile;
+  }
+
  private:
   /// 供线程模型执行，作为事件循环所在线程的函数
   static void assistant_worker(void *data) {
@@ -252,6 +267,13 @@ struct a1_0 {
   void solve_httprequest_worker(std::weak_ptr<a3_2> &weak) {
     auto closure = weak.lock();
     if (nullptr != closure) {
+      /// 调用桩内的代理方法，对assistant::HttpRequest进行处理
+      assistant::HttpRequest &the_req = *closure->request;
+      std::function<void(const HttprequestPileDelegate &)> foreach_callback =
+          [&the_req](const HttprequestPileDelegate &pile_cb) -> void {
+        pile_cb(the_req);
+      };
+      HttprequestPile().ForeachDelegate(foreach_callback);
       /// 关联uuid
       std::string uuid;
       if (closure->request->extends.Get("uuid", uuid)) {
@@ -286,16 +308,25 @@ struct a1_0 {
   /// 应在外部线程（比如线程池）调用此函数
   void solve_easyhandle_worker(std::shared_ptr<a3_2> &closure) {
     a3_2::GetEasyInfo(closure->easy, closure->response);
+    /// 尽快使EasyHandle可被重用 2019.8.28
+    closure->easy->reset();
+    reuse_easy.Enqueue(closure->easy);
     /// 取消uuid关联
     std::string uuid;
     if (closure->request->extends.Get("uuid", uuid)) {
       uuid_map.Delete(uuid);
     }
+    /// 调用桩内的代理方法，对assistant::HttpResponse进行处理
+    assistant::HttpResponse &the_res = *closure->response;
+    std::function<void(const HttpresponsePileDelegate &)> foreach_callback =
+        [&the_res](const HttpresponsePileDelegate &pile_cb) -> void {
+      pile_cb(the_res);
+    };
+    HttpresponsePile().ForeachDelegate(foreach_callback);
+    /// 调用 assistant::HttpRequest 内指定的回调
     if (nullptr != closure->request->solve_func) {
       closure->request->solve_func(*closure->response, *closure->request);
     }
-    closure->easy->reset();
-    reuse_easy.Enqueue(closure->easy);
   }
 };
 

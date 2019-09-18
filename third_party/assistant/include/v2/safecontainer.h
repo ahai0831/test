@@ -62,6 +62,59 @@ struct safeset_closure {
   safeset_closure(safeset_closure&&) = delete;
 };
 
+/// 基于互斥量实现的线程安全Vector
+template <typename T>
+struct safevector_closure {
+ private:
+  typedef std::vector<T> VectorType;
+  typedef typename VectorType::value_type Item;
+  VectorType vec;
+  std::mutex mutex;
+
+ public:
+  typedef std::function<void(const Item&)> ForeachCallback;
+
+ public:
+  safevector_closure() = default;
+  void Put(const Item& key) {
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    vec.emplace_back(key);
+  }
+  bool Delete(const Item& key) {
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    bool flag = false;
+    auto iter = vec.find(key);
+    if (flag = (vec.end() != iter)) {
+      vec.erase(iter);
+    }
+    return flag;
+  }
+  void ForeachDelegate(ForeachCallback delegate) {
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    std::for_each(vec.begin(), vec.end(), delegate);
+  }
+  bool empty() {
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    return vec.empty();
+  }
+  typename VectorType::size_type size() {
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    return vec.size();
+  }
+  ~safevector_closure() {
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    /// 显式地清理并释放内存；令临时变量就地析构
+    auto i = decltype(vec)();
+    vec.swap(i);
+  }
+
+ private:
+  /// 禁用其他隐式的构造函数
+  safevector_closure(safevector_closure const&) = delete;
+  safevector_closure& operator=(safevector_closure const&) = delete;
+  safevector_closure(safevector_closure&&) = delete;
+};
+
 /// 基于互斥量实现的线程安全Map
 template <typename K, typename V>
 struct safemap_closure {
@@ -90,8 +143,8 @@ struct safemap_closure {
     return map.emplace(key, value).second;
   }
   bool Emplace(Key& key, Value& value) {
-	  std::lock_guard<decltype(mutex)> lock(mutex);
-	  return map.emplace(std::move(key), std::move(value)).second;
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    return map.emplace(std::move(key), std::move(value)).second;
   }
   /// 查询Key对应的Value，失败则返回 false
   bool Get(const Key& key, Value& value) {
