@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <CloudBasePath>$(ProjectDir)..\..\..\..\third_party\cloud_base\</CloudBasePath>
+    <CloudBaseSourcePath>$(CloudBasePath)src\</CloudBaseSourcePath>
+    <CloudBaseIncludeSetupPath>$(CloudBasePath)include\</CloudBaseIncludeSetupPath>
+    <CloudBaseLibSetupPath>$(CloudBasePath)lib\</CloudBaseLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(CloudBaseLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>cloud_base</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <PostBuildEvent>
+      <Command>xcopy "$(CloudBaseSourcePath)MiniDump\MiniDump.h" "$(CloudBaseIncludeSetupPath)\MiniDump\" /D /Y /Q /C /R</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="CloudBasePath">
+      <Value>$(CloudBasePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="CloudBaseSourcePath">
+      <Value>$(CloudBaseSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="CloudBaseIncludeSetupPath">
+      <Value>$(CloudBaseIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="CloudBaseLibSetupPath">
+      <Value>$(CloudBaseLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
