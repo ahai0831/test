@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <DuilibUltimateVersion>N/A</DuilibUltimateVersion>
+    <DuilibUltimatePath>$(ProjectDir)..\..\..\..\third_party\duilib_ultimate\</DuilibUltimatePath>
+    <DuilibUltimateSourcePath>$(DuilibUltimatePath)src\</DuilibUltimateSourcePath>
+    <DuilibUltimateBinSetupPath>$(DuilibUltimatePath)bin\</DuilibUltimateBinSetupPath>
+    <DuilibUltimateIncludeSetupPath>$(DuilibUltimatePath)include\</DuilibUltimateIncludeSetupPath>
+    <DuilibUltimateLibSetupPath>$(DuilibUltimatePath)lib\</DuilibUltimateLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetName>eCloudDuilib</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <PostBuildEvent>
+      <Command>@REM copy include files
+echo ButtonEx.h^
+
+Ctest.h^
+
+Rpcsal.h^
+
+TreeListUI.h &gt; exclude.txt
+xcopy "$(DuilibUltimateSourcePath)*.h" "$(DuilibUltimateIncludeSetupPath)duilib_ultimate\" /D /Y /Q /R /C /EXCLUDE:exclude.txt
+del exclude.txt
+@REM copy lib files
+xcopy "$(Outdir)$(TargetName).lib" "$(DuilibUltimateLibSetupPath)$(Platform)\$(Configuration)\" /D /Y /Q /R /C
+@REM copy dll files
+xcopy "$(Outdir)$(TargetName).dll" "$(DuilibUltimateBinSetupPath)$(Platform)\$(Configuration)\" /D /Y /Q /R /C
+xcopy "$(Outdir)$(TargetName).pdb" "$(DuilibUltimateBinSetupPath)$(Platform)\$(Configuration)\" /D /Y /Q /R /C</Command>
+    </PostBuildEvent>
+    <ClCompile>
+      <PreprocessorDefinitions>UILIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4251</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <Link Condition="'$(Platform)'=='Win32'">
+      <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
+    </Link>
+    <Link Condition="'$(Platform)'=='x64'">
+      <MinimumRequiredVersion>5.02</MinimumRequiredVersion>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="DuilibUltimateVersion">
+      <Value>$(DuilibUltimateVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DuilibUltimatePath">
+      <Value>$(DuilibUltimatePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DuilibUltimateSourcePath">
+      <Value>$(DuilibUltimateSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DuilibUltimateBinSetupPath">
+      <Value>$(DuilibUltimateBinSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DuilibUltimateIncludeSetupPath">
+      <Value>$(DuilibUltimateIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="DuilibUltimateLibSetupPath">
+      <Value>$(DuilibUltimateLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

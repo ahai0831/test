@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationBar.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationCtrl.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationGIF.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationHelper.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationTabLayoutUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\ButtonAniUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\ButtonElement.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\ButtonNonUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\ChildHorizontalLayout.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\ComboUIEx.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\downloadmgr.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\EditComboUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\FileListUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\GIF.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\IConListUIEx.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\Internal.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\LabelElement.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\ListElementEx.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\ListUIEx.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\NotifyMapManager.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\observer_impl_base.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\OptionDelayUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\OptionElementUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\SlideSwitchUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\StdAfx.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\TextButton.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\TextLabel.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\TwoFgPorgress.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIActiveX.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIAnim.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIAnimation.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIBackgroundAnimationControl.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIBase.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIButtonElementEx.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UICombo.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UICommonControls.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIContainer.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIControl.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UICustomizationOption.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIDelegate.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIDlgBuilder.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIEditEx.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIlib.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIList.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIManager.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIMarkup.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIMenu.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIRender.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIRichEdit.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UISegmetation.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIStepperControl.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UItreeControl.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UITreeView.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\UIWebBrowser.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\URLBar.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\VerticalLayoutExUI.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\WebBrowserEventHandler.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\WndFram.h" />
+    <ClInclude Include="..\..\..\..\third_party\duilib_ultimate\src\WndShadow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationBar.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationCtrl.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationGIF.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationHelper.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\AnimationTabLayoutUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\ButtonAniUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\ButtonElement.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\ButtonNonUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\ChildHorizontalLayout.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\ComboUIEx.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\EditComboUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\FileListUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\GIF.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\IConListUIEx.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\LabelElement.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\ListElementEx.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\ListUIEx.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\NotifyMapManager.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\OptionDelayUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\OptionElementUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\SlideSwitchUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\stb_image.c" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\StdAfx.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\TextButton.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\TextLabel.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\TwoFgPorgress.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIActiveX.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIAnim.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIAnimation.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIBackgroundAnimationControl.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIBase.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIButtonElementEx.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UICombo.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UICommonControls.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIContainer.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIControl.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UICustomizationOption.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIDelegate.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIDlgBuilder.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIEditEx.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIlib.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIList.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIManager.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIMarkup.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIMenu.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIRender.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIRichEdit.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UISegmetation.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIStepperControl.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UItreeControl.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UITreeView.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\UIWebBrowser.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\URLBar.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\VerticalLayoutExUI.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\WndFram.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\WndShadow.cpp" />
+    <ClCompile Include="..\..\..\..\third_party\duilib_ultimate\src\XUnzip.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AB860EB5-68E3-46F7-83B3-2753495ACDFA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>duilib_ultimate</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\..\third_party\CxImage\CxImage_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-duilib_ultimate.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\..\third_party\CxImage\CxImage_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-duilib_ultimate.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\..\third_party\CxImage\CxImage_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-duilib_ultimate.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\..\third_party\CxImage\CxImage_withproject.props" />
+    <Import Project="..\..\..\VS-props\build-duilib_ultimate.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
