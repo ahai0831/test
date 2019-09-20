@@ -21,8 +21,10 @@ Ctest.h^
 
 Rpcsal.h^
 
+StdAfx.h^
+
 TreeListUI.h &gt; exclude.txt
-xcopy "$(DuilibUltimateSourcePath)*.h" "$(DuilibUltimateIncludeSetupPath)duilib_ultimate\" /D /Y /Q /R /C /EXCLUDE:exclude.txt
+xcopy "$(DuilibUltimateSourcePath)*.h" "$(DuilibUltimateIncludeSetupPath)" /D /Y /Q /R /C /EXCLUDE:exclude.txt
 del exclude.txt
 @REM copy lib files
 xcopy "$(Outdir)$(TargetName).lib" "$(DuilibUltimateLibSetupPath)$(Platform)\$(Configuration)\" /D /Y /Q /R /C
