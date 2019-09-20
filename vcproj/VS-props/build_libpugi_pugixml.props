@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <pugixmlVersion>pugixml-1.10</pugixmlVersion>
+    <pugixmlPath>$(ProjectDir)..\..\..\..\third_party\pugixml\</pugixmlPath>
+    <pugixmlSourcePath>$(pugixmlPath)$(pugixmlVersion)\src\$(pugixmlVersion)\</pugixmlSourcePath>
+    <pugixmlIncludeSetupPath>$(pugixmlPath)$(pugixmlVersion)\include\</pugixmlIncludeSetupPath>
+    <pugixmlLibSetupPath>$(pugixmlPath)$(pugixmlVersion)\lib\</pugixmlLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(pugixmlLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>pugixml</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(pugixmlSourcePath)src\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(pugixmlPath)$(pugixmlVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(pugixmlPath)$(pugixmlVersion).tar.gz" "$(pugixmlPath)$(pugixmlVersion)\src\"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(pugixmlSourcePath)src\*.hpp" "$(pugixmlIncludeSetupPath)" /Y /C /R /Q /S /E /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="pugixmlVersion">
+      <Value>$(pugixmlVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="pugixmlPath">
+      <Value>$(pugixmlPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="pugixmlSourcePath">
+      <Value>$(pugixmlSourcePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="pugixmlIncludeSetupPath">
+      <Value>$(pugixmlIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="pugixmlLibSetupPath">
+      <Value>$(pugixmlLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
