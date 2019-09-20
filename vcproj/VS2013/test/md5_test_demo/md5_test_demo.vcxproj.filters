@@ -13,27 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Mnidump">
-      <UniqueIdentifier>{e4264aad-8c98-43a5-9e2c-7eb7fa73b909}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\md5">
-      <UniqueIdentifier>{3040b268-01e8-4383-8340-6926e061d569}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp">
-      <Filter>Source Files\Mnidump</Filter>
+    <ClCompile Include="..\..\..\..\test\md5_test_demo\md5_test.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\md5\md5.cpp">
-      <Filter>Source Files\md5</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\md5\md5.h">
-      <Filter>Source Files\md5</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h">
-      <Filter>Source Files\Mnidump</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
