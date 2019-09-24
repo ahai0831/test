@@ -282,7 +282,7 @@ struct a3_2 {
       res.extends.Set("CURLcode", std::to_string(easy->result));
     }
     /// pickup infos from easy handle
-    long res_code;
+    long res_code = 0;
     curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &res_code);
     res.status_code = res_code;
     char *url = nullptr;
@@ -291,13 +291,17 @@ struct a3_2 {
       res.effective_url = url;
     }
     /// 从响应的Content-Length读取的值，-1为未知
-    curl_off_t content_length_download;
+    curl_off_t content_length_download = -1;
     curl_easy_getinfo(easy_handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T,
                       &content_length_download);
     res.extends.Set("content_length_download",
                     std::to_string(content_length_download));
+    /// 响应的载荷的实际长度
+    curl_off_t size_download = -1;
+    curl_easy_getinfo(easy_handle, CURLINFO_SIZE_DOWNLOAD_T, &size_download);
+    res.extends.Set("size_download", std::to_string(size_download));
     /// 下载的平均速度，单位是：bytes/second
-    curl_off_t speed_download;
+    curl_off_t speed_download = 0;
     curl_easy_getinfo(easy_handle, CURLINFO_SPEED_DOWNLOAD_T, &speed_download);
     if (0 != speed_download) {
       res.extends.Set("speed_download", std::to_string(speed_download));

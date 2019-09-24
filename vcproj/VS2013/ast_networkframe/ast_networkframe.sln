@@ -51,6 +51,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "httpbusiness", "..\third_party\httpbusiness\httpbusiness.vcxproj", "{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0BABF827-88BF-4475-97AB-F2BD7622CA00} = {0BABF827-88BF-4475-97AB-F2BD7622CA00}
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D} = {49B507DB-FD61-4AEA-8D35-206F8F78314D}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6354828F-FBF9-41D3-9D48-E5BA7956B441}"
@@ -101,7 +102,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rx_assistant_async_demo", "..\test\rx_assistant_async_demo\rx_assistant_async_demo.vcxproj", "{20ABA043-01BD-4D44-BD8D-C7A7D7887574}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0} = {BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D} = {49B507DB-FD61-4AEA-8D35-206F8F78314D}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cloud_base", "..\third_party\cloud_base\cloud_base.vcxproj", "{49B507DB-FD61-4AEA-8D35-206F8F78314D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -279,6 +283,14 @@ Global
 		{20ABA043-01BD-4D44-BD8D-C7A7D7887574}.Release|Win32.Build.0 = Release|Win32
 		{20ABA043-01BD-4D44-BD8D-C7A7D7887574}.Release|x64.ActiveCfg = Release|x64
 		{20ABA043-01BD-4D44-BD8D-C7A7D7887574}.Release|x64.Build.0 = Release|x64
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Debug|Win32.Build.0 = Debug|Win32
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Debug|x64.ActiveCfg = Debug|x64
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Debug|x64.Build.0 = Debug|x64
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Release|Win32.ActiveCfg = Release|Win32
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Release|Win32.Build.0 = Release|Win32
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Release|x64.ActiveCfg = Release|x64
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -307,5 +319,6 @@ Global
 		{3CC27E5A-358C-474A-8D2C-1D90641BF6AB} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{5C402EF1-CA3E-453E-AAE0-0A58A1830077} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{20ABA043-01BD-4D44-BD8D-C7A7D7887574} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D} = {C82B4DB8-F8BC-47B6-ACEF-DF0A7F672454}
 	EndGlobalSection
 EndGlobal

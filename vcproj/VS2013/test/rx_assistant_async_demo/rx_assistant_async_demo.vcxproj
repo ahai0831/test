@@ -70,6 +70,7 @@
     <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
     <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
     <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -85,6 +86,7 @@
     <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
     <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
     <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -100,6 +102,7 @@
     <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
     <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
     <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -115,6 +118,7 @@
     <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
     <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
     <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

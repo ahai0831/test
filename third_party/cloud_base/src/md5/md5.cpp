@@ -41,9 +41,11 @@ documentation and/or software.
  */
 #include "md5.h"
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <new>
+
+#include <windows.h>
 
 namespace cloud_base {
 // MD5 simple initialization method
@@ -73,6 +75,7 @@ void MD5::update(uint1 *input, uint32_t input_length) {
 
   buffer_space = 64 - buffer_index;  // how much space is left in buffer
 
+  __try {
   // Transform as many times as possible.
   if (input_length >= buffer_space) {  // ie. we have enough to fill the buffer
     // fill the rest of the buffer and transform
@@ -91,6 +94,11 @@ void MD5::update(uint1 *input, uint32_t input_length) {
   // and here we do the buffering:
   memcpy(buffer + buffer_index, input + input_index,
          input_length - input_index);
+
+  } __except (GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR
+                  ? EXCEPTION_EXECUTE_HANDLER
+                  : EXCEPTION_CONTINUE_SEARCH) {
+  }
 }
 void MD5::update(const std::string &input) {
   update((uint1 *)input.c_str(), (uint32_t)input.size());

@@ -24,5 +24,8 @@
     <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\speed_counter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
