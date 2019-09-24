@@ -6,8 +6,8 @@ TEST(slicedownload_test, default_gtest) { ASSERT_TRUE(true); }
 
 TEST(slicedownload_test, sync_wait) {
 	slicedownload_sync_test(
-      "http://www.w3school.com.cn/i/movie.mp4",
-      "movie.mp4");
+      "http://download.cloud.189.cn/download/client/android/cloud189_v8.2.0_1568206533185.apk",
+      "cloud189_v8.2.0_1568206533185.apk");
   ASSERT_TRUE(true);
 }
 

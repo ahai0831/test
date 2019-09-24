@@ -19,38 +19,35 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_assistant.h" />
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_md5.h" />
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\slicedownload_mastercontrol.h" />
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\speed_counter.h" />
+    <ClCompile Include="..\..\..\..\test\rx_assistant_async_demo\rx_assistant_async_demo.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}</ProjectGuid>
+    <ProjectGuid>{20ABA043-01BD-4D44-BD8D-C7A7D7887574}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>httpbusiness</RootNamespace>
+    <RootNamespace>rx_assistant_async_demo</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -61,44 +58,91 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\VS-props\static_runtime.props" />
+    <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -108,10 +152,10 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -123,10 +167,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
@@ -140,10 +184,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>

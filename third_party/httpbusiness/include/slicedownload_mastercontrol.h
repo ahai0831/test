@@ -6,6 +6,7 @@
 #endif
 
 #include <atomic>
+#include <cstdio>
 #include <future>
 #include <memory>
 #include <numeric>
@@ -133,12 +134,13 @@ struct SlicedownloadMastercontrol {
           //////////////////////////////////////////////////////////////////////////
           /// 未处理的情况，均视为发生错误，增加错误计数
           total_error_count += 1;
-		  const auto currernt_error_count = error_count.fetch_add(1) + 1;
+          const auto currernt_error_count = error_count.fetch_add(1) + 1;
           /// 未到调用链终点，则应delay一段时间后重试
-		  if (currernt_error_count <= error_count_limits) {
+          if (currernt_error_count <= error_count_limits) {
             req = assistant::HttpRequest(result.req);
             delayed_milliseconds =
-				static_cast<int32_t>(pow(1.5f, currernt_error_count - 1)) * 1000;
+                static_cast<int32_t>(pow(1.5f, currernt_error_count - 1)) *
+                1000;
             flag = true;
             break;
           }
@@ -266,8 +268,9 @@ struct SlicedownloadMastercontrol {
     req.extends.Set("download_filesize", std::to_string(total_length));
     req.extends.Set("download_offset", std::to_string(range1));
     req.extends.Set("download_length", std::to_string(range2 - range1 + 1));
-    /// TODO: 对传输类请求，应缩短建立连接后的超时时间到10S以内
-    /// 避免长时间占着坑位 2019.8.4
+    /// 对下载类传输http请求，应将传输超时（未收到1Byte）缩短到10S（默认值60S）
+    /// 避免过长时间占着worker数但不贡献下载速率 2019.9.22
+    req.extends.Set("transfer_timeout", std::to_string(10));
 
     /// process, uuid , for potential stop
     std::string unused_uuid = assistant::uuid::generate();
@@ -298,13 +301,79 @@ struct SlicedownloadMastercontrol {
     /// 取分片时，优先从此队列中取出待重试信息。
     /// 2019.8.4
 
+    /// 完全有效的分片定义：curl连接成功。状态码为2xx
+    /// 取curlcode
+    int32_t code = 0;
+    std::string str_CURLcode;
+    if (res.extends.Get("CURLcode", str_CURLcode)) {
+      code = atol(str_CURLcode.c_str());
+    }
+
+    /// 取响应的载荷的实际长度
+    int64_t size_download = -1;
+    std::string str_size_download;
+    res.extends.Get("size_download", str_size_download);
+    size_download = atoll(str_size_download.c_str());
+	/// TODO: 在此之前，也需要检查响应行为，是否与请求的extends字段一致
+	/// 检查是否为onrange，且range范围一致
+    if (0 == code && 2 == res.status_code / 100) {
+      /// 完全有效，不需要做什么
+    } else {
+      /// TODO: 注意，区分“磁盘已满”、“移动存储设备无法访问”等一系列错误
+      ///  导致的CURL错误码
+
+      /// 2019.9.22 定义部分无效：
+      /// 状态码为206时，解析""content_range_range""字段
+      /// 状态码为200时，解析""content_length_download""字段
+      /// 与下载的实际载荷进行比较
+      int64_t should_download_size = -1;
+      if (206 == res.status_code) {
+        std::string str_content_range_range;
+        res.extends.Get("content_range_range", str_content_range_range);
+        // 			auto iter = str_content_range_range.find("_");
+        int64_t range_head = 0, range_tail = 0;
+        auto scanf_ret = _snscanf(
+            str_content_range_range.c_str(), str_content_range_range.size(),
+            "%" PRIi64 "-%" PRIi64 "", &range_head, &range_tail);
+        if (2 == scanf_ret) {
+          should_download_size = range_tail - range_head + 1LL;
+        }
+        if (size_download >= 0 && size_download < should_download_size) {
+          /// 当前worker继续未完成的下载
+          auto tuple = std::make_tuple(range_head + size_download, range_tail);
+          item = std::make_unique<decltype(tuple)>(tuple);
+        }
+      }
+      // else if (200 == res.status_code)
+      //{
+      //	std::string str_content_length_download;
+      //	res.extends.Get("content_length_download",
+      //		str_content_length_download);
+      //	should_download_size =
+      //atoll(str_content_length_download.c_str());
+      //}
+      /// 部分无效
+      /// 对206请求，重新处理其on_range
+      /// TODO: 对200的部分无效请求，先放过，后面需要完善
+
+      /// 出现错误，且非“部分无效”，需进行错误处理
+      if (nullptr == item) {
+        /// TODO： 记录error分片的head，在map中记录其出错次数，最多重试9次
+      }
+    }
+
     /// stop_flag为true时，不再发起新的连接
-    if (!stop_flag) {
+    /// 若需进行重试，则item非空，无需取队列信息
+    if (!stop_flag && nullptr == item) {
       item = slice_queue.Dequeue();
     }
-    if (nullptr != item) {
+    if (nullptr != item && !stop_flag) {
       worker_awake(std::get<0>(*item), std::get<1>(*item));
     } else {
+      /// TODO: 若有“部分无效”而生成分片，应保存起来 2019.9.22
+      if (nullptr != item) {
+        /// TODO
+      }
       /// worker不应继续工作
       if (--current_worker == 0) {
         /// 计速流程停止

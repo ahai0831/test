@@ -15,7 +15,10 @@
       <Command>@REM download file and check file
 call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(LibcaresPath)$(LibcaresVersion).csv"
 @REM extract file
-call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(LibcaresPath)$(LibcaresVersion).tar.gz" "$(LibcaresPath)$(LibcaresVersion)\src\"</Command>
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(LibcaresPath)$(LibcaresVersion).tar.gz" "$(LibcaresPath)$(LibcaresVersion)\src\"
+@REM patch c-ares
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\sed.bat"
+sed -i 's:ULONG AddrFlags = 0;:ULONG AddrFlags = 0x0800;:g' "$(LibcaresPath)$(LibcaresVersion)\src\$(LibcaresVersion)\ares_init.c"</Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>for %%i in (ares.h ares_build.h ares_rules.h ares_version.h) do xcopy "$(LibcaresSourcePath)%%i" "$(LibcaresIncludeSetupPath)" /Y /C /R /Q /D</Command>
