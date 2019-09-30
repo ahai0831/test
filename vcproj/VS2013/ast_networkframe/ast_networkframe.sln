@@ -107,6 +107,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rx_assistant_async_demo", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cloud_base", "..\third_party\cloud_base\cloud_base.vcxproj", "{49B507DB-FD61-4AEA-8D35-206F8F78314D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "machine_info_test_demo", "..\test\machine_info_test_demo\machine_info_test_demo.vcxproj", "{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D} = {49B507DB-FD61-4AEA-8D35-206F8F78314D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -291,6 +296,14 @@ Global
 		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Release|Win32.Build.0 = Release|Win32
 		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Release|x64.ActiveCfg = Release|x64
 		{49B507DB-FD61-4AEA-8D35-206F8F78314D}.Release|x64.Build.0 = Release|x64
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Debug|Win32.Build.0 = Debug|Win32
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Debug|x64.ActiveCfg = Debug|x64
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Debug|x64.Build.0 = Debug|x64
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Release|Win32.ActiveCfg = Release|Win32
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Release|Win32.Build.0 = Release|Win32
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Release|x64.ActiveCfg = Release|x64
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -320,5 +333,6 @@ Global
 		{5C402EF1-CA3E-453E-AAE0-0A58A1830077} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{20ABA043-01BD-4D44-BD8D-C7A7D7887574} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{49B507DB-FD61-4AEA-8D35-206F8F78314D} = {C82B4DB8-F8BC-47B6-ACEF-DF0A7F672454}
+		{FCE92B81-267F-4B68-B6E0-0E3BB93C517D} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 	EndGlobalSection
 EndGlobal
