@@ -19,6 +19,9 @@
     <Filter Include="Source Files\md5">
       <UniqueIdentifier>{3040b268-01e8-4383-8340-6926e061d569}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\base64">
+      <UniqueIdentifier>{79b3774a-bafe-41bd-a6f6-72b18889646b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp">
@@ -27,6 +30,9 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\md5\md5.cpp">
       <Filter>Source Files\md5</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\base64\base64.cpp">
+      <Filter>Source Files\base64</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\md5\md5.h">
@@ -34,6 +40,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h">
       <Filter>Source Files\Mnidump</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\base64\base64.h">
+      <Filter>Source Files\base64</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
