@@ -17,9 +17,18 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <PostBuildEvent>
-      <Command>xcopy "$(CloudBaseSourcePath)MiniDump\MiniDump.h" "$(CloudBaseIncludeSetupPath)\MiniDump\" /D /Y /Q /C /R
-	  xcopy "$(CloudBaseSourcePath)AES\AES.h" "$(CloudBaseIncludeSetupPath)\AES\" /D /Y /Q /C /R
-xcopy "$(CloudBaseSourcePath)md5\md5.h" "$(CloudBaseIncludeSetupPath)\md5\" /D /Y /Q /C /R</Command>
+      <Command>@REM copy include files
+echo .c^
+
+.cpp^
+
+.txt^
+
+.md^
+
+.inc&gt;exclude.txt
+xcopy "$(CloudBasePath)src" "$(CloudBaseIncludeSetupPath)" /Y /C /R /Q /S /E /D /EXCLUDE:exclude.txt
+del exclude.txt</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
