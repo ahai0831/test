@@ -1,10 +1,8 @@
-// AES.cpp
+ï»¿// AES.cpp
 #include "AES.h"
-#include <exception>
-#include "windows.h"
 using std::string;
-namespace cloud_base{
-const int cloud_base::AES::sm_alog[256] = {
+namespace cloud_base {
+const int AES::sm_alog[256] = {
     1,   3,   5,   15,  17,  51,  85,  255, 26,  46,  114, 150, 161, 248, 19,
     53,  95,  225, 56,  72,  216, 115, 149, 164, 247, 2,   6,   10,  30,  34,
     102, 170, 229, 52,  92,  228, 55,  89,  235, 38,  106, 190, 217, 112, 144,
@@ -24,7 +22,7 @@ const int cloud_base::AES::sm_alog[256] = {
     57,  75,  221, 124, 132, 151, 162, 253, 28,  36,  108, 180, 199, 82,  246,
     1};
 
-const int cloud_base::AES::sm_log[256] = {
+const int AES::sm_log[256] = {
     0,   0,   25,  1,   50,  2,   26,  198, 75,  199, 27,  104, 51,  238, 223,
     3,   100, 4,   224, 14,  52,  141, 129, 239, 76,  113, 8,   200, 248, 105,
     28,  193, 125, 194, 29,  181, 249, 185, 39,  106, 77,  228, 166, 114, 154,
@@ -44,7 +42,7 @@ const int cloud_base::AES::sm_log[256] = {
     103, 74,  237, 222, 197, 49,  254, 24,  13,  99,  140, 128, 192, 247, 112,
     7};
 
-const char cloud_base::AES::sm_S[256] = {
+const char AES::sm_S[256] = {
     99,   124,  119,  123,  -14,  107,  111,  -59,  48,   1,    103,  43,
     -2,   -41,  -85,  118,  -54,  -126, -55,  125,  -6,   89,   71,   -16,
     -83,  -44,  -94,  -81,  -100, -92,  114,  -64,  -73,  -3,   -109, 38,
@@ -68,7 +66,7 @@ const char cloud_base::AES::sm_S[256] = {
     -116, -95,  -119, 13,   -65,  -26,  66,   104,  65,   -103, 45,   15,
     -80,  84,   -69,  22};
 
-const char cloud_base::AES::sm_Si[256] = {
+const char AES::sm_Si[256] = {
     82,  9,    106,  -43,  48,   54,   -91,  56,   -65,  64,   -93,  -98,  -127,
     -13, -41,  -5,   124,  -29,  57,   -126, -101, 47,   -1,   -121, 52,   -114,
     67,  68,   -60,  -34,  -23,  -53,  84,   123,  -108, 50,   -90,  -62,  35,
@@ -90,7 +88,7 @@ const char cloud_base::AES::sm_Si[256] = {
     -69, 60,   -125, 83,   -103, 97,   23,   43,   4,    126,  -70,  119,  -42,
     38,  -31,  105,  20,   99,   85,   33,   12,   125};
 
-const int cloud_base::AES::sm_T1[256] = {
+const int AES::sm_T1[256] = {
     -966564955,  -126059388,  -294160487,  -159679603,  -855539,
     -697603139,  -563122255,  -1849309868, 1613770832,  33620227,
     -832084055,  1445669757,  -402719207,  -1244145822, 1303096294,
@@ -144,7 +142,7 @@ const int cloud_base::AES::sm_T1[256] = {
     1512910199,  504303377,   2075177163,  -1470868228, 1841019862,
     739644986};
 
-const int cloud_base::AES::sm_T2[256] = {
+const int AES::sm_T2[256] = {
     -1513725085, -2064089988, -1712425097, -1913226373, 234877682,
     -1110021269, -1310822545, 1418839493,  1348481072,  50462977,
     -1446090905, 2102799147,  434634494,   1656084439,  -431117397,
@@ -198,7 +196,7 @@ const int cloud_base::AES::sm_T2[256] = {
     2002398509,  287182607,   -881086288,  -56077228,   -697451589,
     975967766};
 
-const int cloud_base::AES::sm_T3[256] = {
+const int AES::sm_T3[256] = {
     1671808611,  2089089148,  2006576759,  2072901243,  -233963534,
     1807603307,  1873927791,  -984313403,  810573872,   16974337,
     1739181671,  729634347,   -31856642,   -681396777,  -1410970197,
@@ -252,7 +250,7 @@ const int cloud_base::AES::sm_T3[256] = {
     762796589,   252780047,   -1328841808, 1425844308,  -1143575109,
     372911126};
 
-const int cloud_base::AES::sm_T4[256] = {
+const int AES::sm_T4[256] = {
     1667474886,  2088535288,  2004326894,  2071694838,  -219017729,
     1802223062,  1869591006,  -976923503,  808472672,   16843522,
     1734846926,  724270422,   -16901657,   -673750347,  -1414797747,
@@ -306,7 +304,7 @@ const int cloud_base::AES::sm_T4[256] = {
     757954394,   252645662,   -1330590853, 1414855848,  -1145317779,
     370555436};
 
-const int cloud_base::AES::sm_T5[256] = {
+const int AES::sm_T5[256] = {
     1374988112,  2118214995,  437757123,   975658646,   1001089995,
     530400753,   -1392879445, 1273168787,  540080725,   -1384747530,
     -1999866223, -184398811,  1340463100,  -987051049,  641025152,
@@ -360,7 +358,7 @@ const int cloud_base::AES::sm_T5[256] = {
     -659233636,  1683407248,  2076935265,  -718096784,  1215061108,
     -793225406};
 
-const int cloud_base::AES::sm_T6[256] = {
+const int AES::sm_T6[256] = {
     1347548327,  1400783205,  -1021700188, -1774573730, -885281941,
     -249586363,  -1414727080, -1823743229, 1428173050,  -156404115,
     -1853305738, 636813900,   -61872681,   -674944309,  -2144979644,
@@ -414,7 +412,7 @@ const int cloud_base::AES::sm_T6[256] = {
     -1663519516, -1872472383, 1635502980,  1893020342,  1950903388,
     1120974935};
 
-const int cloud_base::AES::sm_T7[256] = {
+const int AES::sm_T7[256] = {
     -1487908364, 1699970625,  -1530717673, 1586903591,  1808481195,
     1173430173,  1487645946,  59984867,    -95084496,   1844882806,
     1989249228,  1277555970,  -671330331,  -875051734,  1149249077,
@@ -468,7 +466,7 @@ const int cloud_base::AES::sm_T7[256] = {
     -459482956,  -1047501738, -2073986101, -1234119374, 1551124588,
     1463996600};
 
-const int cloud_base::AES::sm_T8[256] = {
+const int AES::sm_T8[256] = {
     -190361519,  1097159550,  396673818,   660510266,   -1418998981,
     -1656360673, -94852180,   -486304949,  821712160,   1986918061,
     -864644728,  38544885,    -438830001,  718002117,   893681702,
@@ -522,7 +520,7 @@ const int cloud_base::AES::sm_T8[256] = {
     -1260086056, 1455525988,  -880516741,  850817237,   1817998408,
     -1202240816};
 
-const int cloud_base::AES::sm_U1[256] = {
+const int AES::sm_U1[256] = {
     0,           235474187,   470948374,   303765277,   941896748,
     908933415,   607530554,   708780849,   1883793496,  2118214995,
     1817866830,  1649639237,  1215061108,  1181045119,  1417561698,
@@ -576,7 +574,7 @@ const int cloud_base::AES::sm_U1[256] = {
     -1150570876, -1251826801, -1621262146, -1856729675, -2091935064,
     -1924753501};
 
-const int cloud_base::AES::sm_U2[256] = {
+const int AES::sm_U2[256] = {
     0,           185469197,   370938394,   487725847,   741876788,
     657861945,   975451694,   824852259,   1483753576,  1400783205,
     1315723890,  1164071807,  1950903388,  2135319889,  1649704518,
@@ -631,7 +629,7 @@ const int cloud_base::AES::sm_U2[256] = {
     -1551022441,
 };
 
-const int cloud_base::AES::sm_U3[256] = {
+const int AES::sm_U3[256] = {
     0,           218828297,   437656594,   387781147,   875313188,
     958871085,   775562294,   590424639,   1750626376,  1699970625,
     1917742170,  2135253587,  1551124588,  1367295589,  1180849278,
@@ -685,7 +683,7 @@ const int cloud_base::AES::sm_U3[256] = {
     -1367032981, -1550863006, -2134991011, -1917480620, -1700232369,
     -1750889146};
 
-const int cloud_base::AES::sm_U4[256] = {
+const int AES::sm_U4[256] = {
     0,           151849742,   303699484,   454499602,   607398968,
     758720310,   908999204,   1059270954,  1214797936,  1097159550,
     1517440620,  1400849762,  1817998408,  1699839814,  2118541908,
@@ -739,264 +737,36 @@ const int cloud_base::AES::sm_U4[256] = {
     1806599355,  1654886325,  1568718495,  1418573201,  1335535747,
     1184342925};
 
-const char cloud_base::AES::sm_rcon[30] = {
+const char AES::sm_rcon[30] = {
     1,  2,  4,   8,  16,  32,   64, -128, 27,  54,  108, -40, -85, 77,  -102,
     47, 94, -68, 99, -58, -105, 53, 106,  -44, -77, 125, -6,  -17, -59, -111};
 
-const int cloud_base::AES::sm_shifts[3][4][2] = {{{0, 0}, {1, 3}, {2, 2}, {3, 1}},
+const int AES::sm_shifts[3][4][2] = {{{0, 0}, {1, 3}, {2, 2}, {3, 1}},
                                      {{0, 0}, {1, 5}, {2, 4}, {3, 3}},
                                      {{0, 0}, {1, 7}, {3, 5}, {4, 4}}};
 
-// Error Messages
-char const* cloud_base::AES::sm_szErrorMsg1 = "Object not Initialized";
-char const* cloud_base::AES::sm_szErrorMsg2 = "Data not multiple of Block Size";
-
 // Null chain
-char const* cloud_base::AES::sm_chain0 =
+char const* AES::sm_chain0 =
     "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 
 // CONSTRUCTOR
-cloud_base::AES::AES() : m_bKeyInit(false) {}
+AES::AES() : m_bKeyInit(false) {}
 
 // DESTRUCTOR
-cloud_base::AES::~AES() {}
+AES::~AES() {}
 ///////////////////////////////////////////////////////////////////////////
-/*std::string string_To_UTF8(const std::string& str) {
-  size_t nwLen = ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
 
-  wchar_t* pwBuf = new wchar_t[nwLen + 1];  //  Ò»¶¨Òª¼Ó1£¬²»È»»á³öÏÖÎ²°Í
-  ZeroMemory(pwBuf, nwLen * 2 + 2);
-
-  ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.length(), pwBuf, nwLen);
-
-  int nLen =
-      ::WideCharToMultiByte(CP_UTF8, 0, pwBuf, -1, NULL, NULL, NULL, NULL);
-
-  char* pBuf = new char[nLen + 1];
-  ZeroMemory(pBuf, nLen + 1);
-
-  ::WideCharToMultiByte(CP_UTF8, 0, pwBuf, nwLen, pBuf, nLen, NULL, NULL);
-
-  std::string retStr(pBuf);
-
-  delete[] pwBuf;
-  delete[] pBuf;
-
-  pwBuf = NULL;
-  pBuf = NULL;
-
-  return retStr;
-}*/
-/*std::string UTF8_To_string(const std::string& str) {
-  int nwLen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
-
-  wchar_t* pwBuf = new wchar_t[nwLen + 1];  //  Ò»¶¨Òª¼Ó1£¬²»È»»á³öÏÖÎ²°Í
-  memset(pwBuf, 0, nwLen * 2 + 2);
-
-  MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), pwBuf, nwLen);
-
-  size_t nLen = WideCharToMultiByte(CP_ACP, 0, pwBuf, -1, NULL, NULL, NULL, NULL);
-
-  char* pBuf = new char[nLen + 1];
-  memset(pBuf, 0, nLen + 1);
-
-  WideCharToMultiByte(CP_ACP, 0, pwBuf, nwLen, pBuf, nLen, NULL, NULL);
-
-  std::string retStr = pBuf;
-
-  delete[] pBuf;
-  delete[] pwBuf;
-
-  pBuf = NULL;
-  pwBuf = NULL;
-
-  return retStr;
-}*/
-static const std::string base64_chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789+/";
-
-static inline bool is_base64(unsigned char c) {
-  return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
-std::string base64_encode(unsigned char const* bytes_to_encode,
-                          unsigned int in_len) {
-  std::string ret;
-  int i = 0;
-  int j = 0;
-  unsigned char char_array_3[3];
-  unsigned char char_array_4[4];
-
-  while (in_len--) {
-    char_array_3[i++] = *(bytes_to_encode++);
-    if (i == 3) {
-      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-      char_array_4[1] =
-          ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-      char_array_4[2] =
-          ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-      char_array_4[3] = char_array_3[2] & 0x3f;
-
-      for (i = 0; (i < 4); i++) ret += base64_chars[char_array_4[i]];
-      i = 0;
-    }
-  }
-
-  if (i) {
-    for (j = i; j < 3; j++) char_array_3[j] = '\0';
-
-    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-    char_array_4[1] =
-        ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-    char_array_4[2] =
-        ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-    char_array_4[3] = char_array_3[2] & 0x3f;
-
-    for (j = 0; (j < i + 1); j++) ret += base64_chars[char_array_4[j]];
-
-    while ((i++ < 3)) ret += '=';
-  }
-
-  return ret;
-}
-
-/*std::string base64_decode(std::string const& encoded_string) {
-  size_t in_len = encoded_string.size();
-  size_t i = 0;
-  size_t j = 0;
-  int in_ = 0;
-  unsigned char char_array_4[4], char_array_3[3];
-  std::string ret;
-
-  while (in_len-- && (encoded_string[in_] != '=') &&
-         is_base64(encoded_string[in_])) {
-    char_array_4[i++] = encoded_string[in_];
-    in_++;
-    if (i == 4) {
-      for (i = 0; i < 4; i++)
-        char_array_4[i] = base64_chars.find(char_array_4[i]);
-
-      char_array_3[0] =
-          (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-      char_array_3[1] =
-          ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-      char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-      for (i = 0; (i < 3); i++) ret += char_array_3[i];
-      i = 0;
-    }
-  }
-
-  if (i) {
-    for (j = i; j < 4; j++) char_array_4[j] = 0;
-
-    for (j = 0; j < 4; j++)
-      char_array_4[j] = base64_chars.find(char_array_4[j]);
-
-    char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-    char_array_3[1] =
-        ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-    char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-    for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
-  }
-
-  return ret;
-}*/
-////////////base64´¦Àí////////////////////////
-string aes_cbc_encryt(string Data, string key, string iv) {
-  // const long LENGTH =Data.length();  Èç¹û²»ÐèÒª×ªÂë¾Í²»ÐèÒª
-  // Data = string_To_UTF8(Data);²»ÐèÒª×ªÂë
-  // Data = string_To_UTF8(Data);²»ÐèÒª×ªÂë£¿£¿£¿£¿£¿
-  size_t length = Data.size();
-  size_t block_num = length / 16;
-  /*
-          if(length%16)
-          {
-                  block_num++;
-          }
-          */
-  //  ¹¹Ôì¼ÓÃÜ¿é,padding·½Ê½ÎªPKCS5  syl_
-  char* p_data = new char
-      [(block_num + 1) * 16 +
-       1];  // block*16+1
-            // ÕâÖÖ·½Ê½»á²»»áÓÐÒþ»¼£¿µ±16×Ö½ÚÕûÊý±¶Ê±»¹ÐèÒªÌî²¹16¸ö×Ö½Ú¡£µ«·ÖÅäÄÚ´æ²»¹»£¿(ºóÆÚÑéÖ¤£¬´æÔÚÒþ»¼)
-  memset(p_data, 0x00, (block_num + 1) * 16 + 1);
-  strcpy(p_data, Data.c_str());
-  int k = length % BLOCK_SIZE;
-  size_t j = length / BLOCK_SIZE;
-  int padding = BLOCK_SIZE - k;
-  for (int i = 0; i < padding; i++) {
-    p_data[j * BLOCK_SIZE + k + i] = 0;
-  }
-  p_data[j * BLOCK_SIZE + k + padding] = '\0';
-  // unsigned char key[24]="1234567890ABCDEF";    //syl_×Ô¼º¶¨
-  // HexStr2CharStr(keyhexstr.c_str(),key,24);  syl_½âÃÜ  ×Ô¼º×¢ÊÍµÄ¡£
-  cloud_base::AES oRijndael;
-  //ÉèÖÃ½âÃÜµÄkeyºÍIVÊ±£¬Óë¼ÓÃÜµÄkeyºÍIV±£³ÖÒ»ÖÂ
-  oRijndael.MakeKey(key.c_str(), iv.c_str(), 16, 16);
-  //Ã÷ÎÄ
-  char* szDataIn = new char[(block_num + 1) * 16 + 1];
-  //¼ÓÃÜºóµÄÃÜÎÄ
-  char* szDataOut = new char[(block_num + 1) * 16 * 2 + 1];
-  memset(szDataIn, 0, (block_num + 1) * 16 + 1);
-  memset(szDataOut, 0, (block_num + 1) * 16 * 2 + 1);
-  strcpy(szDataIn, p_data);
-  memset(szDataOut, 0, (block_num + 1) * 16 * 2 + 1);
-  //¼ÓÃÜ×Ö·û´®
-  oRijndael.Encrypt(szDataIn, szDataOut, (block_num + 1) * 16, cloud_base::AES::CBC);
-
-  string temp_caculate = szDataOut;
-  // std::cout<<"size"<<temp_caculate.length()<<"   block_num"<<block_num<<endl;
-  // std::string base64_encode(unsigned char const* bytes_to_encode, unsigned
-  // int in_len) string final_encode = base64_encode((unsigned char
-  // const*)szDataOut,(block_num+1)*16);// syl_
-  // std::cout<<"final_encode_length"<<"   "<<final_encode<<"
-  // "<<final_encode.length()<<endl;//syl_
-  delete[] p_data;
-  delete[] szDataIn;
-  delete[] szDataOut;
-  return temp_caculate;
-}
-string aes_cbc_decryt(string encryptData,string key,string iv) {
-  //unsigned char key[24] = "1123456781234567";
-  cloud_base::AES oRijndael;
-  oRijndael.MakeKey(
-	  key.c_str(), iv.c_str(), 16,
-      16);  // syl_  oRijndael.MakeKey((char*)key, "0102030405060708", 24, 16);
-  //½âÃÜÊý¾Ý
-  // string final_decode = base64_decode(final_encode);
-  size_t block_num = encryptData.length() / 16;
-  // std::cout<<"final_decode_length"<<"   "<<final_decode<<"
-  // "<<final_decode.length()<<endl; //syl_ Ã÷ÎÄ
-  char* szDataIn = new char[block_num * 16 + 1];
-  memset(szDataIn, 0, block_num * 16 + 1);
-  oRijndael.Decrypt(encryptData.c_str(), szDataIn, block_num * 16, cloud_base::AES::CBC);
-  // string temp_retult = UTF8_To_string(szDataIn); 
-  string temp_retult = szDataIn;
-  temp_retult = temp_retult.substr(
-      0, temp_retult.length() - int(temp_retult[temp_retult.length() - 1]));
-  // std::cout<<temp_retult<<endl;
-  // delete [] p_data;
-  delete[] szDataIn;
-  // delete [] szDataOut;
-  return temp_retult;
-}
 /////////////////////////////////////////////////////////////////////////
 // Expand a user-supplied key material into a session key.
 // key        - The 128/192/256-bit user-key to use.
 // chain      - initial chain block for CBC and CFB modes.
 // keylength  - 16, 24 or 32 bytes
 // blockSize  - The block size in bytes of this Rijndael (16, 24 or 32 bytes).
-void cloud_base::AES::MakeKey(char const* key, char const* chain, int keylength,
+void AES::MakeKey(char const* key, char const* chain, int keylength,
                   int blockSize) {
-  if (NULL == key) throw std::exception("Emptexceptiony key");
-  if (!(16 == keylength || 24 == keylength || 32 == keylength))
-    throw std::exception("Incorrect key length");
-  if (!(16 == blockSize || 24 == blockSize || 32 == blockSize))
-    throw std::exception("Incorrect block length");
+  if (NULL == key) error_code = 1;
+  if (!(16 == keylength || 24 == keylength || 32 == keylength)) error_code = 1;
+  if (!(16 == blockSize || 24 == blockSize || 32 == blockSize)) error_code = 2;
   m_keylength = keylength;
   m_blockSize = blockSize;
   // Initialize the chain
@@ -1079,8 +849,8 @@ void cloud_base::AES::MakeKey(char const* key, char const* chain, int keylength,
 // Rijndael's default block size (128-bit).
 // in         - The plaintext
 // result     - The ciphertext generated from a plaintext using the key
-void cloud_base::AES::DefEncryptBlock(char const* in, char* result) {
-  if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+void AES::DefEncryptBlock(char const* in, char* result) {
+  if (false == m_bKeyInit) error_code = 3;
   int* Ker = m_Ke[0];
   int t0 = ((unsigned char)*(in++) << 24);
   t0 |= ((unsigned char)*(in++) << 16);
@@ -1147,8 +917,8 @@ void cloud_base::AES::DefEncryptBlock(char const* in, char* result) {
 // Rijndael's default block size (128-bit).
 // in         - The ciphertext.
 // result     - The plaintext generated from a ciphertext using the session key.
-void cloud_base::AES::DefDecryptBlock(char const* in, char* result) {
-  if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+void AES::DefDecryptBlock(char const* in, char* result) {
+  if (false == m_bKeyInit) error_code = 3;
   int* Kdr = m_Kd[0];
   int t0 = ((unsigned char)*(in++) << 24);
   t0 = t0 | ((unsigned char)*(in++) << 16);
@@ -1214,8 +984,8 @@ void cloud_base::AES::DefDecryptBlock(char const* in, char* result) {
 // Encrypt exactly one block of plaintext.
 // in           - The plaintext.
 // result       - The ciphertext generated from a plaintext using the key.
-void cloud_base::AES::EncryptBlock(char const* in, char* result) {
-  if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+void AES::EncryptBlock(char const* in, char* result) {
+  if (false == m_bKeyInit) error_code = 3;
   if (DEFAULT_BLOCK_SIZE == m_blockSize) {
     DefEncryptBlock(in, result);
     return;
@@ -1259,8 +1029,8 @@ void cloud_base::AES::EncryptBlock(char const* in, char* result) {
 // Decrypt exactly one block of ciphertext.
 // in         - The ciphertext.
 // result     - The plaintext generated from a ciphertext using the session key.
-void cloud_base::AES::DecryptBlock(char const* in, char* result) {
-  if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+void AES::DecryptBlock(char const* in, char* result) {
+  if (false == m_bKeyInit) error_code = 3;
   if (DEFAULT_BLOCK_SIZE == m_blockSize) {
     DefDecryptBlock(in, result);
     return;
@@ -1301,10 +1071,10 @@ void cloud_base::AES::DecryptBlock(char const* in, char* result) {
   }
 }
 
-void cloud_base::AES::Encrypt(char const* in, char* result, size_t n, int iMode) {
-  if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+void AES::Encrypt(char const* in, char* result, size_t n, int iMode) {
+  if (false == m_bKeyInit) error_code = 3;
   // n should be > 0 and multiple of m_blockSize
-  if (0 == n || n % m_blockSize != 0) throw std::exception(sm_szErrorMsg2);
+  if (0 == n || n % m_blockSize != 0) error_code = 4;
   size_t i;
   char const* pin;
   char* presult;
@@ -1336,10 +1106,10 @@ void cloud_base::AES::Encrypt(char const* in, char* result, size_t n, int iMode)
   }
 }
 
-void cloud_base::AES::Decrypt(char const* in, char* result, size_t n, int iMode) {
-  if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+void AES::Decrypt(char const* in, char* result, size_t n, int iMode) {
+  if (false == m_bKeyInit) error_code = 3;
   // n should be > 0 and multiple of m_blockSize
-  if (0 == n || n % m_blockSize != 0) throw std::exception(sm_szErrorMsg2);
+  if (0 == n || n % m_blockSize != 0) error_code = 4;
   size_t i;
   char const* pin;
   char* presult;
@@ -1372,7 +1142,7 @@ void cloud_base::AES::Decrypt(char const* in, char* result, size_t n, int iMode)
   }
 }
 
-void cloud_base::AES::Char2Hex(unsigned char ch, char* szHex) {
+void AES::Char2Hex(unsigned char ch, char* szHex) {
   unsigned char byte[2];
   byte[0] = ch / 16;
   byte[1] = ch % 16;
@@ -1384,7 +1154,7 @@ void cloud_base::AES::Char2Hex(unsigned char ch, char* szHex) {
   }
   szHex[2] = 0;
 }
-void cloud_base::AES::Hex2Char(char const* szHex, unsigned char& rch) {
+void AES::Hex2Char(char const* szHex, unsigned char& rch) {
   rch = 0;
   for (int i = 0; i < 2; i++) {
     if (*(szHex + i) >= '0' && *(szHex + i) <= '9')
@@ -1395,7 +1165,7 @@ void cloud_base::AES::Hex2Char(char const* szHex, unsigned char& rch) {
       break;
   }
 }
-void cloud_base::AES::CharStr2HexStr(unsigned char const* pucCharStr, char* pszHexStr,
+void AES::CharStr2HexStr(unsigned char const* pucCharStr, char* pszHexStr,
                          size_t iSize) {
   size_t i;
   char szHex[3];
@@ -1405,7 +1175,7 @@ void cloud_base::AES::CharStr2HexStr(unsigned char const* pucCharStr, char* pszH
     strcat(pszHexStr, szHex);
   }
 }
-void cloud_base::AES::HexStr2CharStr(char const* pszHexStr, unsigned char* pucCharStr,
+void AES::HexStr2CharStr(char const* pszHexStr, unsigned char* pucCharStr,
                          int iSize) {
   int i;
   unsigned char ch;
@@ -1414,13 +1184,13 @@ void cloud_base::AES::HexStr2CharStr(char const* pszHexStr, unsigned char* pucCh
     pucCharStr[i] = ch;
   }
 }
-void cloud_base::AES::InitKeyIv(AES& oRijndael) {
+void AES::InitKeyIv(AES& aesObject) {
   unsigned char key[24];
   string keyhexstr = "F50DBAB515286F4C88D44CADE0819334829C15F60D859F43";
   HexStr2CharStr(keyhexstr.c_str(), key, 24);
-  oRijndael.MakeKey((char*)key, "0102030405060708", 24, 16);
+  aesObject.MakeKey((char*)key, "0102030405060708", 24, 16);
 }
-void PaddingData2Block(std::string& str, char* szDataIn) {
+void AES::PaddingData2Block(std::string& str, char* szDataIn) {
   size_t length = strlen(str.data());
   int k = length % BLOCK_SIZE;
   size_t j = length / BLOCK_SIZE;
@@ -1432,7 +1202,7 @@ void PaddingData2Block(std::string& str, char* szDataIn) {
   }
   szDataIn[j * BLOCK_SIZE + k + padding] = '\0';
 }
-void cloud_base::AES::Encryptstring(string& test, std::string& result) {
+void AES::Encryptstring(string& test, std::string& result) {
   char testdata[150];
   // PaddingData2Block(test,testdata);
   /////////////////////////////////
@@ -1451,15 +1221,15 @@ void cloud_base::AES::Encryptstring(string& test, std::string& result) {
   if ((test.size() % BLOCK_SIZE)) {
     Block_Number++;
   }
-  AES oRijndael;
-  InitKeyIv(oRijndael);
+  AES aesObject;
+  InitKeyIv(aesObject);
   char szDataIn[300];
   char szDataOut[300];
   memset(szDataIn, '\0', 300);
   memset(szDataOut, 0, 300);
   // CBC Model
   strcpy(szDataIn, testdata);
-  oRijndael.Encrypt(szDataIn, szDataOut, Block_Number * 16, cloud_base::AES::CBC);
+  aesObject.Encrypt(szDataIn, szDataOut, Block_Number * 16, AES::CBC);
   unsigned char str[300];
   char str1[300];
   memcpy(str, (unsigned char*)szDataOut, Block_Number * 16);
@@ -1467,4 +1237,58 @@ void cloud_base::AES::Encryptstring(string& test, std::string& result) {
   memset(szDataIn, 0, 300);
   result = str1;
 }
+string aes_cbc_encryt(const std::string& Data, const std::string& key,
+                      const std::string& iv) {
+  size_t length = Data.size();
+  size_t block_num = length / 16;
+  //  zero_padding
+  char* p_data = new char[(block_num + 1) * 16 + 1];  // block*16+1
+  // spencer
+  memset(p_data, 0x00, (block_num + 1) * 16 + 1);
+  strcpy(p_data, Data.c_str());
+  int k = length % BLOCK_SIZE;
+  size_t j = length / BLOCK_SIZE;
+  int padding = BLOCK_SIZE - k;
+  for (int i = 0; i < padding; i++) {
+    p_data[j * BLOCK_SIZE + k + i] = 0;
+  }
+  p_data[j * BLOCK_SIZE + k + padding] = '\0';
+  cloud_base::AES aesObject;
+  aesObject.MakeKey(key.c_str(), iv.c_str(), 16, 16);
+
+  char* szDataIn = new char[(block_num + 1) * 16 + 1];
+
+  char* szDataOut = new char[(block_num + 1) * 16 * 2 + 1];
+  memset(szDataIn, 0, (block_num + 1) * 16 + 1);
+  memset(szDataOut, 0, (block_num + 1) * 16 * 2 + 1);
+  strcpy(szDataIn, p_data);
+  memset(szDataOut, 0, (block_num + 1) * 16 * 2 + 1);
+
+  aesObject.Encrypt(szDataIn, szDataOut, (block_num + 1) * 16,
+                    cloud_base::AES::CBC);
+
+  string temp_caculate = szDataOut;
+  delete[] p_data;
+  delete[] szDataIn;
+  delete[] szDataOut;
+  return temp_caculate;
 }
+string aes_cbc_decryt(const string& encryptData, const string& key,
+                      const string& iv) {
+  cloud_base::AES aesObject;
+  aesObject.MakeKey(key.c_str(), iv.c_str(), 16, 16);
+
+  size_t block_num = encryptData.length() / 16;
+
+  char* szDataIn = new char[block_num * 16 + 1];
+  memset(szDataIn, 0, block_num * 16 + 1);
+  aesObject.Decrypt(encryptData.c_str(), szDataIn, block_num * 16,
+                    cloud_base::AES::CBC);
+  string temp_retult = szDataIn;
+  temp_retult = temp_retult.substr(
+      0, temp_retult.length() - int(temp_retult[temp_retult.length() - 1]));
+
+  delete[] szDataIn;
+  return temp_retult;
+}
+}  // namespace cloud_base

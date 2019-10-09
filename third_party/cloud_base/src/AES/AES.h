@@ -8,9 +8,9 @@ class AES {
  public:
   // Operation Modes
   // The Electronic Code Book (ECB), Cipher Block Chaining (CBC) and Cipher
-  // Feedback Block (CFB) modes are implemented. In ECB mode if the same block is
-  // encrypted twice with the same key, the resulting ciphertext blocks are the
-  // same. In CBC Mode a ciphertext block is obtained by first xoring the
+  // Feedback Block (CFB) modes are implemented. In ECB mode if the same block
+  // is encrypted twice with the same key, the resulting ciphertext blocks are
+  // the same. In CBC Mode a ciphertext block is obtained by first xoring the
   // plaintext block with the previous ciphertext block, and encrypting the
   // resulting value. In CFB mode a ciphertext block is obtained by encrypting
   // the previous ciphertext block and xoring the resulting value with the
@@ -59,7 +59,7 @@ class AES {
  private:
   // Auxiliary Function
   void Xor(char* buff, char const* chain) {
-    if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+    if (false == m_bKeyInit) error_code = 3;
     for (int i = 0; i < m_blockSize; i++) *(buff++) ^= *(chain++);
   }
 
@@ -77,6 +77,7 @@ class AES {
   void DefDecryptBlock(char const* in, char* result);
 
  public:
+  int getErrorCode() { return error_code; }
   // Encrypt exactly one block of plaintext.
   // in           - The plaintext.
   // result       - The ciphertext generated from a plaintext using the key.
@@ -94,19 +95,19 @@ class AES {
 
   // Get Key Length
   int GetKeyLength() {
-    if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+    if (false == m_bKeyInit) return -1;
     return m_keylength;
   }
 
   // Block Size
   int GetBlockSize() {
-    if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+    if (false == m_bKeyInit) return -1;
     return m_blockSize;
   }
 
   // Number of Rounds
   int GetRounds() {
-    if (false == m_bKeyInit) throw std::exception(sm_szErrorMsg1);
+    if (false == m_bKeyInit) return -1;
     return m_iROUNDS;
   }
 
@@ -127,7 +128,7 @@ class AES {
                              int iSize);
   static void Encryptstring(std::string& str, std::string& result);
   //初始化KEY和IV
-  static void InitKeyIv(AES& oRijndael);
+  static void InitKeyIv(AES& aesObject);
   //填充数据
 
  private:
@@ -150,8 +151,7 @@ class AES {
   static const char sm_rcon[30];
   static const int sm_shifts[3][4][2];
   // Error Messages
-  static char const* sm_szErrorMsg1;
-  static char const* sm_szErrorMsg2;
+  int error_code;
   // Key Initialization Flag
   bool m_bKeyInit;
   // Encryption (m_Ke) round key
@@ -172,12 +172,17 @@ class AES {
   int a[MAX_BC];
   int t[MAX_BC];
 };
-//std::string string_To_UTF8(const std::string& str);
-//std::string UTF8_To_string(const std::string& str);
-//std::string base64_decode(std::string const& s);
-std::string aes_cbc_encryt(std::string Data, std::string key, std::string iv);
-std::string aes_cbc_decryt(std::string content);
+std::string aes_cbc_encryt(const std::string& Data, const std::string& key,
+                           const std::string& iv);
+std::string aes_cbc_decryt(const std::string& encryptData,
+                           const std::string& key, const std::string& iv);
+
+/**************error_code construct*************************/
+/*  1---------Incorrect key length
+        2---------Incorrect block length
+        3---------false == m_bKeyInit
+        4---------encrypt data length isn't more than 0 or isn't multiple of
+   m_blockSize
+*/
 }  // namespace cloud_base
-
 #endif  // AES_AES_H__
-
