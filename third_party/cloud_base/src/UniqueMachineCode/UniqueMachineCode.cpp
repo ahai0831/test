@@ -1,5 +1,4 @@
 #include "UniqueMachineCode.h"
-#include "HashAlgorithm\SHA1Digest.h"
 
 #include <cinttypes>
 #include <iostream>
@@ -7,6 +6,8 @@
 #include <Wbemidl.h>
 #include <comdef.h>
 #include <intrin.h>
+
+#include "HashAlgorithm\SHA1Digest.h"
 
 #define SHA1_DIGESTSIZE (20)
 
