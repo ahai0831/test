@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Mnidump">
-      <UniqueIdentifier>{e4264aad-8c98-43a5-9e2c-7eb7fa73b909}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\md5">
       <UniqueIdentifier>{3040b268-01e8-4383-8340-6926e061d569}</UniqueIdentifier>
     </Filter>
@@ -25,10 +22,19 @@
     <Filter Include="Source Files\AES">
       <UniqueIdentifier>{31da01bd-b873-483a-a442-44e78b1b126f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\HashAlgorithm">
+      <UniqueIdentifier>{6ed148b6-fd27-4fa0-9abd-0d6189dc69b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UniqueMachineCode">
+      <UniqueIdentifier>{461c242c-a0b4-4f6f-9f1d-690a462bcf0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Minidump">
+      <UniqueIdentifier>{e4264aad-8c98-43a5-9e2c-7eb7fa73b909}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp">
-      <Filter>Source Files\Mnidump</Filter>
+      <Filter>Source Files\Minidump</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\md5\md5.cpp">
       <Filter>Source Files\md5</Filter>
@@ -39,19 +45,49 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\AES\AES.cpp">
       <Filter>Source Files\AES</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\HMAC_SHA1.cpp">
+      <Filter>Source Files\HashAlgorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\md5.cpp">
+      <Filter>Source Files\HashAlgorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1.cpp">
+      <Filter>Source Files\HashAlgorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\UniqueMachineCode\UniqueMachineCode.cpp">
+      <Filter>Source Files\UniqueMachineCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1Digest.cpp">
+      <Filter>Source Files\HashAlgorithm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\md5\md5.h">
       <Filter>Source Files\md5</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h">
-      <Filter>Source Files\Mnidump</Filter>
+      <Filter>Source Files\Minidump</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\base64\base64.h">
       <Filter>Source Files\base64</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\AES\AES.h">
       <Filter>Source Files\AES</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\HMAC_SHA1.h">
+      <Filter>Source Files\HashAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\md5.h">
+      <Filter>Source Files\HashAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1.h">
+      <Filter>Source Files\HashAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\UniqueMachineCode\UniqueMachineCode.h">
+      <Filter>Source Files\UniqueMachineCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1Digest.h">
+      <Filter>Source Files\HashAlgorithm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
