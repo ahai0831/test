@@ -22,6 +22,9 @@
     <Filter Include="Source Files\base64">
       <UniqueIdentifier>{79b3774a-bafe-41bd-a6f6-72b18889646b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\AES">
+      <UniqueIdentifier>{31da01bd-b873-483a-a442-44e78b1b126f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp">
@@ -33,6 +36,9 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\base64\base64.cpp">
       <Filter>Source Files\base64</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\AES\AES.cpp">
+      <Filter>Source Files\AES</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\md5\md5.h">
@@ -43,6 +49,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\base64\base64.h">
       <Filter>Source Files\base64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\AES\AES.h">
+      <Filter>Source Files\AES</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
