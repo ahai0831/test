@@ -1,8 +1,9 @@
 #include "SHA1Digest.h"
-#include "HashAlgorithm\HMAC_SHA1.h"
 
 #include <iostream>
 #include <memory>
+
+#include "HashAlgorithm\HMAC_SHA1.h"
 
 #define SHA1_DIGESTSIZE (20)
 
