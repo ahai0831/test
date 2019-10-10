@@ -9,10 +9,10 @@
 #include <iostream>
 #include <string>
 
-#include <md5/md5.h>
+#include <HashAlgorithm/md5.h>
 int main(void) {
   std::string str = "md5_test";
-  cloud_base::MD5 md5;
+  cloud_base::hash_algorithm::MD5 md5;
   md5.update((unsigned char*)str.data(), static_cast<uint32_t>(str.size()));
   md5.finalize();
   auto dis = md5.hex_digest();
@@ -23,7 +23,7 @@ int main(void) {
     dis = nullptr;
   }
 
-  cloud_base::MD5 md5_2(str);
+  cloud_base::hash_algorithm::MD5 md5_2(str);
   auto md5_2_str = md5_2.hex_string();
   printf("%s\n", md5_2_str.c_str());
 

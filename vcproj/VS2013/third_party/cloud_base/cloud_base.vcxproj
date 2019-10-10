@@ -25,7 +25,6 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\md5.cpp" />
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1.cpp" />
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1Digest.cpp" />
-    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\md5\md5.cpp" />
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp" />
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\UniqueMachineCode\UniqueMachineCode.cpp" />
   </ItemGroup>
@@ -36,7 +35,6 @@
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\md5.h" />
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1.h" />
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1Digest.h" />
-    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\md5\md5.h" />
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h" />
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\UniqueMachineCode\UniqueMachineCode.h" />
   </ItemGroup>

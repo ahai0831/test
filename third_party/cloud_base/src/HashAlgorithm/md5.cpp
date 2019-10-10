@@ -43,9 +43,8 @@ documentation and/or software.
 
 #include <cassert>
 #include <cstring>
-#include <new>
 
-#include <windows.h>
+#include <new>
 
 namespace cloud_base {
 // MD5 simple initialization method
@@ -68,38 +67,34 @@ void MD5::update(uint1 *input, uint32_t input_length) {
   buffer_index = (unsigned int)((count[0] >> 3) & 0x3F);
 
   // Update number of bits
-  if ((count[0] += ((uint4)input_length << 3)) < ((uint4)input_length << 3))
+  if ((count[0] += ((uint4)input_length << 3)) < ((uint4)input_length << 3)) {
     count[1]++;
+  }
 
   count[1] += ((uint4)input_length >> 29);
 
   buffer_space = 64 - buffer_index;  // how much space is left in buffer
 
-  __try {
-    // Transform as many times as possible.
-    if (input_length >=
-        buffer_space) {  // ie. we have enough to fill the buffer
-      // fill the rest of the buffer and transform
-      memcpy(buffer + buffer_index, input, buffer_space);
-      transform(buffer);
+  // Transform as many times as possible.
+  if (input_length >= buffer_space) {  // ie. we have enough to fill the buffer
+    // fill the rest of the buffer and transform
+    memcpy(buffer + buffer_index, input, buffer_space);
+    transform(buffer);
 
-      // now, transform each 64-byte piece of the input, bypassing the buffer
-      for (input_index = buffer_space; input_index + 63 < input_length;
-           input_index += 64)
-        transform(input + input_index);
+    // now, transform each 64-byte piece of the input, bypassing the buffer
+    for (input_index = buffer_space; input_index + 63 < input_length;
+         input_index += 64) {
+      transform(input + input_index);
+    }
 
-      buffer_index = 0;  // so we can buffer remaining
-    } else
-      input_index = 0;  // so we can buffer the whole input
-
-    // and here we do the buffering:
-    memcpy(buffer + buffer_index, input + input_index,
-           input_length - input_index);
-
-  } __except (GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR
-                  ? EXCEPTION_EXECUTE_HANDLER
-                  : EXCEPTION_CONTINUE_SEARCH) {
+    buffer_index = 0;  // so we can buffer remaining
+  } else {
+    input_index = 0;  // so we can buffer the whole input
   }
+
+  // and here we do the buffering:
+  memcpy(buffer + buffer_index, input + input_index,
+         input_length - input_index);
 }
 void MD5::update(const std::string &input) {
   update((uint1 *)input.c_str(), (uint32_t)input.size());
@@ -191,7 +186,9 @@ char *MD5::hex_digest() {
     return nullptr;
   }
 
-  for (i = 0; i < MD5_RES_LEN; i++) sprintf(s + i * 2, "%02X", digest[i]);
+  for (i = 0; i < MD5_RES_LEN; i++) {
+    sprintf(s + i * 2, "%02X", digest[i]);
+  }
 
   s[32] = '\0';
   return s;
@@ -354,9 +351,10 @@ void MD5::encode(uint1 *output, uint4 *input, uint4 len) {
 void MD5::decode(uint4 *output, uint1 *input, uint4 len) {
   unsigned int i, j;
 
-  for (i = 0, j = 0; j < len; i++, j += 4)
+  for (i = 0, j = 0; j < len; i++, j += 4) {
     output[i] = ((uint4)input[j]) | (((uint4)input[j + 1]) << 8) |
                 (((uint4)input[j + 2]) << 16) | (((uint4)input[j + 3]) << 24);
+  }
 }
 
 // ROTATE_LEFT rotates x left n bits.
