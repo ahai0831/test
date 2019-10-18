@@ -28,6 +28,9 @@
     <Filter Include="Source Files\Minidump">
       <UniqueIdentifier>{e4264aad-8c98-43a5-9e2c-7eb7fa73b909}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\DateHelper">
+      <UniqueIdentifier>{4d3d579c-9b92-4cb6-b79f-bfe310dcbea7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp">
@@ -54,6 +57,9 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1Digest.cpp">
       <Filter>Source Files\HashAlgorithm</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\DateHelper\DateHelper.cpp">
+      <Filter>Source Files\DateHelper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h">
@@ -79,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\HashAlgorithm\SHA1Digest.h">
       <Filter>Source Files\HashAlgorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\DateHelper\DateHelper.h">
+      <Filter>Source Files\DateHelper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
