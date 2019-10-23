@@ -1,6 +1,7 @@
 #include "UniqueMachineCode.h"
 
 #include <comdef.h>
+#include <intrin.h>
 
 #include <cinttypes>
 #include <iostream>
@@ -115,7 +116,7 @@ std::string get_disk_serial() {
       break;
     }
     _snscanf(((const char *)&descriptor + descriptor.SerialNumberOffset),
-             (descriptor.Size - descriptor.SerialNumberOffset), "%1023[^\0]",
+             (descriptor.Size - descriptor.SerialNumberOffset), "%1023s",
              serialNumber);
     // in windows xp sp3(virtual machine),it may cause serialnumber is "3030..."
     const auto sn_size = strlen(serialNumber);
