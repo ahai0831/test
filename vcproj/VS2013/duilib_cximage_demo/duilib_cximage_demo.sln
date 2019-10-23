@@ -96,10 +96,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "md5_test_demo", "..\test\md
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AES_test", "..\test\AES_test_demo\AES_test.vcxproj", "{F7658F4C-9394-488C-9447-E663A7BCD92C}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base64_test_demo", "..\test\base64_test_demo\base64_test_demo.vcxproj", "{B4CF236E-E1E6-449B-89CA-4D49B90D6987}"
 	ProjectSection(ProjectDependencies) = postProject
 		{49B507DB-FD61-4AEA-8D35-206F8F78314D} = {49B507DB-FD61-4AEA-8D35-206F8F78314D}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "process_version_test", "..\test\process_version_test\process_version_test.vcxproj", "{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -261,6 +264,14 @@ Global
 		{B4CF236E-E1E6-449B-89CA-4D49B90D6987}.Release|Win32.Build.0 = Release|Win32
 		{B4CF236E-E1E6-449B-89CA-4D49B90D6987}.Release|x64.ActiveCfg = Release|x64
 		{B4CF236E-E1E6-449B-89CA-4D49B90D6987}.Release|x64.Build.0 = Release|x64
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Debug|Win32.Build.0 = Debug|Win32
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Debug|x64.ActiveCfg = Debug|x64
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Debug|x64.Build.0 = Debug|x64
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Release|Win32.ActiveCfg = Release|Win32
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Release|Win32.Build.0 = Release|Win32
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Release|x64.ActiveCfg = Release|x64
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -288,5 +299,6 @@ Global
 		{73548136-2514-4118-BCC0-EB4544B217B2} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{F7658F4C-9394-488C-9447-E663A7BCD92C} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{B4CF236E-E1E6-449B-89CA-4D49B90D6987} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
+		{6F7CD46A-D4B0-457E-A1CD-49E2AA1680D5} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 	EndGlobalSection
 EndGlobal

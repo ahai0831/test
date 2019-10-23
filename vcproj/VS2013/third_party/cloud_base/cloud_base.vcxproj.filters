@@ -31,6 +31,9 @@
     <Filter Include="Source Files\DateHelper">
       <UniqueIdentifier>{4d3d579c-9b92-4cb6-b79f-bfe310dcbea7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\process_version">
+      <UniqueIdentifier>{73d9e641-32f4-4de5-ad6b-81fb6ca784e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp">
@@ -60,6 +63,9 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\DateHelper\DateHelper.cpp">
       <Filter>Source Files\DateHelper</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\process_version\process_version.cpp">
+      <Filter>Source Files\process_version</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h">
@@ -88,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\DateHelper\DateHelper.h">
       <Filter>Source Files\DateHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\process_version\process_version.h">
+      <Filter>Source Files\process_version</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
