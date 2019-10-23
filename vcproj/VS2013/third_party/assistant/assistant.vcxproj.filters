@@ -16,6 +16,9 @@
     <Filter Include="Header Files\v2">
       <UniqueIdentifier>{ce54bd1f-3d45-48dc-a59f-c055e1e80f24}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\tools">
+      <UniqueIdentifier>{fe988680-cea7-4c7a-954d-ff532b16b8ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v2.h">
@@ -62,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_timer.h">
       <Filter>Header Files\v2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\string_format.hpp">
+      <Filter>Header Files\tools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

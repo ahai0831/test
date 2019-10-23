@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v2.h" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\http_primitives.h" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\string_format.hpp" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_easy.h" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_global.h" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_multi.h" />
