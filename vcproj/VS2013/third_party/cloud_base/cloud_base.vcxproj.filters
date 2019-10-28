@@ -34,8 +34,11 @@
     <Filter Include="Source Files\process_version">
       <UniqueIdentifier>{73d9e641-32f4-4de5-ad6b-81fb6ca784e8}</UniqueIdentifier>
     </Filter>
-   <Filter Include="Source Files\UrlEncode">
+    <Filter Include="Source Files\UrlEncode">
       <UniqueIdentifier>{6cfcf83c-de8c-4ba6-96f3-e32d82f0bfea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rand">
+      <UniqueIdentifier>{f3ee7ce8-d059-4127-9892-6e838ad3acde}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +75,9 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\UrlEncode\UrlEncode.cpp">
       <Filter>Source Files\UrlEncode</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\rand\rand.cpp">
+      <Filter>Source Files\rand</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h">
@@ -106,6 +112,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\UrlEncode\UrlEncode.h">
       <Filter>Source Files\UrlEncode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\rand\rand.h">
+      <Filter>Source Files\rand</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
