@@ -40,6 +40,9 @@
     <Filter Include="Source Files\rand">
       <UniqueIdentifier>{f3ee7ce8-d059-4127-9892-6e838ad3acde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\filesystem">
+      <UniqueIdentifier>{0830105d-7d8a-4b93-8688-613282c271bf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.cpp">
@@ -78,6 +81,12 @@
     <ClCompile Include="..\..\..\..\third_party\cloud_base\src\rand\rand.cpp">
       <Filter>Source Files\rand</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\filesystem_helper\appdata_path.cpp">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\third_party\cloud_base\src\filesystem_helper\filesystem_helper.cpp">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\MiniDump\MiniDump.h">
@@ -115,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\cloud_base\src\rand\rand.h">
       <Filter>Source Files\rand</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\cloud_base\src\filesystem_helper\filesystem_helper.h">
+      <Filter>Source Files\filesystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
