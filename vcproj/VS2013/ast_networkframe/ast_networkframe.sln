@@ -125,6 +125,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "url_encode_test_demo", "..\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jsoncpp_helper_test", "..\test\jsoncpp_helper_test\jsoncpp_helper_test.vcxproj", "{A34E5C32-1F5D-4DA9-8AD1-BE23B2835614}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "session_helper_test", "..\test\session_helper_test\session_helper_test.vcxproj", "{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0BABF827-88BF-4475-97AB-F2BD7622CA00} = {0BABF827-88BF-4475-97AB-F2BD7622CA00}
+		{49B507DB-FD61-4AEA-8D35-206F8F78314D} = {49B507DB-FD61-4AEA-8D35-206F8F78314D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -341,6 +347,14 @@ Global
 		{A34E5C32-1F5D-4DA9-8AD1-BE23B2835614}.Release|Win32.Build.0 = Release|Win32
 		{A34E5C32-1F5D-4DA9-8AD1-BE23B2835614}.Release|x64.ActiveCfg = Release|x64
 		{A34E5C32-1F5D-4DA9-8AD1-BE23B2835614}.Release|x64.Build.0 = Release|x64
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Debug|Win32.Build.0 = Debug|Win32
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Debug|x64.ActiveCfg = Debug|x64
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Debug|x64.Build.0 = Debug|x64
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Release|Win32.ActiveCfg = Release|Win32
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Release|Win32.Build.0 = Release|Win32
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Release|x64.ActiveCfg = Release|x64
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -374,5 +388,6 @@ Global
 		{3D9DD217-B594-43C7-A916-063B26B2C13B} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{ABE161F8-083F-42A7-A685-EA58B7C22A50} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{A34E5C32-1F5D-4DA9-8AD1-BE23B2835614} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
+		{2DC5EB83-7568-4EB8-B309-F93DCB1E4AD4} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 	EndGlobalSection
 EndGlobal
