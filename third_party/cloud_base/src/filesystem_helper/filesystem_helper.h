@@ -1,6 +1,7 @@
 ﻿#pragma once
 #ifndef FILESYSTEM__FILESYSTEM_H__
 #define FILESYSTEM__FILESYSTEM_H__
+#include <cinttypes>
 #include <string>
 #include <vector>
 namespace cloud_base {
@@ -22,6 +23,19 @@ bool get_appdata_path(std::wstring& appdata_path);
 //  match the file type then write them to the reference parameter(vec)
 bool get_file_list(const std::wstring& dirPath, const std::wstring& suffix,
                    std::vector<std::wstring>& vec);
+//  input a file path,get and write the file name to the reference
+//  parameter(file_name)
+//  return true if get file name successful,return false if failed
+bool GetFileName(const std::wstring& file_path, std::wstring& file_name);
+//  input a file path,get and write the file size to the reference
+//  parameter(file_size)
+//  return true if get size name successful,return false if failed
+bool GetFileSize(const std::wstring& file_path, uint64_t& file_size);
+//  input a file path,get and write the last change date to the reference
+//  parameter(file_modify_data)
+//  return true if get file last modify date successful,return false if failed
+bool GetFileLastChange(const std::wstring& file_path,
+                       std::string& file_modify_date);
 }  // namespace filesystem_helper
 }  // namespace cloud_base
 #endif  // FILESYSTEM__FILESYSTEM_H__
