@@ -16,8 +16,8 @@ std::string GenerateSha1Digest(const std::string &ssKey,
     // cloud_base::CHMAC_SHA1 *a = new cloud_base::CHMAC_SHA1();
     /// use make_unique instead of new method
     auto a = std::make_unique<hash_algorithm::CHMAC_SHA1>();
-    a->HMAC_SHA1((unsigned char *)ssKey.c_str(), (int)ssKey.length(),
-                 (unsigned char *)sData.c_str(), (int)sData.length(),
+    a->HMAC_SHA1((unsigned char *)sData.c_str(), (int)sData.length(),
+                 (unsigned char *)ssKey.c_str(), (int)ssKey.length(),
                  (unsigned char *)digest);
   } else {
     // cloud_base::CSHA1 *b = new cloud_base::CSHA1();
