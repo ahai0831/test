@@ -25,6 +25,24 @@
     <ProjectReference Include="..\..\third_party\cloud_base\cloud_base.vcxproj">
       <Project>{49b507db-fd61-4aea-8d35-206f8f78314d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\third_party\libcares_c-ares\libcares_c-ares.vcxproj">
+      <Project>{0dbb6066-c4a2-4a27-9851-2c586869a7cf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\third_party\libcrypto_openssl\libcrypto_openssl.vcxproj">
+      <Project>{bb41cb60-242f-4691-8543-00141510f9fa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\third_party\libcurl_curl\libcurl_curl.vcxproj">
+      <Project>{0f0519fe-d4c8-44a9-8e44-944c16a2fa02}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\third_party\libssl_openssl\libssl_openssl.vcxproj">
+      <Project>{4149d437-98b9-4b97-8229-7a27f20e2064}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\third_party\libuv-1.20.3\libuv-1.20.3.vcxproj">
+      <Project>{5cb20b71-5b65-483f-8872-944866e9670d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\third_party\zlib_zlib\zlib_zlib.vcxproj">
+      <Project>{fca05400-6b72-4cdd-a30b-db724229dd28}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="UserMacros">
     <aesIncludePath>$(ProjectDir)..\..\..\..\src\AES\</aesIncludePath>

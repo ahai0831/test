@@ -151,7 +151,7 @@ bool create_dir(const std::wstring &dir) {
 bool get_file_list(const std::wstring &dirPath, const std::wstring &suffix,
                    std::vector<std::wstring> &vec) {
   bool get_result = false;
-  int handle = -1;
+  intptr_t handle = -1;
   do {
     // if dirPath or suffix is empty,return false.
     if (dirPath.empty() || suffix.empty()) {
@@ -208,6 +208,120 @@ bool get_file_list(const std::wstring &dirPath, const std::wstring &suffix,
   }
 
   return get_result;
+}
+
+bool GetFileName(const std::wstring &file_path, std::wstring &file_name) {
+  do {
+    file_name.clear();
+
+    //  judge the path
+    if (file_path.empty()) {
+      break;
+    }
+
+    //  '/' change to "\\"
+    std::wstring temp_path = file_path;
+    std::replace(temp_path.begin(), temp_path.end(), '/', '\\');
+
+    //  get file name
+    if (temp_path.back() == '\\') {
+      size_t pos = temp_path.rfind('\\', temp_path.length() - 2);
+      if (pos == temp_path.npos) {
+        break;
+      }
+      file_name = temp_path.substr(pos + 1, temp_path.length() - pos - 2);
+    } else {
+      size_t pos = temp_path.rfind('\\');
+      if (pos == temp_path.npos) {
+        break;
+      }
+      file_name = temp_path.substr(pos + 1);
+    }
+  } while (false);
+  return !file_name.empty();
+}
+
+bool GetFileSize(const std::wstring &file_path, uint64_t &file_size) {
+  bool get_size_result = false;
+  FILE *fp = nullptr;
+  do {
+    //  judge the path
+    if (file_path.empty()) {
+      break;
+    }
+
+    //  "w+",can write and read
+    //  _SH_DENYRW,Reject other processes Read and write access to the file
+    fp = _wfsopen(file_path.c_str(), L"r", _SH_DENYRW);
+    if (nullptr == fp) {
+      break;
+    }
+
+    if (_fseeki64(fp, 0L, SEEK_END) != 0) {
+      break;
+    }
+
+    file_size = _ftelli64(fp);  // get file_size
+    if (file_size == -1) {
+      break;
+    }
+
+    get_size_result = true;
+  } while (false);
+
+  if (nullptr != fp) {
+    fclose(fp);
+    fp = nullptr;
+  }
+  return get_size_result;
+}
+
+bool GetFileLastChange(const std::wstring &file_path,
+                       std::string &file_modify_date) {
+  //  get latest modify Timestamp passed from 01/01/00:00:00 1970 UTC)
+  do {
+    file_modify_date.clear();
+
+    //  judge the path
+    if (file_path.empty()) {
+      break;
+    }
+    char ModifyTime[30] = {'\0'};
+
+    //  打开文件以获取文件属性
+    HANDLE hFile = CreateFileW(
+        file_path.c_str(),
+        0,  // 即使拒绝GENERIC_READ访问，应用程序也可以查询某些元数据，例如文件，目录或设备属性
+        0,  // 不共享读写
+        NULL,                   // default security
+        OPEN_EXISTING,          // existing file only
+        FILE_ATTRIBUTE_NORMAL,  // normal file
+        NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+      break;
+    }
+
+    //  获取文件信息
+    FILETIME ftModify;
+    if (!GetFileTime(hFile, nullptr, nullptr, &ftModify)) {
+      break;
+    }
+
+    //  初始化stLocal
+    SYSTEMTIME stLocal = {0};
+    //  数据类型转换
+    if (!FileTimeToSystemTime(&ftModify, &stLocal)) {
+      break;
+    }
+
+    //  格式化字符串
+    sprintf(ModifyTime, "%04u-%02u-%02u %02u:%02u:%02u", stLocal.wYear,
+            stLocal.wMonth, stLocal.wDay, stLocal.wHour + 8, stLocal.wMinute,
+            stLocal.wSecond);  //  文件修改时间
+    file_modify_date = ModifyTime;
+
+  } while (false);
+  return !file_modify_date.empty();
 }
 }  // namespace filesystem_helper
 }  // namespace cloud_base
