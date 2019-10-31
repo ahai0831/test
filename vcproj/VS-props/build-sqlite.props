@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <SQliteVersion>sqlite-amalgamation-3300000</SQliteVersion>
+    <SQlitePath>$(ProjectDir)..\..\..\..\third_party\sqlite\</SQlitePath>
+    <SQliteSourcePath>$(SQlitePath)$(SQliteVersion)\src\$(SQliteVersion)\</SQliteSourcePath>
+    <SQliteIncludeSetupPath>$(SQlitePath)$(SQliteVersion)\include\</SQliteIncludeSetupPath>
+    <SQliteLibSetupPath>$(SQlitePath)$(SQliteVersion)\lib\</SQliteLibSetupPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetName>sqlite3</TargetName>
+    <OutDir>$(SQliteLibSetupPath)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <DisableSpecificWarnings>4756</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PreBuildEvent>
+      <Command>@REM download file and check file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\package_get.bat" "$(SQlitePath)$(SQliteVersion).csv"
+@REM extract file
+call "$(ProjectDir)..\..\..\..\vcproj\batch-scripts\decompression.bat" "$(SQlitePath)$(SQliteVersion).zip" "$(SQlitePath)$(SQliteVersion)\src\"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy "$(SQliteSourcePath)sqlite3.h" "$(SQliteIncludeSetupPath)" /Y /C /R /Q /S /E /D</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="SQliteVersion">
+      <Value>$(SQliteVersion)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="SQlitePath">
+      <Value>$(SQlitePath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="SQliteSourcePath">
+      <Value>$(SQliteSourcePath)</Value>
+    </BuildMacro>
+    <BuildMacro Include="SQliteIncludeSetupPath">
+      <Value>$(SQliteIncludeSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="SQliteLibSetupPath">
+      <Value>$(SQliteLibSetupPath)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
