@@ -2,11 +2,10 @@
  * @file upload_file_data.h
  * @date 2019-10-29
  * @copyright Copyright (c) 2019
- *
  */
 #pragma once
-#ifndef UPLOAD_FILE_DATA_
-#define UPLOAD_FILE_DATA_
+#ifndef UPLOAD_FILE_DATA_H
+#define UPLOAD_FILE_DATA_H
 
 #include <cinttypes>
 
