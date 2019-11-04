@@ -20,8 +20,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v2.h" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v3.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_easy.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_global.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_multi.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_share.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\readwrite_callback.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_async.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_loop.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_poll.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_thread.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_timer.hpp" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\http_primitives.h" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\safecontainer.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\safequeue.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\scopeguard.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\string_convert.hpp" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\string_format.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\uuid.hpp" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_easy.h" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_global.h" />
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_multi.h" />
