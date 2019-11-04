@@ -15,7 +15,7 @@
 namespace restful_common {
 namespace rand_helper {
 //  generate a rand string as xxxx_xxxxxxxx
-std::string GetRandString() {
+static std::string GetRandString() {
   int four_rand = static_cast<int>(cloud_base::rand::GetRand(1000, 10000));
   int eight_rand =
       static_cast<int>(cloud_base::rand::GetRand(10000000, 100000000));

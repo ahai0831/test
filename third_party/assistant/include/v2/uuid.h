@@ -23,7 +23,7 @@
 namespace assistant {
 namespace uuid {
 #if defined(_WIN32)
-std::string generate() {
+static std::string generate() {
   GUID guid = {0};
   std::string flag;
   if (CoCreateGuid(&guid) == S_OK) {

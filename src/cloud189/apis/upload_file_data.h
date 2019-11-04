@@ -40,7 +40,7 @@ std::string JsonStringHelper(const std::string& fileUploadUrl,
 // jsoncpp reader 严格模式
 //
 // 请求方式：PUT
-// header规定:Content—Type: application/octet-stream
+// header规定:Content-Type: application/octet-stream
 //
 // 需要放到url中的参数：
 // clientType, [string],
@@ -56,7 +56,7 @@ std::string JsonStringHelper(const std::string& fileUploadUrl,
 // 需要放到header中的参数：
 // UploadFileId,[int64_t],
 // [从json字符串中作为int64_t解析，参数放到header中，表明断点续传文件Id]
-// UploadFileRange, [string],
+// Edrive-UploadFileId, [string],
 // [从json字符串中解析startOffset和offsetLength,计算断点续传文件的上传范围，拼接字符串bytes=起始偏移-最后位置，表明断点续传文件上传范围]
 // ResumePolicy, [int32_t],
 // [json字符串不用传,表明是否支持断点续传控制，1表示支持,0表示不支持]

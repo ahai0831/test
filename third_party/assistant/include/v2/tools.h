@@ -7,33 +7,33 @@
 #include <vector>
 namespace assistant {
 namespace tools {
-std::string wstringToUtf8(const std::wstring& str) {
+static std::string wstringToUtf8(const std::wstring& str) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>> strcvt(std::string(""),
                                                           std::wstring(L""));
   return strcvt.to_bytes(str);
 }
 
-std::wstring utf8ToWstring(const std::string& str) {
+static std::wstring utf8ToWstring(const std::string& str) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>> strcvt(std::string(""),
                                                           std::wstring(L""));
   return strcvt.from_bytes(str);
 }
 
-std::string wstringToAnsi(const std::wstring& str) {
+static std::string wstringToAnsi(const std::wstring& str) {
   std::wstring_convert<std::codecvt_byname<wchar_t, char, std::mbstate_t>>
   gbkStringConverter(
       new std::codecvt_byname<wchar_t, char, std::mbstate_t>("CHS"));
   return gbkStringConverter.to_bytes(str);
 }
 
-std::wstring ansiToWstring(const std::string& str) {
+static std::wstring ansiToWstring(const std::string& str) {
   std::wstring_convert<std::codecvt_byname<wchar_t, char, std::mbstate_t>>
   gbkStringConverter(
       new std::codecvt_byname<wchar_t, char, std::mbstate_t>("CHS"));
   return gbkStringConverter.from_bytes(str);
 }
 
-void StringSplit(const std::string& str, const std::string& split_char,
+static void StringSplit(const std::string& str, const std::string& split_char,
                  std::vector<std::string>& vec) {
   char splitchar = ';';
   if (!split_char.empty()) {

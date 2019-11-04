@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1CDE8ADA-1A8A-43A2-902D-A0FFBF2AE6DD}</ProjectGuid>
+    <ProjectGuid>{A151C995-D857-442F-80D8-3CE85BECF055}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>create_upload_file_request_test</RootNamespace>
+    <RootNamespace>ecloud189_upload_file_model_test</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -57,65 +57,73 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\VS-props\static_runtime.props" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
-    <Import Project="..\..\..\..\src\src_widthproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\src\src_widthproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
+    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\VS-props\static_runtime.props" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
-    <Import Project="..\..\..\..\src\src_widthproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\src\src_widthproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
+    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\VS-props\static_runtime.props" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
-    <Import Project="..\..\..\..\src\src_widthproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\src\src_widthproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
+    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\VS-props\supportxp_console.props" />
     <Import Project="..\..\..\VS-props\static_runtime.props" />
-    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
-    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
-    <Import Project="..\..\..\..\src\src_widthproject.props" />
-    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
-    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
-    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
-    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\scopeguard\scopeguard_withproject.props" />
+    <Import Project="..\..\..\..\third_party\rxcpp\rxcpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libuv\libuv-1.20.3\libuv_withproject.props" />
+    <Import Project="..\..\..\..\third_party\openssl\openssl-1.1.1c\openssl_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\c-ares\c-ares-1.15.0\libcares_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\zlib\zlib-1.2.11\zlib_full_withproject.props" />
+    <Import Project="..\..\..\..\third_party\libcurl\curl-7.65.3\libcurl_withproject.props" />
+    <Import Project="..\..\..\..\third_party\concurrentqueue\concurrentqueue_withproject.props" />
+    <Import Project="..\..\..\..\third_party\assistant\assistant_withproject.props" />
+    <Import Project="..\..\..\..\src\src_widthproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
+    <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -191,8 +199,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\comfirm_upload_file_complete.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\apis\create_upload_file.cpp" />
-    <ClCompile Include="..\..\..\..\test\create_upload_file_request_test\create_upload_file_request_test.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\get_upload_status.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_file_data.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp" />
+    <ClCompile Include="..\..\..\..\test\ecloud189_upload_file_model_test\ecloud189_upload_file_model_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

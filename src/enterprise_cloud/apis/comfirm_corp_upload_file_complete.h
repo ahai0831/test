@@ -39,7 +39,7 @@ namespace ComfirmUploadFileComplete {
 std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const int64_t uploadFileId, const int64_t corpId,
                              const int32_t fileSource, const int32_t opertype,
-                             const int64_t coshareId, const int32_t isLog);
+                             const std::string &coshareId, const int32_t isLog);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
@@ -76,8 +76,8 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
 // 3-遇到相同文件名（只检查文件名），执行覆盖原文件
 // fileSource, [int32_t],
 // [从json字符串中作为int32_t解析,表明文件来源,1-企业空间文件,2-协作空间文件,3-工作空间文件]
-// coshareId,[int64_t],
-// [从json字符串中作为int64_t解析，表明共享ID,在工作空间中为空,在协作空间中为共享文件的ID]
+// coshareId,[string],
+// [从json字符串中作为string解析，表明共享ID,在工作空间中为空,在协作空间中为共享文件的ID]
 // isLog, [int32_t],
 // [从json字符串中作为int32_t解析，参数放到body中，客户端日志上传标识，
 // 1–客户端日志文件上传至指定账户

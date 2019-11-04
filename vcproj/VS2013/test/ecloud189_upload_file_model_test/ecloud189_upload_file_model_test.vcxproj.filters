@@ -15,10 +15,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\test\create_upload_file_request_test\create_upload_file_request_test.cpp">
+    <ClCompile Include="..\..\..\..\test\ecloud189_upload_file_model_test\ecloud189_upload_file_model_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\comfirm_upload_file_complete.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\cloud189\apis\create_upload_file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\get_upload_status.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_file_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
