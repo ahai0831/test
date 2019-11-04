@@ -72,7 +72,8 @@ std::string JsonStringHelper(const std::string& fileUploadUrl,
 // [从json字符串中作为int32_t解析,表明文件来源,1-企业空间文件,2-协作空间文件,3-工作空间文件]
 // isLog, [int32_t],
 // [从json字符串中作为int32_t解析,表明客户端日志上传标识，1–客户端日志文件上传至指定账户,
-// 0-非客户端日志文件上传] Expect, [string],
+// 0-非客户端日志文件上传]
+// Expect, [string],
 // [json字符串不用传，参数为100-continue表示服务器已接收到请求标头，并且客户端继续发送请求正文]
 // Content-Length,[int64_t],
 // [body的传输长度，可根据数据内容生成]

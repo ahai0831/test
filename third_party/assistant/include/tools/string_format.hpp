@@ -14,7 +14,7 @@ namespace string {
 // replacing each % tag specified in the format parameter. The number of
 // parameters should be the same as the number of % tags
 
-std::string StringFormat(const char *format, ...) {
+static std::string StringFormat(const char *format, ...) {
   std::string result;
   va_list args = nullptr;
   va_start(args, format);

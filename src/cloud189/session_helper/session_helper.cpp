@@ -141,7 +141,7 @@ bool GenerateCloud189Signature(const std::string &operate,
         date.c_str());
 
     signature = cloud_base::hash_algorithm::GenerateSha1Digest(
-        signature_data, person_session_secret);
+        person_session_secret, signature_data);
 
     is_success = true;
   } while (false);
@@ -166,7 +166,7 @@ bool GenerateCloud189FamilySignature(const std::string &operate,
         date.c_str());
 
     signature = cloud_base::hash_algorithm::GenerateSha1Digest(
-        signature_data, family_session_secret);
+        family_session_secret, signature_data);
 
     is_success = true;
   } while (false);

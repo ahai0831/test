@@ -30,7 +30,7 @@ namespace CreateUploadFile {
 // [表明上传文件的md5]
 // fileSource, [int32_t],
 // [表明文件来源,1-企业空间文件,2-协作空间文件,3-工作空间文件]
-// coshareId,[int64_t],
+// coshareId,[string],
 // [表明共享ID,在工作空间中为空,在协作空间中为共享文件的ID]
 // isLog, [int32_t],
 // [客户端日志上传标识，
@@ -41,10 +41,10 @@ namespace CreateUploadFile {
 // 对于自动备份，需要把fileSource设置为3，isLog设置为0
 // 对于日志上传，需要把fileSource设置为1，isLog设置为1
 
-std::string JsonStringHelper(const std::string& localPath, const int64_t corpId,
-                             const int64_t parentId, const std::string& md5,
-                             const int32_t fileSource, const int64_t coshareId,
-                             const int32_t isLog);
+std::string JsonStringHelper(const std::string& localPath, int64_t corpId,
+                             int64_t parentId, const std::string& md5,
+                             int32_t fileSource, const std::string coshareId,
+                             int32_t isLog);
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
 //
@@ -73,6 +73,8 @@ std::string JsonStringHelper(const std::string& localPath, const int64_t corpId,
 // [从json字符串中作为int64_t解析,表明企业Id]
 // parentId,[int64_t],
 // [从json字符串中作为int64_t解析,表明父文件夹Id]
+// baseFileId, [string]
+// [json字符串不用传, 值为空]
 // fileName, [string],
 // [json字符串不用传，从json字符串中的local_path中提取，表明创建的上传文件名称]
 // fileSize, [int64_t],
