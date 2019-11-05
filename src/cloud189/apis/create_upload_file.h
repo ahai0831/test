@@ -1,13 +1,9 @@
 ﻿/**
  * @file create_upload_file.h
- * @brief
  * @date 2019-10-21
- *
  * @copyright Copyright (c) 2019
- *
  */
 #pragma once
-
 #ifndef CREATE_UPLOAD_FILE_H
 #define CREATE_UPLOAD_FILE_H
 

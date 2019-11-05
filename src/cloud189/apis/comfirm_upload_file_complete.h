@@ -2,7 +2,6 @@
  * @file comfirm_upload_file_complete.h
  * @date 2019-10-29
  * @copyright Copyright (c) 2019
- *
  */
 #pragma once
 #ifndef COMFIRM_UPLOAD_FILE_COMPLETE_H
