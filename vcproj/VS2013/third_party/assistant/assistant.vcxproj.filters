@@ -16,17 +16,17 @@
     <Filter Include="Header Files\v2">
       <UniqueIdentifier>{ce54bd1f-3d45-48dc-a59f-c055e1e80f24}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\tools">
-      <UniqueIdentifier>{fe988680-cea7-4c7a-954d-ff532b16b8ea}</UniqueIdentifier>
+    <Filter Include="Header Files\v3">
+      <UniqueIdentifier>{7943515f-2b24-420d-ac6c-df2804a18d35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\v3\tools">
+      <UniqueIdentifier>{c3c5432b-b98c-4d3e-afb8-e9c39d7726f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\v3\core">
+      <UniqueIdentifier>{682bbeca-6fde-4f7f-b93e-177470ac83ff}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\third_party\assistant\include\http_primitives.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\curl_easy.h">
       <Filter>Header Files\v2</Filter>
     </ClInclude>
@@ -66,13 +66,67 @@
     <ClInclude Include="..\..\..\..\third_party\assistant\include\v2\uv_timer.h">
       <Filter>Header Files\v2</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\http_primitives.h">
+      <Filter>Header Files\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v3.hpp">
+      <Filter>Header Files\v3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_easy.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_global.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_multi.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\curl_share.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\readwrite_callback.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_async.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_loop.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_poll.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_thread.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\core\uv_timer.hpp">
+      <Filter>Header Files\v3\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\safecontainer.hpp">
+      <Filter>Header Files\v3\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\safequeue.hpp">
+      <Filter>Header Files\v3\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\scopeguard.hpp">
+      <Filter>Header Files\v3\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\string_convert.hpp">
+      <Filter>Header Files\v3\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\uuid.hpp">
+      <Filter>Header Files\v3\tools</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\third_party\assistant\include\tools\string_format.hpp">
-      <Filter>Header Files\tools</Filter>
+      <Filter>Header Files\v3\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\third_party\assistant\include\Assistant_v2.h">
+      <Filter>Header Files\v2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\third_party\assistant\include\Assistant_v2.inc">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\v2</Filter>
     </None>
   </ItemGroup>
 </Project>

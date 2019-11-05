@@ -18,5 +18,14 @@
     <ClCompile Include="..\..\..\..\test\assistant_httprequest_demo\assistant_httprequest_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\test\assistant_httprequest_demo\test_sync_httprequest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\test\assistant_httprequest_demo\test_filedownload.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\test\assistant_httprequest_demo\test_fileupload.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
