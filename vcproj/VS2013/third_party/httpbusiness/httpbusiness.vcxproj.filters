@@ -15,16 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_assistant.h">
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_assistant.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\slicedownload_mastercontrol.h">
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_md5.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\speed_counter.h">
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\slicedownload_mastercontrol.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_md5.h">
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\speed_counter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,11 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\test\slice_download_demo\slicedownload_main.cpp" />
-    <ClCompile Include="..\..\..\..\test\slice_download_demo\slicedownload_test.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\test\slice_download_demo\slicedownload_test.h" />
+    <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\httpbusiness_rxassistant_demo.cpp" />
+    <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_rxmd5.cpp" />
+    <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_slicedownload.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6065E0B5-D29C-4E9D-897D-BA3248567813}</ProjectGuid>
@@ -63,18 +61,22 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
+    <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="..\..\..\VS-props\static_runtime.props" />

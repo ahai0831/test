@@ -19,10 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_assistant.h" />
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_md5.h" />
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\slicedownload_mastercontrol.h" />
-    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\speed_counter.h" />
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_assistant.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_md5.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\slicedownload_mastercontrol.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\speed_counter.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}</ProjectGuid>
