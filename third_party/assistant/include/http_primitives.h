@@ -104,7 +104,35 @@ struct HttpRequest_v1 {
     SPCECIALOPERATORS_NORMAL = 0,
     SPCECIALOPERATORS_CLEARCACHE,
     SPCECIALOPERATORS_STOPCONNECT,
+    SPCECIALOPERATORS_LIMITDOWNLOADSPEED,
+    SPCECIALOPERATORS_LIMITUPLOADSPEED,
   } Opts;
+  static SpcecialOperators StringToSpcecialOperators(
+      const std::string& special_operator) {
+    SpcecialOperators s = SPCECIALOPERATORS_NORMAL;
+    do {
+      if (special_operator.empty()) {
+        break;
+      }
+      if (stricmp(special_operator.c_str(), "StopConnect") == 0) {
+        s = SPCECIALOPERATORS_STOPCONNECT;
+        break;
+      }
+      if (stricmp(special_operator.c_str(), "LimitDownloadSpeed") == 0) {
+        s = SPCECIALOPERATORS_LIMITDOWNLOADSPEED;
+        break;
+      }
+      if (stricmp(special_operator.c_str(), "LimitUploadSpeed") == 0) {
+        s = SPCECIALOPERATORS_LIMITUPLOADSPEED;
+        break;
+      }
+      if (stricmp(special_operator.c_str(), "ClearCache") == 0) {
+        s = SPCECIALOPERATORS_CLEARCACHE;
+        break;
+      }
+    } while (false);
+    return s;
+  }
   std::string method;
   std::string url;
   StringMap headers;
@@ -132,6 +160,12 @@ struct HttpRequest_v1 {
         break;
       case SPCECIALOPERATORS_CLEARCACHE:
         extends.Set("SpcecialOperators", "ClearCache");
+        break;
+      case SPCECIALOPERATORS_LIMITDOWNLOADSPEED:
+        extends.Set("SpcecialOperators", "LimitDownloadSpeed");
+        break;
+      case SPCECIALOPERATORS_LIMITUPLOADSPEED:
+        extends.Set("SpcecialOperators", "LimitUploadSpeed");
         break;
       default:
         break;

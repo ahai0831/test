@@ -22,6 +22,8 @@ struct libcurl_easy_closure {
     None = 0,
     ClearMultiStack,
     RefreshShareHandle,
+    LimitDownloadSpeed,
+    LimitUploadSpeed,
     Last,
   };
 
@@ -33,6 +35,7 @@ struct libcurl_easy_closure {
   CURLcode result;
   /// 特殊的构造函数对此值进行初始化
   const SpecialOpt operation;
+  const curl_off_t speedlimit;
   std::weak_ptr<libcurl_share_closure> share_handle;
 
  private:
@@ -53,10 +56,11 @@ struct libcurl_easy_closure {
             curl_slist_free_all(slist);
             slist = nullptr;
           }
-        }) {
+        }),
+        speedlimit(0) {
     easy_handle = curl_easy_init();
   }
-  explicit libcurl_easy_closure(SpecialOpt opt)
+  explicit libcurl_easy_closure(const SpecialOpt opt)
       : easy_handle(nullptr),
         slist(nullptr),
         result(CURLcode(-1)),
@@ -66,7 +70,21 @@ struct libcurl_easy_closure {
             curl_slist_free_all(slist);
             slist = nullptr;
           }
-        }) {}
+        }),
+        speedlimit(0) {}
+  explicit libcurl_easy_closure(const SpecialOpt opt, CURL *const limited_easy,
+                                const curl_off_t limit)
+      : easy_handle(limited_easy),
+        slist(nullptr),
+        result(CURLcode(-1)),
+        operation(opt),
+        guard([this]() {
+          if (nullptr != slist) {
+            curl_slist_free_all(slist);
+            slist = nullptr;
+          }
+        }),
+        speedlimit(limit) {}
   decltype(easy_handle) &get_easy() { return easy_handle; }
   decltype(slist) &get_slist() { return slist; }
   void slist_append(const char *str) { slist = curl_slist_append(slist, str); }
@@ -99,18 +117,21 @@ struct assistant_request_response {
   std::unique_ptr<assistant::core::libcurl_easy_closure> easy;
   std::unique_ptr<assistant::HttpRequest> request;
   std::unique_ptr<assistant::HttpResponse> response;
+  CURL *easy_handle;
   assistant_request_response() = default;
   assistant_request_response(decltype(easy) &easy_closure,
                              decltype(request) &http_request,
                              decltype(response) &http_response)
       : easy(std::move(easy_closure)),
         request(std::move(http_request)),
-        response(std::move(http_response)) {}
+        response(std::move(http_response)),
+        easy_handle(easy->get_easy()) {}
   /// 禁用复制构造和=号操作符
   assistant_request_response(assistant_request_response &&v)
       : easy(std::move(v.easy)),
         request(std::move(v.request)),
-        response(std::move(v.response)) {}
+        response(std::move(v.response)),
+        easy_handle(easy->get_easy()) {}
   /// 禁用复制构造和=号操作符
   assistant_request_response(const assistant_request_response &) = delete;
   assistant_request_response &operator=(const assistant_request_response &) =
@@ -249,6 +270,12 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
         if (kDownloadFilepath.empty()) {
           /// 那就不用管了，不是下载到文件
           break;
+        }
+        const curl_off_t kLimitSpeed =
+            strtoll(req.extends.Get("speed_limit").c_str(), nullptr, 0);
+        if (kLimitSpeed > 0) {
+          curl_easy_setopt(easy_handle, CURLOPT_MAX_RECV_SPEED_LARGE,
+                           kLimitSpeed);
         }
         const auto kDownloadFilesize =
             strtoll(req.extends.Get("download_filesize").c_str(), nullptr, 0);
@@ -472,6 +499,7 @@ static void ResolveEasyHandle(libcurl_easy_closure &easy,
       }
     }
   }
+
   /// 解析206对应的content-range
   if (206 == res_code) {
     std::string content_range;
@@ -520,6 +548,11 @@ struct libcurl_easy_mapping_container {
   void Clear() {
     auto i = decltype(map)();
     map.swap(i);
+  }
+  /// 返回是否存在特定的Key
+  bool Exists(const Key &key) {
+    auto iter = map.find(key);
+    return map.end() != iter;
   }
   iterator begin() { return map.begin(); }
   const_iterator begin() const { return map.begin(); }
