@@ -136,7 +136,7 @@ struct Assistant_v3 {
       /// TODO: 添加冻结标志位和相关的逻辑处理，避免潜在的内存泄露
       /// 做好对curl muiti的清理，保证在事件循环所在线程执行
       auto opt = std::make_unique<assistant::core::libcurl_easy_closure>(
-		  assistant::core::libcurl_easy_closure::SpecialOpt::ClearMultiStack);
+          assistant::core::libcurl_easy_closure::SpecialOpt::ClearMultiStack);
       threadpool_data->ready_easy.Enqueue(opt);
       threadpool_data->ready_notify.Notify();
 
@@ -196,11 +196,18 @@ struct Assistant_v3 {
       decltype(threadpool_data->ready_easy.Dequeue()) easy;
       for (; nullptr != (easy = threadpool_data->ready_easy.Dequeue());) {
         switch (easy->operation) {
-		case assistant::core::libcurl_easy_closure::SpecialOpt::None:
+          case assistant::core::libcurl_easy_closure::SpecialOpt::None:
             assistant::core::curl_multi::BindEasy(easy, multi);
             break;
-		case assistant::core::libcurl_easy_closure::SpecialOpt::ClearMultiStack:
+          case assistant::core::libcurl_easy_closure::SpecialOpt::
+              ClearMultiStack:
             assistant::core::curl_multi::ClearMultiStack(multi);
+            break;
+          case assistant::core::libcurl_easy_closure::SpecialOpt::
+              LimitDownloadSpeed:
+          case assistant::core::libcurl_easy_closure::SpecialOpt::
+              LimitUploadSpeed:
+            assistant::core::curl_multi::SolveSpeedLimit(easy, multi);
             break;
           default:
             break;
@@ -220,55 +227,77 @@ struct Assistant_v3 {
     /// 处理从外部线程传入的 assistant::HttpRequest
     /// 此函数应在事件循环所在线程被调用
     void SolveHttpRequest(std::unique_ptr<assistant::HttpRequest> &request) {
-      auto SpcecialOperators = request->extends.Get("SpcecialOperators");
-      auto opts = assistant::HttpRequest::SPCECIALOPERATORS_NORMAL;
-      if (!SpcecialOperators.empty()) {
-        if (SpcecialOperators == "StopConnect") {
-          opts = assistant::HttpRequest::SPCECIALOPERATORS_STOPCONNECT;
-        } else if (SpcecialOperators == "ClearCache") {
-          opts = assistant::HttpRequest::SPCECIALOPERATORS_CLEARCACHE;
-        }
-      }
-      switch (opts) {
-        case assistant::HttpRequest_v1::SPCECIALOPERATORS_NORMAL: {
-          /// 处理为闭包
-          auto closure = std::make_shared<
-              assistant::core::curl_easy::assistant_request_response>();
-          closure->easy = threadpool_data->reuse_easy.Dequeue();
-          if (nullptr == closure->easy) {
-            closure->easy =
-                std::make_unique<assistant::core::libcurl_easy_closure>();
-          }
-          closure->easy->share_handle = share.get_first_weak();
-          closure->request = std::move(request);
-          closure->response = std::make_unique<assistant::HttpResponse>();
-          auto weak = std::weak_ptr<
-              assistant::core::curl_easy::assistant_request_response>(closure);
+      const auto kOpts = assistant::HttpRequest::StringToSpcecialOperators(
+          request->extends.Get("SpcecialOperators"));
+      switch (kOpts) {
+        case assistant::HttpRequest_v1::SPCECIALOPERATORS_NORMAL:
+          do {
+            /// 处理为闭包
+            auto closure = std::make_shared<
+                assistant::core::curl_easy::assistant_request_response>();
+            closure->easy = threadpool_data->reuse_easy.Dequeue();
+            if (nullptr == closure->easy) {
+              closure->easy =
+                  std::make_unique<assistant::core::libcurl_easy_closure>();
+            }
+            closure->easy->share_handle = share.get_first_weak();
+            closure->easy_handle = closure->easy->get_easy();
+            closure->request = std::move(request);
+            closure->response = std::make_unique<assistant::HttpResponse>();
+            auto weak = std::weak_ptr<
+                assistant::core::curl_easy::assistant_request_response>(
+                closure);
 
-          /// 添加到闭包的映射
-          request_map.Put(closure->easy->get_easy(), closure);
+            /// 添加到闭包的映射
+            request_map.Put(closure->easy->get_easy(), closure);
 
-          /// 调用线程池进行处理
-          /// 由于此对象析构时，无法阻塞式等待线程池执行全部方法
-          /// 2019.10.31 存在潜在的线程安全问题，需要进行优化；
-          /// 通过将线程池方法中，需要用到的对象抽取出来，以弱指针进行封装
-          /// 可避免此对象析构后，才调用相应的方法的问题（this指针指向的内存是悬空的）。
-          thread_pool.Run(
-              std::bind(assistant_v3_thread_closure::solve_httprequest_worker,
-                        threadpool_data, weak),
-              nullptr);
-        } break;
-        case assistant::HttpRequest_v1::SPCECIALOPERATORS_CLEARCACHE:
+            /// 调用线程池进行处理
+            /// 由于此对象析构时，无法阻塞式等待线程池执行全部方法
+            /// 2019.10.31 存在潜在的线程安全问题，需要进行优化；
+            /// 通过将线程池方法中，需要用到的对象抽取出来，以弱指针进行封装
+            /// 可避免此对象析构后，才调用相应的方法的问题（this指针指向的内存是悬空的）。
+            thread_pool.Run(
+                std::bind(assistant_v3_thread_closure::solve_httprequest_worker,
+                          threadpool_data, weak),
+                nullptr);
+          } while (false);
           break;
-        case assistant::HttpRequest_v1::SPCECIALOPERATORS_STOPCONNECT: {
-          /// 没有需要在当前事件循环线程同步进行
-          /// 此流程放到线程池中进行
-          std::shared_ptr<assistant::HttpRequest> req(std::move(request));
-          thread_pool.Run(
-              std::bind(assistant_v3_thread_closure::solve_stopconnect_worker,
-                        threadpool_data, std::move(req)),
-              nullptr);
-        } break;
+        case assistant::HttpRequest_v1::SPCECIALOPERATORS_CLEARCACHE:
+          do {
+            /// TODO: 待实现清理共享缓存相关逻辑
+          } while (false);
+          break;
+        case assistant::HttpRequest_v1::SPCECIALOPERATORS_STOPCONNECT:
+          do {
+            /// 没有需要在当前事件循环线程同步进行
+            /// 此流程放到线程池中进行
+            std::shared_ptr<assistant::HttpRequest> req(std::move(request));
+            thread_pool.Run(
+                std::bind(assistant_v3_thread_closure::solve_stopconnect_worker,
+                          threadpool_data, std::move(req)),
+                nullptr);
+          } while (false);
+          break;
+        case assistant::HttpRequest_v1::SPCECIALOPERATORS_LIMITDOWNLOADSPEED:
+          do {
+            std::shared_ptr<assistant::HttpRequest> req(std::move(request));
+            thread_pool.Run(
+                std::bind(assistant_v3_thread_closure::solve_limitspeed_worker,
+                          threadpool_data, std::move(req), false),
+                nullptr);
+
+          } while (false);
+          break;
+        case assistant::HttpRequest_v1::SPCECIALOPERATORS_LIMITUPLOADSPEED:
+          do {
+            std::shared_ptr<assistant::HttpRequest> req(std::move(request));
+            thread_pool.Run(
+                std::bind(assistant_v3_thread_closure::solve_limitspeed_worker,
+                          threadpool_data, std::move(req), true),
+                nullptr);
+
+          } while (false);
+          break;
         default:
           break;
       }
@@ -321,6 +350,7 @@ struct Assistant_v3 {
         threadpool_data->ready_notify.Notify();
       }
     }
+    /// 在外部线程（如线程池）中运行
     /// 涉及到的对象：uuid_map
     static void solve_stopconnect_worker(
         std::weak_ptr<assistant_v3_thread_closure_threadpool_data>
@@ -328,7 +358,7 @@ struct Assistant_v3 {
         std::shared_ptr<assistant::HttpRequest> &request) {
       auto threadpool_data = threadpool_data_weak.lock();
       if (nullptr != request && nullptr != threadpool_data) {
-        auto uuids = request->extends.Get("uuids");
+        const auto uuids = request->extends.Get("uuids");
         std::vector<std::string> vec;
         assistant::tools::string::StringSplit(uuids, ";", vec);
         /// 对特定的UUID，取到其中的weak指针，对其中特定字段加true
@@ -342,6 +372,46 @@ struct Assistant_v3 {
             };
         for (const auto &x : vec) {
           threadpool_data->uuid_map.FindDelegate(x, SolveStopFlag);
+        }
+      }
+    }
+    /// 用于限制特定连接的下载速度
+    /// 在外部线程（如线程池）中运行
+    /// 涉及到的对象：uuid_map,ready_easy,ready_notify
+    static void solve_limitspeed_worker(
+        std::weak_ptr<assistant_v3_thread_closure_threadpool_data>
+            threadpool_data_weak,
+        std::shared_ptr<assistant::HttpRequest> &request,
+        const bool upload_transfer) {
+      auto threadpool_data = threadpool_data_weak.lock();
+      if (nullptr != request && nullptr != threadpool_data) {
+        const auto uuids = request->extends.Get("uuids");
+        const auto kSpeedLimit =
+            strtoll(request->extends.Get("speed_limit").c_str(), nullptr, 0);
+        std::vector<std::string> vec;
+        assistant::tools::string::StringSplit(uuids, ";", vec);
+        auto LimitDownloadSpeed =
+            [=](const std::weak_ptr<
+                assistant::core::curl_easy::assistant_request_response> &weak) {
+              auto closure = weak.lock();
+              if (nullptr != closure) {
+                /// TODO: to be continued.
+                auto opt =
+                    std::make_unique<assistant::core::libcurl_easy_closure>(
+                        upload_transfer
+                            ? assistant::core::libcurl_easy_closure::
+                                  SpecialOpt::LimitUploadSpeed
+                            : assistant::core::libcurl_easy_closure::
+                                  SpecialOpt::LimitDownloadSpeed,
+                        closure->easy_handle, kSpeedLimit);
+                threadpool_data->ready_easy.Enqueue(std::move(opt));
+              }
+            };
+        for (const auto &x : vec) {
+          threadpool_data->uuid_map.FindDelegate(x, LimitDownloadSpeed);
+        }
+        if (!vec.empty()) {
+          threadpool_data->ready_notify.Notify();
         }
       }
     }

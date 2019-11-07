@@ -21,6 +21,8 @@ static easy_mapping_easyclosure::Value UnbindEasy(
     const easy_mapping_easyclosure::Key &easy_handle,
     libcurl_multi_closure &multi);
 static void ClearMultiStack(libcurl_multi_closure &multi);
+static void SolveSpeedLimit(const easy_mapping_easyclosure::Value &easy_closure,
+                            libcurl_multi_closure &multi);
 }  // namespace curl_multi
 /// 保存multi句柄以及相应easy映射关系的闭包
 struct libcurl_multi_closure {
@@ -73,7 +75,26 @@ void ClearMultiStack(libcurl_multi_closure &multi) {
   }
   multi.easy.Clear();
 }
-
+void SolveSpeedLimit(const easy_mapping_easyclosure::Value &easy_closure,
+                     libcurl_multi_closure &multi) {
+  auto &easy_handle = easy_closure->get_easy();
+  if (multi.easy.Exists(easy_handle)) {
+    if (easy_closure->operation ==
+        assistant::core::libcurl_easy_closure::SpecialOpt::LimitDownloadSpeed) {
+      curl_multi_remove_handle(multi.multi, easy_handle);
+      auto ddd = curl_easy_setopt(easy_handle, CURLOPT_MAX_RECV_SPEED_LARGE,
+                                  easy_closure->speedlimit);
+      curl_multi_add_handle(multi.multi, easy_handle);
+    } else if (easy_closure->operation ==
+               assistant::core::libcurl_easy_closure::SpecialOpt::
+                   LimitUploadSpeed) {
+      curl_multi_remove_handle(multi.multi, easy_handle);
+      curl_easy_setopt(easy_handle, CURLOPT_MAX_SEND_SPEED_LARGE,
+                       easy_closure->speedlimit);
+      curl_multi_add_handle(multi.multi, easy_handle);
+    }
+  }
+}
 }  // namespace curl_multi
 
 /// 提供multi socket 流程所需的全局信息闭包，并支持配置multi选项
