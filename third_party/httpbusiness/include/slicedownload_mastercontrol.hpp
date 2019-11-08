@@ -12,17 +12,17 @@
 #include <numeric>
 #include <tuple>
 
-#include <Assistant_v2.h>
-#include <v2/safecontainer.h>
-#include <v2/uuid.h>
+#include <Assistant_v3.hpp>
 #include <rxcpp/rx.hpp>
+#include <tools/safecontainer.hpp>
+#include <tools/uuid.hpp>
 
-#include "rx_assistant.h"
-#include "speed_counter.h"
-
+#include "rx_assistant.hpp"
+#include "speed_counter.hpp"
+namespace httpbusiness {
 struct SlicedownloadMastercontrol {
  private:
-  std::weak_ptr<assistant::Assistant_v2> netframe;
+  std::weak_ptr<assistant::Assistant_v3> netframe;
   // 	std::atomic<std::string> direct_url;
   /// TODO: 考虑到direct_url涉及到多线程读写，后续需利用读写锁封装
   std::string direct_url;
@@ -43,12 +43,12 @@ struct SlicedownloadMastercontrol {
   std::atomic_int32_t error_count;
 
  private:
-  safequeue_closure<std::tuple<int64_t, int64_t>> slice_queue;
+  assistant::tools::safequeue_closure<std::tuple<int64_t, int64_t>> slice_queue;
   std::promise<void> fin_signal;
   /// 标记此对象AsyncProcess()被调用，避免重复调用
   std::atomic_bool processing_flag;
   /// 集合：各worker对应http请求的uuid，用于停止传输、限速等
-  assistant::safeset_closure<std::string> uuid_set;
+  assistant::tools::safeset_closure<std::string> uuid_set;
   /// 标记外部调用AsyncStop()以请求连接停止，不应发起新连接
   std::atomic_bool stop_flag;
   /// 分片下载计速器
@@ -56,8 +56,8 @@ struct SlicedownloadMastercontrol {
 
  public:
   explicit SlicedownloadMastercontrol(
-      std::shared_ptr<assistant::Assistant_v2>& assistant_v2)
-      : netframe(assistant_v2),
+      std::shared_ptr<assistant::Assistant_v3>& Assistant_v3)
+      : netframe(Assistant_v3),
         total_length(0),
         processed_bytes(0),
         current_worker(0),
@@ -82,8 +82,8 @@ struct SlicedownloadMastercontrol {
         break;
       }
       /// 检测netframe是否依然存活，网络库的对象若已死则无需继续
-      auto assistant_v2 = netframe.lock();
-      if (nullptr == assistant_v2) {
+      auto Assistant_v3 = netframe.lock();
+      if (nullptr == Assistant_v3) {
         break;
       }
       /// 重定向，直到获取到非30X的URL
@@ -92,7 +92,7 @@ struct SlicedownloadMastercontrol {
       direct_url = url;
 
       /// 首个httprequest
-      rx_assistant::rx_assistant_factory ast_factory(assistant_v2);
+      rx_assistant::rx_assistant_factory ast_factory(Assistant_v3);
       assistant::HttpRequest first_req(url);
       first_req.extends.Set("range", "0-0");
       first_req.extends.Set("header_only", "true");
@@ -251,9 +251,9 @@ struct SlicedownloadMastercontrol {
         assistant::HttpRequest stop_req(
             assistant::HttpRequest::Opts::SPCECIALOPERATORS_STOPCONNECT);
         stop_req.extends.Set("uuids", uuids);
-        auto assistant_v2 = netframe.lock();
-        if (nullptr != assistant_v2) {
-          assistant_v2->AsyncHttpRequest(stop_req);
+        auto Assistant_v3 = netframe.lock();
+        if (nullptr != Assistant_v3) {
+          Assistant_v3->AsyncHttpRequest(stop_req);
         }
       }
     }
@@ -282,9 +282,9 @@ struct SlicedownloadMastercontrol {
       slicedl_speedcounter.finished_bytes += value;
       processed_bytes += value;
     };
-    auto assistant_v2 = netframe.lock();
-    if (nullptr != assistant_v2) {
-      assistant_v2->AsyncHttpRequest(req);
+    auto Assistant_v3 = netframe.lock();
+    if (nullptr != Assistant_v3) {
+      Assistant_v3->AsyncHttpRequest(req);
     }
   }
   void done_callback(const assistant::HttpResponse_v1& res,
@@ -314,8 +314,8 @@ struct SlicedownloadMastercontrol {
     std::string str_size_download;
     res.extends.Get("size_download", str_size_download);
     size_download = atoll(str_size_download.c_str());
-	/// TODO: 在此之前，也需要检查响应行为，是否与请求的extends字段一致
-	/// 检查是否为onrange，且range范围一致
+    /// TODO: 在此之前，也需要检查响应行为，是否与请求的extends字段一致
+    /// 检查是否为onrange，且range范围一致
     if (0 == code && 2 == res.status_code / 100) {
       /// 完全有效，不需要做什么
     } else {
@@ -350,7 +350,7 @@ struct SlicedownloadMastercontrol {
       //	res.extends.Get("content_length_download",
       //		str_content_length_download);
       //	should_download_size =
-      //atoll(str_content_length_download.c_str());
+      // atoll(str_content_length_download.c_str());
       //}
       /// 部分无效
       /// 对206请求，重新处理其on_range
@@ -384,5 +384,7 @@ struct SlicedownloadMastercontrol {
     }
   }
 };
+
+}  // namespace httpbusiness
 
 #endif  /// SLICEDOWNLOADMASTERCONTROL

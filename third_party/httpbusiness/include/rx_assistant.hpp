@@ -7,7 +7,7 @@
 #include <functional>
 #include <memory>
 
-#include <Assistant_v2.h>
+#include <Assistant_v3.hpp>
 #include <rxcpp/rx.hpp>
 namespace rx_assistant {
 struct HttpResult {
@@ -23,7 +23,7 @@ struct HttpResult {
 
 struct rx_assistant_factory {
  private:
-  std::weak_ptr<assistant::Assistant_v2> _assistant_weak;
+  std::weak_ptr<assistant::Assistant_v3> _assistant_weak;
   typedef std::function<assistant::HttpRequest(const rx_assistant::HttpResult&)>
       NextResultDelegate;
   typedef std::function<bool(const rx_assistant::HttpResult&,
@@ -35,13 +35,13 @@ struct rx_assistant_factory {
 
  public:
   explicit rx_assistant_factory(
-      const std::weak_ptr<assistant::Assistant_v2>& _weak)
+      const std::weak_ptr<assistant::Assistant_v3>& _weak)
       : _assistant_weak(_weak){};
   /// create
   /// 参数：const assistant::HttpRequest& 异步请求的Request
   /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
   /// 请求结果（包含原始Request以及Response）的数据源
-  /// 特殊情况：当assistant::Assistant_v2的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+  /// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
   rxcpp::observable<rx_assistant::HttpResult> create(
       const assistant::HttpRequest& async_request) {
     auto request_ptr = std::make_shared<assistant::HttpRequest>(async_request);
@@ -73,7 +73,7 @@ struct rx_assistant_factory {
   /// 参数：const rxcpp::observe_on_one_worker 定时器所在线程
   /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
   /// 请求结果（包含原始Request以及Response）的数据源
-  /// 特殊情况：当assistant::Assistant_v2的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+  /// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
   rxcpp::observable<rx_assistant::HttpResult> create_with_delay(
       const assistant::HttpRequest& async_request,
       const int32_t delay_milliseconds,
@@ -118,7 +118,7 @@ struct rx_assistant_factory {
   /// 传入参数为rx_assistant::HttpResult，返回值为HttpRequest的回调
   /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
   /// 请求结果（包含原始Request以及Response）的数据源
-  /// 特殊情况：当assistant::Assistant_v2的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+  /// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
   rxcpp::observable<rx_assistant::HttpResult> next_result(
       const rxcpp::observable<rx_assistant::HttpResult>& obs,
       NextResultDelegate callback) {
@@ -139,7 +139,7 @@ struct rx_assistant_factory {
   /// Delegate返回值为false意味着迭代结束
   /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
   /// 请求结果（包含原始Request以及Response）的数据源
-  /// 特殊情况：当assistant::Assistant_v2的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+  /// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
   rxcpp::observable<rx_assistant::HttpResult> iterator_result(
       const rxcpp::observable<rx_assistant::HttpResult>& obs,
       IteratorResultDelegate callback) {
@@ -166,7 +166,7 @@ struct rx_assistant_factory {
   /// 参数：const rxcpp::observe_on_one_worker 定时器所在线程
   /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
   /// 请求结果（包含原始Request以及Response）的数据源
-  /// 特殊情况：当assistant::Assistant_v2的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+  /// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
   rxcpp::observable<rx_assistant::HttpResult> iterator_with_delay_result(
       const rxcpp::observable<rx_assistant::HttpResult>& obs,
       DelayedIteratorResultDelegate callback,
