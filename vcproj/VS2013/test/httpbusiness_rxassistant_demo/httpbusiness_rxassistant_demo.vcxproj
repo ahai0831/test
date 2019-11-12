@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\httpbusiness_rxassistant_demo.cpp" />
     <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_rxmd5.cpp" />
+    <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_rxmultiworker.cpp" />
     <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_slicedownload.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

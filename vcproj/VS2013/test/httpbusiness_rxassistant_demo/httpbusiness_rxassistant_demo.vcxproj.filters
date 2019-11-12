@@ -24,5 +24,8 @@
     <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_rxmd5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_rxmultiworker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
