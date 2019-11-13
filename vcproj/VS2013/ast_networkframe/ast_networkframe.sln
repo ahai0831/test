@@ -138,6 +138,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ecloud189_upload_file_model
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enterprise_upload_file_model_test", "..\test\enterprise_upload_file_model_test\enterprise_upload_file_model_test.vcxproj", "{5C072CB2-D498-43FE-8E99-0884FC65A625}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0} = {BFFC2EAB-F42F-48AB-9644-0F0C610EB2F0}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "httpbusiness_rxassistant_demo", "..\test\httpbusiness_rxassistant_demo\httpbusiness_rxassistant_demo.vcxproj", "{6065E0B5-D29C-4E9D-897D-BA3248567813}"
 	ProjectSection(ProjectDependencies) = postProject

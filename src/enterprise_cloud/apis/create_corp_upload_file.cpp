@@ -16,11 +16,13 @@
 #include <v2/uuid.h>
 #include <tools/string_format.hpp>
 
+#include "enterprise_cloud/error_code/nderror.h"
 #include "enterprise_cloud/session_helper/session_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 #include "restful_common/rand_helper/rand_helper.hpp"
 
 namespace {
+#define CONTENTTYPEERROR "ContentTypeError"  //70001
 // 这些是请求中一些固定的参数
 const static std::string host = "https://api-b.cloud.189.cn";
 const static std::string uri = "/api/createCorpUploadFile.action";
@@ -49,18 +51,16 @@ std::string JsonStringHelper(const std::string& localPath, const int64_t corpId,
     if (localPath.empty() || md5.empty()) {
       break;
     }
-    json_str = assistant::tools::string::StringFormat(
-        "{\"localPath\" : \"%s\","
-        "\"corpId\" : %" PRId64
-        ","
-        "\"parentId\" : %" PRId64
-        ","
-        "\"md5\" : \"%s\","
-        "\"fileSource\" : %d,"
-        "\"coshareId\" :  \"%s\","
-        "\"isLog\" : %d}",
-        localPath.c_str(), corpId, parentId, md5.c_str(), fileSource,
-        coshareId.c_str(), isLog);
+    Json::Value json_value;
+    json_value["localPath"] = localPath;
+    json_value["corpId"] = corpId;
+    json_value["parentId"] = parentId;
+    json_value["md5"] = md5;
+    json_value["fileSource"] = fileSource;
+    json_value["coshareId"] = coshareId;
+    json_value["isLog"] = isLog;
+    Json::FastWriter json_fastwrite;
+    json_str = json_fastwrite.write(json_value);
   } while (false);
   return json_str;
 }
@@ -154,8 +154,50 @@ bool HttpRequestEncode(const std::string& params_json,
 bool HttpResponseDecode(const assistant::HttpResponse& response,
                         const assistant::HttpRequest& request,
                         std::string& response_info) {
-  // 请求的响应暂时不用有具体定义，先这样写
-  return false;
+  bool is_success = false;
+  Json::Value json_value;
+  Json::Reader json_reader;
+  auto http_status_code = response.status_code;
+  auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
+  auto content_type = response.headers.Get("Content-Type");
+  auto content_length = atoll(response.headers.Get("Content-Length").c_str());
+  do {
+    if (0 == curl_code && http_status_code / 100 == 2) {
+      if (response.body.size() == 0) {
+        break;
+      }
+      if (!json_reader.parse(response.body, json_value)) {
+        break;
+      }
+    } else if (0 == curl_code && http_status_code / 100 != 2) {
+      if (!response.body.empty() &&
+              content_type.find("application/json; charset=UTF-8") == std::string::npos ||
+          !json_reader.parse(response.body, json_value)) {
+		  json_value["errorCode"] = CONTENTTYPEERROR;
+          json_value["int32ErrorCode"] = 70001;
+        break;
+      }
+      if (json_value["errorCode"].isString()) {
+        json_value["int32ErrorCode"] = EnterpriseCloud::ErrorCode::int32ErrCode(
+            restful_common::jsoncpp_helper::GetString(json_value["errorCode"])
+                .c_str());
+      } else {
+        json_value["int32ErrorCode"] =
+            restful_common::jsoncpp_helper::GetInt(json_value["errorCode"]);
+      }
+      break;
+    } else if (0 >= http_status_code) {
+      break;
+    } else {
+      break;
+    }
+    is_success = true;
+  } while (false);
+  json_value["isSuccess"] = is_success;
+  json_value["httpStatusCode"] = http_status_code;
+  json_value["curlCode"] = curl_code;
+  response_info = json_value.toStyledString();
+  return is_success;
 }
 
 }  // namespace CreateUploadFile

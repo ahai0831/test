@@ -69,6 +69,7 @@
     <Import Project="..\..\..\..\src\src_widthproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -86,6 +87,7 @@
     <Import Project="..\..\..\..\src\src_widthproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -103,6 +105,7 @@
     <Import Project="..\..\..\..\src\src_widthproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -120,6 +123,7 @@
     <Import Project="..\..\..\..\src\src_widthproject.props" />
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
+    <Import Project="..\..\..\..\third_party\httpbusiness\httpbusiness_withproject.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -199,6 +203,7 @@
     <ClCompile Include="..\..\..\..\src\enterprise_cloud\apis\create_corp_upload_file.cpp" />
     <ClCompile Include="..\..\..\..\src\enterprise_cloud\apis\get_corp_upload_status.cpp" />
     <ClCompile Include="..\..\..\..\src\enterprise_cloud\apis\upload_corp_file_data.cpp" />
+    <ClCompile Include="..\..\..\..\src\enterprise_cloud\error_code\nderror.cpp" />
     <ClCompile Include="..\..\..\..\src\enterprise_cloud\session_helper\session_helper.cpp" />
     <ClCompile Include="..\..\..\..\test\enterprise_upload_file_model_test\enterprise_upload_file_model_test.cpp" />
   </ItemGroup>

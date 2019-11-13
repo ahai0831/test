@@ -9,7 +9,7 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
 // 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace EnterpriseCloud {
@@ -39,7 +39,7 @@ namespace ComfirmUploadFileComplete {
 std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const int64_t uploadFileId, const int64_t corpId,
                              const int32_t fileSource, const int32_t opertype,
-                             const std::string &coshareId, const int32_t isLog);
+                             const std::string& coshareId, const int32_t isLog);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
