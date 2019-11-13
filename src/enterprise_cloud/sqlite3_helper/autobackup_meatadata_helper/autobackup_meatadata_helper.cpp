@@ -19,7 +19,7 @@ std::unique_ptr<AutobackupMetadataHelper> AutobackupMetadataHelper::Create(
   auto database_ptr =
       new AutobackupMetadataHelper(appdata_path, user_id, corp_id);
   if (nullptr == database_ptr->GetSqlite3Handle()) {
-    database_ptr == nullptr;
+    database_ptr = nullptr;
   }
   return std::unique_ptr<AutobackupMetadataHelper>(database_ptr);
 }
