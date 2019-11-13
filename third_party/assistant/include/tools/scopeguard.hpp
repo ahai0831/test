@@ -2,7 +2,9 @@
 #ifndef TOOLS_SCOPEGUARD_H__
 #define TOOLS_SCOPEGUARD_H__
 #include <functional>
-
+#ifdef WIN32
+#include <windows.h>
+#endif
 namespace assistant {
 namespace tools {
 class scope_guard {
@@ -27,43 +29,31 @@ class scope_guard {
   }
   void dismiss() { destructor_ = nullptr; }
 };
-}  // namespace tools
-}  // namespace assistant
 
 /// define some safe release macros for scopeguard
-/// TODO：转换为内联静态函数实现
-#define GUARD_SAFE_DELETE(p) \
-  do {                       \
-    if ((p) != nullptr) {    \
-      delete (p);            \
-      (p) = nullptr;         \
-    }                        \
-  } while (false);
+inline static void SafeDelete(void*& p) {
+  if (nullptr != p) {
+    delete p;
+    p = nullptr;
+  }
+}
 
-#define GUARD_SAFE_DELETE_ARR(p) \
-  do {                           \
-    if ((p) != nullptr) {        \
-      delete[](p);               \
-      (p) = nullptr;             \
-    }                            \
-  } while (false);
-
-#define GUARD_SAFE_FREE(p) \
-  do {                     \
-    if ((p) != nullptr) {  \
-      free(p);             \
-      (p) = nullptr;       \
-    }                      \
-  } while (false);
+inline static void SafeFree(void*& p) {
+  if (nullptr != p) {
+    free(p);
+    p = nullptr;
+  }
+}
 
 #ifdef WIN32
-#define SAFE_CLOSEHANDLE(p) \
-  do {                      \
-    if ((p) != NULL) {      \
-      ::CloseHandle(p);     \
-      (p) = NULL;           \
-    }                       \
-  } while (false);
+inline static void SafeCloseHandle(HANDLE& h) {
+  if (INVALID_HANDLE_VALUE != h && ::CloseHandle(h) != 0) {
+    h = INVALID_HANDLE_VALUE;
+  }
+}
 #endif
+
+}  // namespace tools
+}  // namespace assistant
 
 #endif  // !TOOLS_SCOPEGUARD_H__

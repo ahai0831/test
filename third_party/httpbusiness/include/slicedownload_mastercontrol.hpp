@@ -273,7 +273,7 @@ struct SlicedownloadMastercontrol {
     req.extends.Set("transfer_timeout", std::to_string(10));
 
     /// process, uuid , for potential stop
-    std::string unused_uuid = assistant::uuid::generate();
+    std::string unused_uuid = assistant::tools::uuid::generate();
     req.extends.Set("uuid", unused_uuid);
     uuid_set.Put(unused_uuid);
     req.solve_func = std::bind(&SlicedownloadMastercontrol::done_callback, this,
