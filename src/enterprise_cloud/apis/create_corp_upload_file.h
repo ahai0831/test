@@ -95,6 +95,54 @@ std::string JsonStringHelper(const std::string& localPath, int64_t corpId,
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request);
 
+
+// 可使用pugixml和jsoncpp解析xml和json，jsoncpp使用时需要使用jsoncpp_helper。构建json时也可使用jsoncpp。
+//
+// 请求情况1（成功）：curlCode == 0 && httpStatusCode == 200 && Content-length == body.size()
+// response_info包含字段：
+// isSuccess, [bool],
+// 表明请求是否成功，成功为true，失败为false。
+// httpStatusCode, [int32_t],
+// 表明http的状态码，httpStatusCode在有些情况下无法被获取到，且大于0，如果相遇等于0则为出错情况。
+// curlCode, [int32_t],
+// 表明curl的返回码，肯定能读取到，需要用到assitant的扩展功能获取
+// uploadFileId, [int64_t],
+// 用于断点续传的临时文件Id，需要在返回的json或者xml中获取
+// fileUploadUrl, [string],
+// 文件上传URL, 需要在返回的json或者xml中获取
+// fileCommitUrl, [string],
+// 确认文件上传完成URL, 需要在返回的json或者xml中获取
+// fileDataExists, [int32_t],
+// 需要在返回的json或者xml中获取
+// 0或空 – 文件数据不存在
+// 1 – 文件数据已存在，无需上传数据，可以确认上传完成
+//
+// 请求情况2（失败）：curlCode == 0 && 200!=httpStatusCode
+// response_info包含字段：
+// isSuccess, [bool],
+// 表明请求是否成功，成功为true，失败为false。
+// httpStatusCode, [int32_t],
+// 表明http的状态码，httpStatusCode在有些情况下无法被获取到，且大于0，如果相遇等于0则为出错情况。
+// curlCode, [int32_t],
+// 表明curl的返回码，肯定能读取到，需要用到assitant的扩展功能获取
+// errorCode, [string],
+// 服务器返回的错误码，有可能是字符串，有可能是数值，无法读取到则为空），
+// int32ErrorCode, [int32_t],
+// 如果errorCode是string类型，则将errorCode翻译成一个int32的错误码并赋值给int32ErrorCode;
+// 如果errorCode是数值型的，则int32ErrorCode等于errorCode;
+// 如果errorCode为空或者无法被翻译，则赋值为httpStatusCode.
+//
+// 请求情况3（失败）：httpStatusCode <= 0
+// response_info包含字段：
+// isSuccess, [bool],
+// 表明请求是否成功，成功为true，失败为false。
+// httpStatusCode, [int32_t],
+// 表明http的状态码，httpStatusCode在有些情况下无法被获取到，且大于0，如果相遇等于0则为出错情况。
+// curlCode, [int32_t],
+// 表明curl的返回码，肯定能读取到，需要用到assitant的扩展功能获取。
+//
+// 其他情况默认失败。
+
 bool HttpResponseDecode(const assistant::HttpResponse& response,
                         const assistant::HttpRequest& request,
                         std::string& response_info);

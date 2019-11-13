@@ -1,5 +1,8 @@
 #include <iostream>
+#include <memory>
 #include <string>
+
+#include <Assistant_v3.hpp>
 
 #include "enterprise_cloud/apis/comfirm_corp_upload_file_complete.h"
 #include "enterprise_cloud/apis/create_corp_upload_file.h"
@@ -8,8 +11,10 @@
 #include "enterprise_cloud/session_helper/session_helper.h"
 
 int main() {
-  std::string session_key = "91761316-18b3-4929-849d-5ad7a87ed88a";
-  std::string session_secret = "944F880085380D93B3B4F4F6F118B57C";
+  auto assistant_ptr = std::make_unique<assistant::Assistant_v3>();
+
+  std::string session_key = "78297219-1c2f-424c-978d-a63eed9d3ac4";
+  std::string session_secret = "93E87DB2A62D819889E877D7B7670357";
   std::string json_str;
   std::string localPath = "E:\\\\Desktop\\\\StudyNotes.docx";
   int64_t corpId = 114131189491;
@@ -19,6 +24,8 @@ int main() {
   std::string coshareId = "";
   int32_t isLog = 0;
 
+  std::string result;
+
   EnterpriseCloud::SessionHelper::EnterpriseCloudLogin(session_key,
                                                        session_secret);
 
@@ -27,6 +34,9 @@ int main() {
   assistant::HttpRequest create_corp_upload_request("");
   EnterpriseCloud::Apis::CreateUploadFile::HttpRequestEncode(
       json_str, create_corp_upload_request);
+  EnterpriseCloud::Apis::CreateUploadFile::HttpResponseDecode(
+      assistant_ptr->SyncHttpRequest(create_corp_upload_request),
+      create_corp_upload_request, result);
 
   json_str = EnterpriseCloud::Apis::GetUploadFileStatus::JsonStringHelper(
       12345, corpId, isLog);
