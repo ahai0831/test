@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_assistant.hpp" />
     <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_md5.hpp" />
+    <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\rx_multiworker.hpp" />
     <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\slicedownload_mastercontrol.hpp" />
     <ClInclude Include="..\..\..\..\third_party\httpbusiness\include\speed_counter.hpp" />
   </ItemGroup>

@@ -24,6 +24,7 @@ struct safequeue_closure {
     _queue->try_dequeue(item);
     return item;
   }
+  size_t Size() { return _queue->size_approx(); }
 
  private:
   /// 禁用其他隐式的构造函数
