@@ -9,7 +9,7 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
 // 企业云的顶层命名空间
 namespace EnterpriseCloud {

@@ -29,7 +29,7 @@ int main() {
   if (reader_res && errs.size() == 0) {
     std::string resStr =
         restful_common::jsoncpp_helper::GetString(root["test_string"]);
-    bool resBool = restful_common::jsoncpp_helper::GetBool(root["test_bool"]);
+    bool resBool = restful_common::jsoncpp_helper::GetBoolc;
     int resInt = restful_common::jsoncpp_helper::GetInt(root["test_int"]);
     uint32_t resUint =
         restful_common::jsoncpp_helper::GetUint(root["test_uint"]);

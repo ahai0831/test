@@ -13,12 +13,14 @@
 #include <v2/uuid.h>
 #include <tools/string_format.hpp>
 
+#include "enterprise_cloud/error_code/nderror.h"
 #include "enterprise_cloud/session_helper/session_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 #include "restful_common/rand_helper/rand_helper.hpp"
 
 namespace {
 // 这些是请求中一些固定的参数
+#define CONTENTTYPEERROR "ContentTypeError"  //70001
 const static std::string host = "https://api-b.cloud.189.cn";
 const static std::string uri = "/api/getCorpUploadFileStatus.action";
 const static std::string method = "GET";
@@ -85,7 +87,7 @@ bool HttpRequestEncode(const std::string& params_json,
 
     // set url params
     request.url += assistant::tools::string::StringFormat(
-        "?uploadFileId=%" PRId64 "corpId=%" PRId64
+        "?uploadFileId=%" PRId64 "&corpId=%" PRId64
         "&isLog=%d"
         "&version=%s"
         "&rand=%s",
@@ -105,8 +107,51 @@ bool HttpRequestEncode(const std::string& params_json,
 bool HttpResponseDecode(const assistant::HttpResponse& response,
                         const assistant::HttpRequest& request,
                         std::string& response_info) {
-  // 请求的响应暂时不用有具体定义，先这样写
-  return false;
+  bool is_success = false;
+  Json::Value json_value;
+  Json::Reader json_reader;
+  auto http_status_code = response.status_code;
+  auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
+  auto content_type = response.headers.Get("Content-Type");
+  auto content_length = atoll(response.headers.Get("Content-Length").c_str());
+  do {
+    if (0 == curl_code && http_status_code / 100 == 2) {
+      if (response.body.size() == 0) {
+        break;
+      }
+      if (!response.body.empty() &&
+          !json_reader.parse(response.body, json_value)) {
+        break;
+      }
+    } else if (0 == curl_code && http_status_code / 100 != 2) {
+      if (!response.body.empty() &&
+              content_type.find("application/json; charset=UTF-8") == std::string::npos ||
+          !json_reader.parse(response.body, json_value)) {
+        json_value["errorCode"] = CONTENTTYPEERROR;
+        json_value["int32ErrorCode"] = 70001;
+        break;
+      }
+      if (json_value["errorCode"].isString()) {
+        json_value["int32ErrorCode"] = EnterpriseCloud::ErrorCode::int32ErrCode(
+            restful_common::jsoncpp_helper::GetString(json_value["errorCode"])
+                .c_str());
+      } else {
+        json_value["int32ErrorCode"] =
+            restful_common::jsoncpp_helper::GetInt(json_value["errorCode"]);
+      }
+      break;
+    } else if (0 >= http_status_code) {
+      break;
+    } else {
+      break;
+    }
+    is_success = true;
+  } while (false);
+  json_value["isSuccess"] = is_success;
+  json_value["httpStatusCode"] = http_status_code;
+  json_value["curlCode"] = curl_code;
+  response_info = json_value.toStyledString();
+  return is_success;
 }
 
 }  // namespace GetUploadFileStatus

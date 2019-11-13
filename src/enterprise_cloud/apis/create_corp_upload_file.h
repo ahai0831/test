@@ -10,7 +10,7 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
 // 企业云的顶层命名空间
 namespace EnterpriseCloud {
@@ -95,12 +95,10 @@ std::string JsonStringHelper(const std::string& localPath, int64_t corpId,
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request);
 
-
 // 可使用pugixml和jsoncpp解析xml和json，jsoncpp使用时需要使用jsoncpp_helper。构建json时也可使用jsoncpp。
 //
-// 请求情况1（成功）：curlCode == 0 && httpStatusCode == 200 && Content-length == body.size()
-// response_info包含字段：
-// isSuccess, [bool],
+// 请求情况1（成功）：curlCode == 0 && httpStatusCode == 200 && Content-length
+// == body.size() response_info包含字段： isSuccess, [bool],
 // 表明请求是否成功，成功为true，失败为false。
 // httpStatusCode, [int32_t],
 // 表明http的状态码，httpStatusCode在有些情况下无法被获取到，且大于0，如果相遇等于0则为出错情况。

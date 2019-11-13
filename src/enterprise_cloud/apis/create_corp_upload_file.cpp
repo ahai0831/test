@@ -22,6 +22,7 @@
 #include "restful_common/rand_helper/rand_helper.hpp"
 
 namespace {
+#define CONTENTTYPEERROR "ContentTypeError"  //70001
 // 这些是请求中一些固定的参数
 const static std::string host = "https://api-b.cloud.189.cn";
 const static std::string uri = "/api/createCorpUploadFile.action";
@@ -50,18 +51,16 @@ std::string JsonStringHelper(const std::string& localPath, const int64_t corpId,
     if (localPath.empty() || md5.empty()) {
       break;
     }
-    json_str = assistant::tools::string::StringFormat(
-        "{\"localPath\" : \"%s\","
-        "\"corpId\" : %" PRId64
-        ","
-        "\"parentId\" : %" PRId64
-        ","
-        "\"md5\" : \"%s\","
-        "\"fileSource\" : %d,"
-        "\"coshareId\" :  \"%s\","
-        "\"isLog\" : %d}",
-        localPath.c_str(), corpId, parentId, md5.c_str(), fileSource,
-        coshareId.c_str(), isLog);
+    Json::Value json_value;
+    json_value["localPath"] = localPath;
+    json_value["corpId"] = corpId;
+    json_value["parentId"] = parentId;
+    json_value["md5"] = md5;
+    json_value["fileSource"] = fileSource;
+    json_value["coshareId"] = coshareId;
+    json_value["isLog"] = isLog;
+    Json::FastWriter json_fastwrite;
+    json_str = json_fastwrite.write(json_value);
   } while (false);
   return json_str;
 }
@@ -163,14 +162,19 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   auto content_type = response.headers.Get("Content-Type");
   auto content_length = atoll(response.headers.Get("Content-Length").c_str());
   do {
-    if (0 == curl_code && 200 == http_status_code &&
-        content_length == response.body.size()) {
+    if (0 == curl_code && http_status_code / 100 == 2) {
+      if (response.body.size() == 0) {
+        break;
+      }
       if (!json_reader.parse(response.body, json_value)) {
         break;
       }
-    } else if (0 == curl_code && 200 != http_status_code) {
-      if (content_type.find("application/json") == std::string::npos ||
+    } else if (0 == curl_code && http_status_code / 100 != 2) {
+      if (!response.body.empty() &&
+              content_type.find("application/json; charset=UTF-8") == std::string::npos ||
           !json_reader.parse(response.body, json_value)) {
+		  json_value["errorCode"] = CONTENTTYPEERROR;
+          json_value["int32ErrorCode"] = 70001;
         break;
       }
       if (json_value["errorCode"].isString()) {
