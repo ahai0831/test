@@ -250,21 +250,21 @@ bool GetFileSize(const std::wstring &file_path, uint64_t &file_size) {
       break;
     }
 
-    //  "w+",can write and read
-    //  _SH_DENYRW,Reject other processes Read and write access to the file
-    fp = _wfsopen(file_path.c_str(), L"r", _SH_DENYRW);
-    if (nullptr == fp) {
+    HANDLE hFile = CreateFileW(
+        file_path.c_str(),
+        0,  // 即使拒绝GENERIC_READ访问，应用程序也可以查询某些元数据，例如文件，目录或设备属性
+        FILE_SHARE_READ,        // 共享读
+        NULL,                   // default security
+        OPEN_EXISTING,          // existing file only
+        FILE_ATTRIBUTE_NORMAL,  // normal file
+        NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
       break;
     }
 
-    if (_fseeki64(fp, 0L, SEEK_END) != 0) {
-      break;
-    }
-
-    file_size = _ftelli64(fp);  // get file_size
-    if (file_size == -1) {
-      break;
-    }
+    LARGE_INTEGER size;
+    ::GetFileSizeEx(hFile, &size);
+    file_size = size.QuadPart;
 
     get_size_result = true;
   } while (false);

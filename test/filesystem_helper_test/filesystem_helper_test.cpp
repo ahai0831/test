@@ -37,7 +37,7 @@ int main() {
 
   /**********************file_helper test****************************/
   std::cout << std::endl << std::endl << "file infomation:" << std::endl;
-  std::wstring path_test = L"C:/Users/NOL/Desktop\\spencer";
+  std::wstring path_test = L"C:/Users/NOL/Desktop\\others.txt";
   std::string file_date;
   std::wstring file_name;
   uint64_t file_size = 0;
