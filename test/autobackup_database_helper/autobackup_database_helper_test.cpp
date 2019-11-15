@@ -129,30 +129,30 @@ int main() {
 
   // 测试正在上传表的接口，表(uploading_files_table)的缩写是UFTable
   std::cout << "======test UFTable======" << std::endl;
-
+  int64_t file_size = 44;
   std::string upload_file_id = "234234234";
   int64_t parent_id = 23424343;
   int32_t file_source = 1;
   // 插入数据1
-  errmsg_2 =
-      test_ptr_2->InsertToUFTable(file_local_path, file_cloud_path,
-                                  upload_file_id, "", parent_id, file_source);
+  errmsg_2 = test_ptr_2->InsertToUFTable(file_local_path, file_cloud_path,
+                                         file_size, file_md5, upload_file_id,
+                                         "", parent_id, file_source);
   if (!errmsg_2.empty()) {
     std::cout << "test2 : insert data to UFTable fail: " << errmsg_2
               << std::endl;
   }
   // 插入数据2
-  errmsg_2 =
-      test_ptr_2->InsertToUFTable(file_local_path + "test2", file_cloud_path,
-                                  upload_file_id, "", parent_id, file_source);
+  errmsg_2 = test_ptr_2->InsertToUFTable(
+      file_local_path + "test2", file_cloud_path, file_size, file_md5,
+      upload_file_id, "", parent_id, file_source);
   if (!errmsg_2.empty()) {
     std::cout << "test2 : insert data to UFTable fail: " << errmsg_2
               << std::endl;
   }
   // 更新数据
   errmsg_2 = test_ptr_2->UpdateUFTable(file_local_path, file_cloud_path,
-                                       upload_file_id, "234324", parent_id,
-                                       file_source);
+                                       file_size, file_md5, upload_file_id,
+                                       "234324", parent_id, file_source);
   if (!errmsg_2.empty()) {
     std::cout << "test2 : update UFTable data fail: " << errmsg_2 << std::endl;
   }
