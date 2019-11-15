@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_rxmd5.cpp" />
     <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_rxmultiworker.cpp" />
     <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_slicedownload.cpp" />
+    <ClCompile Include="..\..\..\..\test\httpbusiness_rxassistant_demo\test_speedcounter.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6065E0B5-D29C-4E9D-897D-BA3248567813}</ProjectGuid>

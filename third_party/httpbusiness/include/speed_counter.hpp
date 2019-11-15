@@ -9,10 +9,11 @@
 #include <cinttypes>
 #include <functional>
 
-#include <scopeguard.h>
-#include <v2/safecontainer.h>
-#include <v2/uuid.h>
 #include <rxcpp/rx.hpp>
+
+#include <tools/safecontainer.hpp>
+#include <tools/scopeguard.hpp>
+#include <tools/uuid.hpp>
 
 namespace httpbusiness {
 struct default_worker {
@@ -42,9 +43,9 @@ struct speed_counter {
   /// 平滑后速度的数据源
   rxcpp::observable<UintType> smoothspeed_stream;
   /// 保障退出时不发生内存泄露，显式地取消所有订阅
-  assistant::safemap_closure<std::string, rxcpp::composite_subscription>
+  assistant::tools::safemap_closure<std::string, rxcpp::composite_subscription>
       subscription_map;
-  scopeguard_internal::ScopeGuard guard;
+  assistant::tools::scope_guard guard;
 
  public:
   /// 默认构造方法
@@ -96,7 +97,7 @@ struct speed_counter {
   /// 析构方法使用默认
   ~speed_counter() = default;
   std::string RegSubscription(OnnextCb onnext_cb, OncompleteCb oncomplete_cb) {
-    std::string flag = assistant::uuid::generate();
+    std::string flag = assistant::tools::uuid::generate();
     subscription_map.Put(flag, std::move(smoothspeed_stream.subscribe(
                                    onnext_cb, oncomplete_cb)));
     return flag;
@@ -110,15 +111,130 @@ struct speed_counter {
     return flag;
   }
 
-  rxcpp::observe_on_one_worker speed_counter_thread() {
-    return worker;
-  }
+  rxcpp::observe_on_one_worker speed_counter_thread() { return worker; }
 
  private:
   /// 禁用掉移动复制构造，=操作符
   speed_counter(speed_counter&& httpresult) = delete;
   speed_counter(const speed_counter&) = delete;
   speed_counter& operator=(const speed_counter&) = delete;
+};
+
+/// 需要处理好如何保证线程安全性
+struct speed_counter_with_stop {
+ public:
+  typedef uint64_t UintType;
+  typedef std::function<void(UintType)> OnnextCb;
+  typedef std::function<void(void)> OncompleteCb;
+
+ private:
+  /// 用于数据源OnComplete 的原子bool标志
+  /// 计速器需要：
+  /// 传输实际的字节数（由于允许回滚，可能大于processed_bytes）
+  std::atomic<UintType> finished_bytes;
+  /// 平滑后速度的数据源
+  std::function<void()> subscriber_operator;
+  const rxcpp::observable<UintType> smoothspeed_stream;
+
+ public:
+  const std::function<void(UintType)> Add;
+  const std::function<void()> Stop;
+
+ private:
+  rxcpp::observable<UintType> InitDataSource() {
+    /// 1000ms 计速间隔，瞬时速率更新频率
+    const UintType speed_interval = 1000ULL;
+    const int StopMagicNumber = 0;
+    /// speedcounter使用的工作线程标识
+    const auto worker = default_worker::get_worker();
+
+    /// 定制一个Observable，随时可被手动OnComplete
+    auto& so = subscriber_operator;
+    rxcpp::connectable_observable<int> stop_observable =
+        rxcpp::observable<>::create<int>(
+            [&so, StopMagicNumber](rxcpp::subscriber<int> s) -> void {
+              so = [s, StopMagicNumber]() -> void {
+                s.on_next(StopMagicNumber - 1);
+              };
+            })
+            .publish();
+    stop_observable.connect();
+
+    rxcpp::observable<int> interval_with_stop =
+        stop_observable
+            .merge(worker, rxcpp::observable<>::interval(
+                               std::chrono::milliseconds(speed_interval))
+                               .map([StopMagicNumber](int) -> int {
+                                 return StopMagicNumber;
+                               }))
+            .take_while([StopMagicNumber](int v) -> bool {
+              return StopMagicNumber == v;
+            });
+
+    auto& fb = finished_bytes;
+    typedef std::tuple<UintType, UintType> Tuple;
+    rxcpp::observable<UintType> speed_stream =
+        interval_with_stop.map([&fb](int) -> UintType { return fb.load(); })
+            .pairwise()
+            .map([](Tuple v) -> UintType {
+              return std::get<1>(v) - std::get<0>(v);
+            })
+            .publish()
+            .ref_count();
+
+    return speed_stream.take(1).merge(
+        speed_stream.take(2).average().map([](double ave_oe) -> UintType {
+          return static_cast<UintType>(ave_oe);
+        }),
+        speed_stream.pairwise().pairwise().map(
+            [](const std::tuple<const Tuple&, const Tuple&>& v) -> UintType {
+              return static_cast<UintType>((std::get<0>(std::get<0>(v)) +
+                                            std::get<1>(std::get<0>(v)) +
+                                            std::get<1>(std::get<1>(v))) /
+                                           3);
+            }));
+  }
+  /// 保障退出时不发生内存泄露，显式地取消所有订阅
+  assistant::tools::safemap_closure<std::string, rxcpp::composite_subscription>
+      subscription_map;
+  assistant::tools::scope_guard guard;
+
+ public:
+  /// 默认构造方法
+  speed_counter_with_stop()
+      : finished_bytes(0),
+        smoothspeed_stream(InitDataSource()),
+        Add(std::move(std::function<void(UintType)>(
+            [this](UintType v) -> void { finished_bytes += v; }))),
+        Stop(std::move(subscriber_operator)),
+        guard([this]() {
+          subscription_map.ForeachDelegate(
+              [](std::string, rxcpp::composite_subscription cs) {
+                if (cs.is_subscribed()) {
+                  cs.unsubscribe();
+                }
+              });
+        }) {}
+  std::string RegSubscription(OnnextCb onnext_cb, OncompleteCb oncomplete_cb) {
+    std::string flag = assistant::tools::uuid::generate();
+    subscription_map.Put(flag, std::move(smoothspeed_stream.subscribe(
+                                   onnext_cb, oncomplete_cb)));
+    return flag;
+  }
+  bool UnregSubscription(const std::string& uuid) {
+    bool flag = false;
+    rxcpp::composite_subscription subscrition;
+    if (flag = subscription_map.Take(uuid, subscrition)) {
+      subscrition.unsubscribe();
+    }
+    return flag;
+  }
+
+ private:
+  /// 禁用掉移动复制构造，=操作符
+  speed_counter_with_stop(speed_counter_with_stop&& httpresult) = delete;
+  speed_counter_with_stop(const speed_counter_with_stop&) = delete;
+  speed_counter_with_stop& operator=(const speed_counter_with_stop&) = delete;
 };
 
 struct progress_notifier {
@@ -140,9 +256,9 @@ struct progress_notifier {
   /// 通知的数据源
   rxcpp::observable<FloatType> notify_stream;
   /// 保障退出时不发生内存泄露，显式地取消所有订阅
-  assistant::safemap_closure<std::string, rxcpp::composite_subscription>
+  assistant::tools::safemap_closure<std::string, rxcpp::composite_subscription>
       subscription_map;
-  scopeguard_internal::ScopeGuard guard;
+  assistant::tools::scope_guard guard;
 
  public:
   /// 默认构造方法
@@ -173,12 +289,11 @@ struct progress_notifier {
             })
             .publish()
             .ref_count();
-
   }
   /// 析构方法使用默认
   ~progress_notifier() = default;
   std::string RegSubscription(OnnextCb onnext_cb, OncompleteCb oncomplete_cb) {
-    std::string flag = assistant::uuid::generate();
+    std::string flag = assistant::tools::uuid::generate();
     subscription_map.Put(
         flag, std::move(notify_stream.subscribe(onnext_cb, oncomplete_cb)));
     return flag;
