@@ -21,7 +21,7 @@ std::unique_ptr<AutobackupBackupHelper> AutobackupBackupHelper::Create(
   auto database_ptr = new AutobackupBackupHelper(
       appdata_path, user_id, corp_id, space_type, cloud_path, local_path);
   if (nullptr == database_ptr->GetSqlite3Handle()) {
-    database_ptr == nullptr;
+    database_ptr = nullptr;
   }
   return std::unique_ptr<AutobackupBackupHelper>(database_ptr);
 }
