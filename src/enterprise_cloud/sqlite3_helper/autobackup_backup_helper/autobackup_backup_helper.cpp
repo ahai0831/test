@@ -169,27 +169,30 @@ std::string AutobackupBackupHelper::QueryFromUSTable(
 }
 
 std::string AutobackupBackupHelper::InsertToUFTable(
-    std::string file_local_path, std::string file_cloud_path,
-    std::string upload_file_id, std::string coshare_id,
-    int64_t cloud_parent_folder_id, int32_t file_source) {
+    std::string file_local_path, std::string file_cloud_path, int64_t file_size,
+    std::string file_md5, std::string upload_file_id, std::string coshare_id,
+    int64_t cloud_parent_folder_id, int32_t file_source,
+    std::string extrends /* = ""*/) {
   char *errmsg = nullptr;
   std::string error_msg;
   do {
     if (sqlite3_handle_ == nullptr || file_local_path.empty() ||
-        file_cloud_path.empty() || upload_file_id.empty()) {
+        file_cloud_path.empty() || upload_file_id.empty() || file_md5.empty()) {
       error_msg = "params error.";
       break;
     }
     std::string sql_string = StringFormat(
         "INSERT INTO uploading_files_table"
-        "(file_local_path,file_cloud_path,upload_file_id,coshare_id,"
+        "(file_local_path,file_cloud_path,file_size,file_md5,upload_file_id,"
+        "coshare_id,"
         "cloud_parent_folder_id,"
-        "file_source)"
-        " VALUES('%s','%s','%s','%s',%s,%s);",
+        "file_source,extrends)"
+        " VALUES('%s','%s',%s,'%s','%s','%s',%s,%s,'%s');",
         file_local_path.c_str(), file_cloud_path.c_str(),
+        std::to_string(file_size).c_str(), file_md5.c_str(),
         upload_file_id.c_str(), coshare_id.c_str(),
         std::to_string(cloud_parent_folder_id).c_str(),
-        std::to_string(file_source).c_str());
+        std::to_string(file_source).c_str(), extrends.c_str());
     if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "BEGIN TRANSACTION", nullptr,
                                   nullptr, &errmsg)) {
       error_msg = errmsg;
@@ -216,26 +219,31 @@ std::string AutobackupBackupHelper::InsertToUFTable(
 }
 
 std::string AutobackupBackupHelper::UpdateUFTable(
-    std::string file_local_path, std::string file_cloud_path,
-    std::string upload_file_id, std::string coshare_id,
-    int64_t cloud_parent_folder_id, int32_t file_source) {
+    std::string file_local_path, std::string file_cloud_path, int64_t file_size,
+    std::string file_md5, std::string upload_file_id, std::string coshare_id,
+    int64_t cloud_parent_folder_id, int32_t file_source,
+    std::string extrends /* = ""*/) {
   char *errmsg = nullptr;
   std::string error_msg;
   do {
     if (sqlite3_handle_ == nullptr || file_local_path.empty() ||
-        file_cloud_path.empty() || upload_file_id.empty()) {
+        file_cloud_path.empty() || upload_file_id.empty() || file_md5.empty()) {
       error_msg = "params error.";
       break;
     }
     std::string sql_string = StringFormat(
         "UPDATE uploading_files_table "
-        "SET file_cloud_path='%s',upload_file_id='%s',coshare_id='%s', "
+        "SET "
+        "file_cloud_path='%s',file_size=%s,file_md5='%s',upload_file_id='%s',"
+        "coshare_id='%s', "
         "cloud_parent_folder_id=%s, "
-        "file_source=%s "
+        "file_source=%s,extrends='%s' "
         "WHERE file_local_path='%s';",
-        file_cloud_path.c_str(), upload_file_id.c_str(), coshare_id.c_str(),
+        file_cloud_path.c_str(), std::to_string(file_size).c_str(),
+        file_md5.c_str(), upload_file_id.c_str(), coshare_id.c_str(),
         std::to_string(cloud_parent_folder_id).c_str(),
-        std::to_string(file_source).c_str(), file_local_path.c_str());
+        std::to_string(file_source).c_str(), extrends.c_str(),
+        file_local_path.c_str());
     if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "BEGIN TRANSACTION", nullptr,
                                   nullptr, &errmsg)) {
       error_msg = errmsg;
@@ -286,12 +294,15 @@ std::string AutobackupBackupHelper::QueryFromUFTable() {
             (char *)sqlite3_column_text(stmt, 0);
         result_json_temp["file_cloud_path"] =
             (char *)sqlite3_column_text(stmt, 1);
+        result_json_temp["file_size"] = sqlite3_column_int64(stmt, 2);
+        result_json_temp["file_md5"] = (char *)sqlite3_column_text(stmt, 3);
         result_json_temp["upload_file_id"] =
-            (char *)sqlite3_column_text(stmt, 2);
-        result_json_temp["coshare_id"] = (char *)sqlite3_column_text(stmt, 3);
+            (char *)sqlite3_column_text(stmt, 4);
+        result_json_temp["coshare_id"] = (char *)sqlite3_column_text(stmt, 5);
         result_json_temp["cloud_parent_folder_id"] =
-            sqlite3_column_int64(stmt, 4);
-        result_json_temp["file_source"] = sqlite3_column_int(stmt, 5);
+            sqlite3_column_int64(stmt, 6);
+        result_json_temp["file_source"] = sqlite3_column_int(stmt, 7);
+        result_json_temp["extrends"] = (char *)sqlite3_column_text(stmt, 8);
 
         result_json[std::to_string(result_count)] = result_json_temp;
         result_json_temp.clear();
@@ -326,9 +337,9 @@ std::string AutobackupBackupHelper::QueryFromUFTable(
     }
     std::string sql_string = StringFormat(
         "SELECT "
-        "file_cloud_path,upload_file_id,coshare_id,"
+        "file_cloud_path,file_size,file_md5,upload_file_id,coshare_id,"
         "cloud_parent_folder_id,"
-        "file_source FROM uploading_files_table "
+        "file_source,extrends FROM uploading_files_table "
         "WHERE file_local_path='%s';",
         file_local_path.c_str());
     sqlite3_stmt *stmt;
@@ -341,10 +352,14 @@ std::string AutobackupBackupHelper::QueryFromUFTable(
     ret = sqlite3_step(stmt);
     if (SQLITE_ROW == ret) {
       result_json["file_cloud_path"] = (char *)sqlite3_column_text(stmt, 0);
-      result_json["upload_file_id"] = (char *)sqlite3_column_text(stmt, 1);
-      result_json["coshare_id"] = (char *)sqlite3_column_text(stmt, 2);
-      result_json["cloud_parent_folder_id"] = sqlite3_column_int64(stmt, 3);
-      result_json["file_source"] = sqlite3_column_int(stmt, 4);
+      result_json["file_size"] = sqlite3_column_int64(stmt, 1);
+      result_json["file_md5"] = (char *)sqlite3_column_text(stmt, 2);
+      result_json["upload_file_id"] = (char *)sqlite3_column_text(stmt, 3);
+      result_json["coshare_id"] = (char *)sqlite3_column_text(stmt, 4);
+      result_json["cloud_parent_folder_id"] = sqlite3_column_int64(stmt, 5);
+      result_json["file_source"] = sqlite3_column_int(stmt, 6);
+      result_json["extrends"] = (char *)sqlite3_column_text(stmt, 7);
+
     } else if (SQLITE_DONE == ret) {
       result = "-1";
       break;
@@ -492,10 +507,13 @@ AutobackupBackupHelper::AutobackupBackupHelper(std::string appdata_path,
           "("
           "file_local_path TEXT NOT NULL,"
           "file_cloud_path TEXT NOT NULL,"
+          "file_size INTEGER NOT NULL,"
+          "file_md5 TEXT NOT NULL,"
           "upload_file_id TEXT NOT NULL,"
           "coshare_id TEXT NOT NULL,"
           "cloud_parent_folder_id INTEGER NOT NULL,"
           "file_source INTEGER NOT NULL,"
+          "extrends TEXT DEFAULT '',"
           "PRIMARY KEY(file_local_path)"
           "); ";
       ret = sqlite3_prepare_v2(sqlite3_handle_, query_string.c_str(), -1, &stmt,
