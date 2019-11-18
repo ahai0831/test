@@ -28,12 +28,15 @@ typedef struct RI {
   // http status code 601
   int retry_count_601;
   const int retry_time_601 = 1500;
+  // http status code 602
+  int retry_count_602;
 
   void init() {
     retry_count_is = 0;
     retry_count_pd = 0;
     retry_count_5xx = 0;
     retry_count_601 = 0;
+    retry_count_602 = 0;
   }
 
 } RetryInfo;

@@ -169,7 +169,7 @@ void UploadFileMasterControl::CRUFCallback(
         }
       } else if (5 == (http_statuc_code % 100) &&
                  retry_info_cruf.retry_count_max >
-                     retry_info_cruf.retry_time_5xx) {
+                     retry_info_cruf.retry_count_5xx) {
         // 5xx错误
         // 重试，沉睡时长一开始1.5s, 然后1.5的2次方，以此类推，重试最多10次
         auto retry_time = (int)std::pow(retry_info_cruf.retry_time_5xx,
@@ -183,7 +183,7 @@ void UploadFileMasterControl::CRUFCallback(
         return;
       } else if (601 == http_statuc_code &&
                  retry_info_cruf.retry_count_max >
-                     retry_info_cruf.retry_time_601) {
+                     retry_info_cruf.retry_count_601) {
         // 重试，沉睡时长一开始1.5s, 然后1.5的2次方，以此类推，重试最多10次
         auto retry_time = (int)std::pow(retry_info_cruf.retry_time_601,
                                         retry_info_cruf.retry_count_601);
@@ -196,13 +196,6 @@ void UploadFileMasterControl::CRUFCallback(
           break;
         }
         retry_info_cruf.retry_count_601 += 1;
-        return;
-      } else if (602 == http_statuc_code) {
-        // 跳第一步
-        if (!CRUFRequest()) {
-          json_value["stage"] = stage_code_102;
-          break;
-        }
         return;
       }
 
@@ -282,7 +275,7 @@ void UploadFileMasterControl::GUSCallback(
         }
       } else if (5 == (http_statuc_code % 100) &&
                  retry_info_gus.retry_count_max >
-                     retry_info_gus.retry_time_5xx) {
+                     retry_info_gus.retry_count_5xx) {
         auto retry_time = (int)std::pow(retry_info_gus.retry_time_5xx,
                                         retry_info_gus.retry_count_5xx);
         // 重试，最多重试10次
@@ -293,8 +286,9 @@ void UploadFileMasterControl::GUSCallback(
         }
         retry_info_gus.retry_count_5xx += 1;
         return;
-      } else if (601 == http_statuc_code && retry_info_gus.retry_count_max >
-                                                retry_info_gus.retry_time_601) {
+      } else if (601 == http_statuc_code &&
+                 retry_info_gus.retry_count_max >
+                     retry_info_gus.retry_count_601) {
         // 重试，最多重试10次
         auto retry_time = (int)std::pow(retry_info_gus.retry_time_601,
                                         retry_info_gus.retry_count_601);
@@ -308,12 +302,15 @@ void UploadFileMasterControl::GUSCallback(
         }
         retry_info_gus.retry_count_601 += 1;
         return;
-      } else if (602 == http_statuc_code) {
+      } else if (602 == http_statuc_code &&
+                 retry_info_gus.retry_count_max >
+                     retry_info_gus.retry_count_602) {
         // 跳第一步
         if (!CRUFRequest()) {
           json_value["stage"] = stage_code_102;
           break;
         }
+        retry_info_gus.retry_count_602 += 1;
         return;
       }
 
@@ -370,7 +367,7 @@ void UploadFileMasterControl::UFDCallback(
     }
     if (!json_value["isSuccess"].asBool()) {
       auto http_statuc_code = json_value["httpStatusCode"].asInt();
-      if (retry_info_ufd.retry_count_max <= retry_info_ufd.retry_time_601) {
+      if (retry_info_ufd.retry_count_max <= retry_info_ufd.retry_count_601) {
         json_value["stage"] = stage_code_303;
         break;
       }
@@ -464,7 +461,7 @@ void UploadFileMasterControl::COUFCallback(
         }
       } else if (5 == (http_statuc_code % 100) &&
                  retry_info_couf.retry_count_max >
-                     retry_info_couf.retry_time_5xx) {
+                     retry_info_couf.retry_count_5xx) {
         // 重试，最多重试10次
         auto retry_time = (int)std::pow(retry_info_couf.retry_time_5xx,
                                         retry_info_couf.retry_count_5xx);
@@ -477,7 +474,7 @@ void UploadFileMasterControl::COUFCallback(
         return;
       } else if (601 == http_statuc_code &&
                  retry_info_couf.retry_count_max >
-                     retry_info_couf.retry_time_601) {
+                     retry_info_couf.retry_count_601) {
         // 重试，最多重试10次
         auto retry_time = (int)std::pow(retry_info_couf.retry_time_601,
                                         retry_info_couf.retry_count_601);
@@ -491,12 +488,15 @@ void UploadFileMasterControl::COUFCallback(
         }
         retry_info_couf.retry_count_601 += 1;
         return;
-      } else if (602 == http_statuc_code) {
+      } else if (602 == http_statuc_code &&
+                 retry_info_couf.retry_count_max >
+                     retry_info_couf.retry_count_602) {
         // 跳第一步
         if (!CRUFRequest()) {
           json_value["stage"] = stage_code_102;
           break;
         }
+        retry_info_couf.retry_count_602 += 1;
         return;
       } else if (600 == http_statuc_code) {
         // 跳第二步
