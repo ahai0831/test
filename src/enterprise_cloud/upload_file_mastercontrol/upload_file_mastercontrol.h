@@ -14,17 +14,42 @@
 
 namespace {
 typedef std::function<void(std::string)> STATUSCALLBACK;
-}
+
+typedef struct RI {
+  // 信安检查异常重试次数
+  int retry_count_is;
+  // 权限不足重试次数
+  int retry_count_pd;
+  // 最大重试次数
+  const int retry_count_max = 10;
+  // http status code 5xx
+  int retry_count_5xx;
+  const int retry_time_5xx = 1500;
+  // http status code 601
+  int retry_count_601;
+  const int retry_time_601 = 1500;
+
+  void init() {
+    retry_count_is = 0;
+    retry_count_pd = 0;
+    retry_count_5xx = 0;
+    retry_count_601 = 0;
+  }
+
+} RetryInfo;
+
+}  // namespace
 
 namespace EnterpriseCloud {
 namespace UploadFileMasterControl {
 class UploadFileMasterControl {
  public:
-  UploadFileMasterControl(const std::string& file_path, int64_t corp_id,
-                          int64_t parent_id, const std::string& md5,
-                          int32_t file_source, const std::string coshare_id,
-                          int32_t is_log, const int32_t oper_type,
-                          const std::string& upload_file_id);
+  UploadFileMasterControl(
+      std::shared_ptr<assistant::Assistant_v3>& assistant_ptr,
+      const std::string& file_path, const std::string& corp_id,
+      const std::string& parent_id, const std::string md5, int32_t file_source,
+      const std::string coshare_id, int32_t is_log, const int32_t oper_type,
+      const std::string upload_file_id);
 
   ~UploadFileMasterControl() { fclose(file_ptr_); }
 
@@ -32,7 +57,7 @@ class UploadFileMasterControl {
   // 开始成功返回true, 失败返回false。
   bool Start();
 
-  // 停止请求，md5计算不能停止。
+  // 停止请求，md5计算目前不能停止。
   void Stop();
 
   // 主控状态的回调
@@ -41,6 +66,8 @@ class UploadFileMasterControl {
   // md5计算，包含的其他字段有
   // md5_process: [float] md5计算进度
   // md5: [string] 计算出的md5值，只有计算完成才会包含
+  // stage: 1
+  // 调用Stop()发出的stage
   // stage: 300
   // 上传文件中，包含的字段有
   // md5: [string] 计算出的md5值
@@ -48,6 +75,16 @@ class UploadFileMasterControl {
   // upload_bytes: [int64_t] 实际已经上传的字节数，包括已上传的加本次上传的数据
   // upload_file_id_: [string] 上传文件的upload file id;
   // file_size: [int64_t] 整个上传文件的大小
+  // stage: 400
+  // 上传完成，包含的字段有
+  // fileSize,[int64_t], 表明文件大小
+  // fileId,[string], 表明文件id
+  // createTime,[string], 表明文件创建日期,格式为YYYY-MM-DD hh:mm:ss
+  // rev,[int64_t], 表明文件版本号
+  // md5,[string], 表明文件的MD5码
+  // fileName,[string], 文件名称
+  //
+  // 其他stage都是发生率错误。
   void StatusCallback(STATUSCALLBACK status_call_back) {
     status_call_back_ = status_call_back;
   }
@@ -112,6 +149,7 @@ class UploadFileMasterControl {
   // xx2为创建请求出错
   // xx3为请求失败
   const int stage_code_0 = 0;  // 计算md5
+  const int stage_code_1 = 1;  // stop
   const int stage_code_100 = 100;
   const int stage_code_101 = 101;
   const int stage_code_102 = 102;
@@ -131,8 +169,8 @@ class UploadFileMasterControl {
 
   // 需要传入的参数
   std::string file_path_;
-  int64_t corp_id_;
-  int64_t parent_id_;
+  std::string corp_id_;
+  std::string parent_id_;
   int32_t file_source_;
   std::string coshare_id_;
   int32_t is_log_;
@@ -141,8 +179,8 @@ class UploadFileMasterControl {
   // 内部存储的参数
   std::string file_upload_url_;
   std::string file_commit_url_;
-  int64_t file_upload_id_;
   int64_t file_upload_size_;
+  bool file_exists_;
 
   // md5计算相关
   int64_t md5_finish_size;
@@ -157,13 +195,24 @@ class UploadFileMasterControl {
   FILE* file_ptr_;
 
   // assistant指针
-  std::unique_ptr<assistant::Assistant_v3> assistant_ptr_;
+  std::weak_ptr<assistant::Assistant_v3> assistant_weak_ptr_;
 
   // 集合：各worker对应http请求的uuid，用于停止传输、限速等
   assistant::tools::safeset_closure<std::string> uuid_set_;
 
   // 标记外部调用Stop()以请求连接停止，不应发起新连接
   std::atomic_bool stop_flag_;
+
+  // create upload file的重试信息
+  RetryInfo retry_info_cruf;
+  // get upload status的重试信息
+  RetryInfo retry_info_gus;
+  // upload file data的重试信息
+  RetryInfo retry_info_ufd;
+  int retry_count_ufd_all;      // 总的跳转到get upload status的次数
+  int retry_count_ufd_current;  // 当前跳转到get upload status的次数
+  // comfirm upload file的重试信息
+  RetryInfo retry_info_couf;
 };
 }  // namespace UploadFileMasterControl
 }  // namespace EnterpriseCloud
