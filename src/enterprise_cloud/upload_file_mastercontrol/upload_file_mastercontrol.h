@@ -11,6 +11,7 @@
 
 #include <Assistant_v3.hpp>
 #include <speed_counter.hpp>
+#include <rx_md5.hpp>
 
 namespace {
 typedef std::function<void(std::string)> STATUSCALLBACK;
@@ -187,6 +188,7 @@ class UploadFileMasterControl {
 
   // md5计算相关
   int64_t md5_finish_size;
+  decltype(rx_assistant::md5::md5_async_factory::create("",nullptr,nullptr)) md5_ptr;
 
   // 主控状态回调
   STATUSCALLBACK status_call_back_;
