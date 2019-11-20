@@ -5,8 +5,6 @@
 
 #include <json/json.h>
 
-#include <rx_md5.hpp>
-
 #include <tools/string_format.hpp>
 using assistant::tools::string::StringFormat;
 
@@ -30,6 +28,7 @@ UploadFileMasterControl::UploadFileMasterControl(
     const std::string upload_file_id)
     : assistant_weak_ptr_(assistant_ptr),
       md5_finish_size(0),
+      md5_ptr(nullptr),
       upload_bytes_(0),
       file_size_(0),
       file_ptr_(nullptr),
@@ -556,7 +555,7 @@ bool UploadFileMasterControl::Start() {
         break;
       }
     } else {
-      rx_assistant::md5::md5_async_factory::create(
+      md5_ptr = rx_assistant::md5::md5_async_factory::create(
           file_path_,
           std::bind(&UploadFileMasterControl::MD5CompleteCallback, this,
                     std::placeholders::_1),

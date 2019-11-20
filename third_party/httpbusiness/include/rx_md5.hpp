@@ -21,7 +21,7 @@ static void mmap_md5_access_callback(void *memory, uint64_t len,
   callback(memory, len);
 }
 /// TODO:  必须考虑一下，由于缺页异常导致的问题，是否可控
-std::string md5_sync_calculate(const std::string &file_path) {
+static std::string md5_sync_calculate(const std::string &file_path) {
   std::string result;
   auto filepath_w = assistant::tools::string::utf8ToWstring(file_path);
   //// TODO: 需要改成获取文件元数据
@@ -66,7 +66,7 @@ std::string md5_sync_calculate(const std::string &file_path) {
 
 /// int64_t 代表了 md5 计算的进度回调，传入值为每次update的内存块的长度
 typedef std::function<void(int64_t)> Md5ProcessCallback;
-std::string md5_sync_calculate_with_process(const std::string &file_path,
+static std::string md5_sync_calculate_with_process(const std::string &file_path,
                                             Md5ProcessCallback process_cb) {
   std::string result;
   auto filepath_w = assistant::tools::string::utf8ToWstring(file_path);
