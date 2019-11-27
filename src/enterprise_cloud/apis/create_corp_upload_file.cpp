@@ -106,9 +106,9 @@ bool HttpRequestEncode(const std::string& params_json,
     uint64_t file_size;
     std::wstring file_name;
     if (!cloud_base::filesystem_helper::GetFileSize(
-            assistant::tools::ansiToWstring(local_path), file_size) ||
+            assistant::tools::utf8ToWstring(local_path), file_size) ||
         !cloud_base::filesystem_helper::GetFileName(
-            assistant::tools::ansiToWstring(local_path), file_name)) {
+            assistant::tools::utf8ToWstring(local_path), file_name)) {
       break;
     }
     std::string file_name_temp = assistant::tools::wstringToUtf8(file_name);
