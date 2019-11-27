@@ -49,6 +49,9 @@ UploadFileMasterControl::UploadFileMasterControl(
 }
 
 void UploadFileMasterControl::MD5CompleteCallback(const std::string& file_md5) {
+  if (stop_flag_) {
+    return;
+  }
   Json::Value msg;
   if (nullptr != status_call_back_) {
     auto md5_process = (float)((long double)md5_finish_size / file_size_);
@@ -59,9 +62,6 @@ void UploadFileMasterControl::MD5CompleteCallback(const std::string& file_md5) {
   }
   msg.clear();
 
-  if (stop_flag_) {
-    return;
-  }
   do {
     if (md5_ != file_md5) {
       md5_ = file_md5;
@@ -124,12 +124,12 @@ void UploadFileMasterControl::UploadSpeedCallback(uint64_t upload_speed) {
 void UploadFileMasterControl::CRUFCallback(
     const assistant::HttpResponse_v1& res,
     const assistant::HttpRequest_v1& req) {
+  if (stop_flag_) {
+    return;
+  }
   std::string used_uuid;
   if (req.extends.Get("uuid", used_uuid)) {
     uuid_set_.Delete(used_uuid);
-  }
-  if (stop_flag_) {
-    return;
   }
 
   Json::Value json_value;
@@ -231,12 +231,12 @@ void UploadFileMasterControl::CRUFCallback(
 void UploadFileMasterControl::GUSCallback(
     const assistant::HttpResponse_v1& res,
     const assistant::HttpRequest_v1& req) {
+  if (stop_flag_) {
+    return;
+  }
   std::string used_uuid;
   if (req.extends.Get("uuid", used_uuid)) {
     uuid_set_.Delete(used_uuid);
-  }
-  if (stop_flag_) {
-    return;
   }
 
   Json::Value json_value;
@@ -345,13 +345,14 @@ void UploadFileMasterControl::GUSCallback(
 void UploadFileMasterControl::UFDCallback(
     const assistant::HttpResponse_v1& res,
     const assistant::HttpRequest_v1& req) {
+  if (stop_flag_) {
+    return;
+  }
   std::string used_uuid;
   if (req.extends.Get("uuid", used_uuid)) {
     uuid_set_.Delete(used_uuid);
   }
-  if (stop_flag_) {
-    return;
-  }
+
   Json::Value json_value;
   Json::Reader json_reader;
   do {
@@ -417,12 +418,12 @@ void UploadFileMasterControl::UFDCallback(
 void UploadFileMasterControl::COUFCallback(
     const assistant::HttpResponse_v1& res,
     const assistant::HttpRequest_v1& req) {
+  if (stop_flag_) {
+    return;
+  }
   std::string used_uuid;
   if (req.extends.Get("uuid", used_uuid)) {
     uuid_set_.Delete(used_uuid);
-  }
-  if (stop_flag_) {
-    return;
   }
 
   Json::Value json_value;
@@ -529,7 +530,8 @@ bool UploadFileMasterControl::Start() {
 
   bool is_success = false;
   do {
-    file_ptr_ = _fsopen(file_path_.c_str(), "r", _SH_DENYWR);
+    auto wfile_ptr_ = assistant::tools::string::utf8ToWstring(file_path_);
+    file_ptr_ = _wfsopen(wfile_ptr_.c_str(), L"r", _SH_DENYWR);
     if (nullptr == file_ptr_) {
       break;
     }

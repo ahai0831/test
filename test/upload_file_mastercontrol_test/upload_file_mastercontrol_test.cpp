@@ -33,7 +33,9 @@ int main() {
   EnterpriseCloudLogin(session_value["sessionKey"].asString(),
                        session_value["sessionSecret"].asString());
   // 参数设置
-  std::string file_path = "E:\\Desktop\\Desktop004.rar";
+  std::string file_path = "E:\\Desktop\\Desktop.rar";
+  auto tt = assistant::tools::string::ansiToWstring(file_path);
+  file_path = assistant::tools::string::wstringToUtf8(tt);
   std::string corp_id = "114131189491";
   std::string parent_id = "-683279323";
   std::string md5 = "";  //可有可无，如果要续传则必须传入，否则重新上传
