@@ -32,17 +32,50 @@ struct rx_multi_worker {
   typedef std::function<MaterialType()> GetMaterialCallback;
   typedef std::function<void(int32_t)> GetMaterialResultCallback;
   /// 消费报告方法
-  typedef std::function<void(const R &)> ReportCallback;
   typedef std::function<void(const M &)> ExtraMaterialCallback;
+  typedef std::function<void(const R &)> ReportCallback;
   /// 用于传给worker方法调用
   /// 用于检查此物料生产是否已停止
   /// 包含外部要求停止的场景，以及内部出现严重错误，“罢工”
   typedef std::function<bool()> CheckStopCallback;
   typedef std::function<void()> SeriousErrorCallback;
-  typedef std::function<void(GetMaterialCallback, GetMaterialResultCallback,
-                             ExtraMaterialCallback, ReportCallback,
-                             CheckStopCallback, SeriousErrorCallback)>
-      WorkerCallback;
+  typedef struct rx_multi_worker_callbacks_package {
+    const GetMaterialCallback get_material;
+    const GetMaterialResultCallback get_material_result;
+    const ExtraMaterialCallback extra_material;
+    const ReportCallback send_report;
+    const CheckStopCallback check_stop;
+    const SeriousErrorCallback serious_error;
+    /// 禁用默认构造方法
+    rx_multi_worker_callbacks_package() = delete;
+    /// 显式构造方法
+    rx_multi_worker_callbacks_package(
+        GetMaterialCallback get_material_cb,
+        GetMaterialResultCallback get_material_result_cb,
+        ExtraMaterialCallback extra_material_cb, ReportCallback send_report_cb,
+        CheckStopCallback check_stop_cb, SeriousErrorCallback serious_error_cb)
+        : get_material(get_material_cb),
+          get_material_result(get_material_result_cb),
+          extra_material(extra_material_cb),
+          send_report(send_report_cb),
+          check_stop(check_stop_cb),
+          serious_error(serious_error_cb) {}
+    /// 对析构方法、移动构造、复制构造和=号操作符使用默认
+    ~rx_multi_worker_callbacks_package() = default;
+    rx_multi_worker_callbacks_package(rx_multi_worker_callbacks_package &&cbs)
+        : get_material(cbs.get_material),
+          get_material_result(cbs.get_material_result),
+          extra_material(cbs.extra_material),
+          send_report(cbs.send_report),
+          check_stop(cbs.check_stop),
+          serious_error(cbs.serious_error){};
+    rx_multi_worker_callbacks_package(
+        const rx_multi_worker_callbacks_package &) = default;
+    rx_multi_worker_callbacks_package &operator=(
+        const rx_multi_worker_callbacks_package &) = default;
+
+  } CalledCallbacks;
+  typedef std::function<void(CalledCallbacks)> WorkerCallback;
 
  private:
   struct internal_data {
@@ -142,23 +175,34 @@ struct rx_multi_worker {
                     kCurrentWorkerNumber < data->worker_limit &&
                     data->material_queue.Size() > 0) {
                   if (nullptr != worker) {
-                    worker(get_material, get_material_result, extra_material,
-                           send_report, check_stop, serious_error);
+                    CalledCallbacks callbacks(
+                        std::move(get_material), get_material_result,
+                        std::move(extra_material), std::move(send_report),
+                        std::move(check_stop), std::move(serious_error));
+                    worker(callbacks);
                   }
                 }
               }
             } while (false);
           };
-          /// TODO: 增加语义：若待完成队列为空，则应立即complete
-          if (nullptr != worker) {
-            /// worker如何调用get_material？
-            /// 在worker
-            /// 的费时操作开始前，应该根据get_material，向get_material_result传入0或1；
-            /// 在worker
-            /// 的费时操作结束后（在提交额外生产的物料以及提交生产报告之后），再次尝试get_material
-            /// 向get_material_result传入-1或0
-            worker(get_material, get_material_result, extra_material,
-                   send_report, check_stop, serious_error);
+          auto data = data_weak.lock();
+          if (nullptr != data) {
+            /// 增加语义：若待完成队列为空，则应立即complete
+            if (data->material_queue.Size() == 0) {
+              s.on_completed();
+            } else if (nullptr != worker) {
+              /// worker如何调用get_material？
+              /// 在worker的费时操作开始前：
+              /// 应该根据get_material，向get_material_result传入0或1；
+              /// 在worker的费时操作结束后：
+              ///（且在提交额外生产的物料以及提交生产报告之后），再次尝试get_material，
+              /// 向get_material_result传入-1或0
+              CalledCallbacks callbacks(
+                  std::move(get_material), get_material_result,
+                  std::move(extra_material), std::move(send_report),
+                  std::move(check_stop), std::move(serious_error));
+              worker(callbacks);
+            }
           }
         });
   }
@@ -179,7 +223,6 @@ struct rx_multi_worker {
   rx_multi_worker(rx_multi_worker &&) = delete;
   rx_multi_worker(const rx_multi_worker &) = delete;
   rx_multi_worker &operator=(const rx_multi_worker &) = delete;
-
 };
 
 }  // namespace httpbusiness
