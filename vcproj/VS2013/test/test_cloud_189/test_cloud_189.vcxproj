@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A151C995-D857-442F-80D8-3CE85BECF055}</ProjectGuid>
+    <ProjectGuid>{F59B87F8-B41E-497A-867D-007E2B1B1442}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ecloud189_upload_file_model_test</RootNamespace>
+    <RootNamespace>test_cloud_189</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -70,6 +70,7 @@
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
+    <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -88,6 +89,7 @@
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
+    <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -106,6 +108,7 @@
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
+    <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -124,6 +127,7 @@
     <Import Project="..\..\..\..\third_party\cloud_base\cloud_base_withproject.props" />
     <Import Project="..\..\..\..\third_party\jsoncpp\jsoncpp-1.8.4\jsoncpp_withproject.props" />
     <Import Project="..\..\..\..\third_party\pugixml\pugixml-1.10\pugixml_withproject.props" />
+    <Import Project="..\..\..\..\third_party\googletest\googletest-release-1.8.1\googletest_withproject.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -204,7 +208,9 @@
     <ClCompile Include="..\..\..\..\src\cloud189\apis\get_upload_status.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_file_data.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp" />
-    <ClCompile Include="..\..\..\..\test\ecloud189_upload_file_model_test\ecloud189_upload_file_model_test.cpp" />
+    <ClCompile Include="..\..\..\..\test\test_cloud_189\test_cloud_189.cpp" />
+    <ClCompile Include="..\..\..\..\test\test_cloud_189\test_session_helper.cpp" />
+    <ClCompile Include="..\..\..\..\test\test_cloud_189\test_upload_file_encode_decode.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
