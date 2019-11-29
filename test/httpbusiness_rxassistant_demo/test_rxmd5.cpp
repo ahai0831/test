@@ -62,7 +62,7 @@ TEST(rxmd5_test, async_md5_with_process) {
   fseek(fp, 0x40000000, SEEK_SET);
   fwrite(testData, sizeof(testData[0]), sizeof(testData) / sizeof(testData[0]),
          fp);
-  printf("Flush about 1GB file to disk, taking a while......");
+  printf("Flush about 1GB file to disk, taking a while......\n");
   fflush(fp);
   /// Get Filesize
   _fseeki64(fp, 0, SEEK_END);

@@ -171,8 +171,59 @@ struct lockfree_vector_closure {
   lockfree_vector_closure& operator=(lockfree_vector_closure const&) = delete;
 };
 
-/// TODO: 增加以无锁实现的无锁无竞争写只读型String
+/// 增加以无锁实现的无锁无竞争写只读型String
 /// 对特定字符串的线程安全实现，频繁读取使用mutex影响性能
+template <typename T>
+struct lockfree_string_closure {
+ private:
+  typedef T StringType;
+  /// 必须保证对此对象的读写均为原子操作
+  std::shared_ptr<const StringType> str_ptr;
+
+ public:
+  /// 需要支持：默认构造，以一个StringType的默认值进行初始化
+  lockfree_string_closure() = default;
+  explicit lockfree_string_closure(const StringType& string)
+      : str_ptr(std::make_shared<const StringType>(string)) {}
+  /// 需要支持单入参构造
+  /// 支持store和load操作
+  void store(const StringType& string) {
+    auto next_ptr = std::make_shared<const StringType>(string);
+    std::atomic_exchange(&str_ptr, next_ptr);
+  }
+  StringType load() {
+    auto current_ptr = std::atomic_load(&str_ptr);
+    return nullptr != current_ptr ? StringType{*current_ptr} : StringType();
+  }
+  /// 重载=号操作符，用于和StringType交互
+  /// StringType赋值给此对象
+  lockfree_string_closure& operator=(const StringType& string) {
+    this->store(string);
+    return *this;
+  }
+  /// 支持Clear操作和empty查询、size查询
+  void Clear() {
+    decltype(str_ptr) next_ptr = nullptr;
+    std::atomic_exchange(&str_ptr, next_ptr);
+  }
+  bool empty() {
+    auto pre_ptr = std::atomic_load(&str_ptr);
+    return nullptr == pre_ptr || pre_ptr->empty();
+  }
+  typename StringType::size_type size() {
+    auto pre_ptr = std::atomic_load(&str_ptr);
+    return nullptr == pre_ptr ? 0 : pre_ptr->size();
+  }
+  /// 支持移动构造
+  lockfree_string_closure(lockfree_string_closure&& str) {
+    std::atomic_exchange(&str.str_ptr, this->str_ptr);
+  }
+
+ private:
+  ///禁用复制构造和=号操作符
+  lockfree_string_closure(lockfree_string_closure const&) = delete;
+  lockfree_string_closure& operator=(lockfree_string_closure const&) = delete;
+};
 
 /// 基于互斥量实现的线程安全Map
 template <typename K, typename V>

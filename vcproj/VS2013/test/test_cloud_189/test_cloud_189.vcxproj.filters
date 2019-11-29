@@ -16,6 +16,18 @@
     <Filter Include="Source Files\src">
       <UniqueIdentifier>{9603be91-9068-43ff-a406-9c21fe581762}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\cloud189">
+      <UniqueIdentifier>{221d9840-f1e3-4a85-aa80-529b10a3e390}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\cloud189\apis">
+      <UniqueIdentifier>{5bf61b53-c64e-49b7-9b88-4eddd1915052}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\cloud189\session_helper">
+      <UniqueIdentifier>{dabcaadd-7468-445a-b475-189854c1fd08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\cloud189\restful">
+      <UniqueIdentifier>{31f8ab11-f1f7-40ea-b9c8-60e11b0adfec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_cloud_189.cpp">
@@ -24,23 +36,29 @@
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_session_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\src\cloud189\apis\comfirm_upload_file_complete.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\src\cloud189\apis\create_upload_file.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\src\cloud189\apis\get_upload_status.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_file_data.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_upload_file_encode_decode.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\comfirm_upload_file_complete.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\create_upload_file.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\get_upload_status.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_file_data.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp">
+      <Filter>Source Files\src\cloud189\session_helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\test\test_cloud_189\test_restful_uploader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_uploader.cpp">
+      <Filter>Source Files\src\cloud189\restful</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
