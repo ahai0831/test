@@ -174,6 +174,7 @@ struct rx_uploader {
           case proof::UploadInitial:
             /// 处理UploadInitial的场景，无条件启动MD5计算的流程即可
             do {
+              /// TODO: 需要注意，避免会发射多个数据项，应加上first()
               result = orders.calculate_md5(do_calculate_md5_proof);
             } while (false);
             break;
@@ -362,6 +363,7 @@ struct rx_uploader {
                   }
                 })
                 .publish()) {}
+  ~rx_uploader() = default;
 
  private:
   /// 禁用默认构造，禁用复制构造、移动构造和=号操作符
