@@ -147,6 +147,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_cloud_189", "..\test\t
 		{B4F9DDF2-7432-4383-B3FD-498FC3DDAF23} = {B4F9DDF2-7432-4383-B3FD-498FC3DDAF23}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EnterpriseCloud_Setup", "EnterpriseCloud_Setup", "{86447277-537D-4428-BE38-DBD5D2A1B069}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "slim_bridge_win", "..\enterprisecloud_setup\slim_bridge_win\slim_bridge_win.vcxproj", "{43B08A15-10F2-499B-956D-B4067333549B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -387,6 +391,12 @@ Global
 		{F59B87F8-B41E-497A-867D-007E2B1B1442}.Release|Win32.Build.0 = Release|Win32
 		{F59B87F8-B41E-497A-867D-007E2B1B1442}.Release|x64.ActiveCfg = Release|x64
 		{F59B87F8-B41E-497A-867D-007E2B1B1442}.Release|x64.Build.0 = Release|x64
+		{43B08A15-10F2-499B-956D-B4067333549B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{43B08A15-10F2-499B-956D-B4067333549B}.Debug|Win32.Build.0 = Debug|Win32
+		{43B08A15-10F2-499B-956D-B4067333549B}.Debug|x64.ActiveCfg = Debug|Win32
+		{43B08A15-10F2-499B-956D-B4067333549B}.Release|Win32.ActiveCfg = Release|Win32
+		{43B08A15-10F2-499B-956D-B4067333549B}.Release|Win32.Build.0 = Release|Win32
+		{43B08A15-10F2-499B-956D-B4067333549B}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -423,5 +433,6 @@ Global
 		{11EB5213-43B4-45E0-B402-1005F2C3C0D0} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{8C2358DE-29CB-45A7-A7B6-2B131E8B28FC} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
 		{F59B87F8-B41E-497A-867D-007E2B1B1442} = {6354828F-FBF9-41D3-9D48-E5BA7956B441}
+		{43B08A15-10F2-499B-956D-B4067333549B} = {86447277-537D-4428-BE38-DBD5D2A1B069}
 	EndGlobalSection
 EndGlobal
