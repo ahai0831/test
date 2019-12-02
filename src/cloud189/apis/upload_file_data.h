@@ -9,7 +9,7 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
 // 天翼云的顶层命名空间（包括个人云和家庭云）
 
@@ -28,7 +28,6 @@ namespace UploadFileData {
 // [表明续传文件的起始偏移，0为从头开始]
 // offsetLength,[int64_t],
 // [表明续传文件的偏移长度，-1为从起始位置到最后位置]
-
 std::string JsonStringHelper(const std::string& fileUploadUrl,
                              const std::string& localPath,
                              const int64_t uploadFileId,
@@ -67,7 +66,6 @@ std::string JsonStringHelper(const std::string& fileUploadUrl,
 // [这三个参数json字符串不用传，调用SessionHelper直接原子地设置这三个参数]
 // X-Request-ID, [string],
 // [json字符串不用传, 参数放到header中，调用assitant的UUID模块获取]
-
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request);
 

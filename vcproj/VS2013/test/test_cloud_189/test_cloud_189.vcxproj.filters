@@ -28,6 +28,9 @@
     <Filter Include="Source Files\src\cloud189\restful">
       <UniqueIdentifier>{31f8ab11-f1f7-40ea-b9c8-60e11b0adfec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\cloud189\error_code">
+      <UniqueIdentifier>{2464f789-1779-438c-8d35-4d11167a46bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_cloud_189.cpp">
@@ -58,6 +61,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_uploader.cpp">
+      <Filter>Source Files\src\cloud189\restful</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\error_code\nderror.cpp">
+      <Filter>Source Files\src\cloud189\error_code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\commit_slice_upload_file.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\create_slice_upload_file.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\get_slice_upload_status.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_slice_data.cpp">
+      <Filter>Source Files\src\cloud189\apis</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_slice_uploader.cpp">
       <Filter>Source Files\src\cloud189\restful</Filter>
     </ClCompile>
   </ItemGroup>

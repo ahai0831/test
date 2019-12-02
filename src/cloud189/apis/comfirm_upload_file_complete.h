@@ -9,8 +9,7 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
-
+#include <Assistant_v3.hpp>
 // 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace Cloud189 {
 namespace Apis {
@@ -29,7 +28,6 @@ namespace ComfirmUploadFileComplete {
 // [客户端日志上传标识，
 // 1–客户端日志文件上传至指定账户
 // 0-非客户端日志文件上传]
-
 std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const int64_t uploadFileId, const int32_t opertype,
                              const int32_t isLog);
@@ -73,7 +71,6 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
 // 0-非客户端日志文件上传]
 // ResumePolicy, [int32_t],
 // [json字符串不用传，表明是否支持断点续传控制，1表示支持,0表示不支持]
-
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request);
 

@@ -208,9 +208,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\cloud189\apis\comfirm_upload_file_complete.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\commit_slice_upload_file.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\create_slice_upload_file.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\apis\create_upload_file.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\get_slice_upload_status.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\apis\get_upload_status.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_file_data.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_slice_data.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\error_code\nderror.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_slice_uploader.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_uploader.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp" />
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_cloud_189.cpp" />

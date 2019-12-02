@@ -3,15 +3,16 @@
  * @date 2019-11-01
  * @copyright Copyright (c) 2019
  */
+
 #pragma once
 #ifndef GET_SLICE_UPLOAD_STATUS_H
 #define GET_SLICE_UPLOAD_STATUS_H
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
-// 企业云的顶层命名空间
+// 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace Cloud189 {
 namespace Apis {
 namespace GetSliceUploadStatus {
@@ -19,7 +20,6 @@ namespace GetSliceUploadStatus {
 // json字符串包含的字段应于这个函数声明完全一致
 // uploadFileId,[int64_t],
 // [表明上传文件Id]
-
 std::string JsonStringHelper(const int64_t uploadFileId);
 
 // jsoncpp parse 原地解析
