@@ -2,9 +2,9 @@
 #ifndef TOOLS_SCOPEGUARD_H__
 #define TOOLS_SCOPEGUARD_H__
 #include <functional>
-#ifdef WIN32
-#include <windows.h>
-#endif
+// #ifdef WIN32
+// #include <windows.h>
+// #endif
 namespace assistant {
 namespace tools {
 class scope_guard {
@@ -45,13 +45,13 @@ inline static void SafeFree(void*& p) {
   }
 }
 
-#ifdef WIN32
-inline static void SafeCloseHandle(HANDLE& h) {
-  if (INVALID_HANDLE_VALUE != h && ::CloseHandle(h) != 0) {
-    h = INVALID_HANDLE_VALUE;
-  }
-}
-#endif
+// #ifdef WIN32
+// inline static void SafeCloseHandle(HANDLE& h) {
+//   if (INVALID_HANDLE_VALUE != h && ::CloseHandle(h) != 0) {
+//     h = INVALID_HANDLE_VALUE;
+//   }
+// }
+// #endif
 
 }  // namespace tools
 }  // namespace assistant
