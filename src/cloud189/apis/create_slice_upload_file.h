@@ -9,9 +9,9 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
-// 企业云的顶层命名空间
+// 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace Cloud189 {
 namespace Apis {
 namespace CreateSliceUploadFile {
@@ -31,18 +31,18 @@ namespace CreateSliceUploadFile {
 // 0-不是日志上报]
 // opertype, [int32_t],
 // [表明上传后操作方式,
-// 1-遇到相同文件名(只检查文件名)，执行重命名操作
+// 1-遇到相同文件名(只检查文件名)，执行重命名操作。
 // 3-遇到相同文件名（只检查文件名），执行覆盖原文件]
-
 std::string JsonStringHelper(const std::string& localPath,
                              const int64_t parentFolderId,
                              const std::string& md5, const int32_t isLog,
                              const int32_t opertype);
+
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
 //
 // 请求方式：POST
-// header规定：Content—Type: application/x-www-form-urlencoded(安卓端为application/xml; charset=utf-8)
+// header规定：Content—Type: application/xml; charset=utf-8
 //
 // 需要放到url中的参数：
 //
@@ -78,11 +78,12 @@ std::string JsonStringHelper(const std::string& localPath,
 // 0-不是日志上报]
 // opertype, [int32_t],
 // [表明上传后操作方式,从json字符串中作为int32_t解析,
-// 1-遇到相同文件名(只检查文件名)，执行重命名操作
+// 1-遇到相同文件名(只检查文件名)，执行重命名操作。
 // 3-遇到相同文件名（只检查文件名），执行覆盖原文件]
 
 // totalSlice,[int64_t],
 // [总分片号（从1开始，递增，最大不要超过9000），会通过文件大小计算，暂时json字符串中不用传，也不作为请求参数]
+
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request);
 

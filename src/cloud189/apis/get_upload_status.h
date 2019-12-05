@@ -9,7 +9,7 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
 // 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace Cloud189 {
@@ -19,7 +19,6 @@ namespace GetUploadFileStatus {
 // json字符串包含的字段应于这个函数声明完全一致
 // uploadFileId,[int64_t],
 // [表明用于断点续传的临时文件Id]
-
 std::string JsonStringHelper(const int64_t uploadFileId);
 
 // jsoncpp parse 原地解析
@@ -47,7 +46,6 @@ std::string JsonStringHelper(const int64_t uploadFileId);
 // [这三个参数json字符串不用传，调用SessionHelper直接原子地设置这三个参数]
 // X-Request-ID, [string],
 // [json字符串不用传, 参数放到header中，调用assitant的UUID模块获取]
-
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request);
 

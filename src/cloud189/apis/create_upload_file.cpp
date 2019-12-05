@@ -10,12 +10,14 @@
 #include <json/json.h>
 #include <pugixml.hpp>
 
+#include <UrlEncode/UrlEncode.h>
 #include <filesystem_helper/filesystem_helper.h>
 #include <process_version/process_version.h>
 #include <v2/tools.h>
 #include <v2/uuid.h>
 #include <tools/string_format.hpp>
 
+#include "cloud189/error_code/nderror.h"
 #include "cloud189/session_helper/session_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 #include "restful_common/rand_helper/rand_helper.hpp"
@@ -56,17 +58,15 @@ std::string JsonStringHelper(const int64_t parent_folder_id,
     if (local_path.empty() || md5.empty()) {
       break;
     }
-    json_str = assistant::tools::string::StringFormat(
-        "{\"parentFolderId\" : %" PRId64
-        ","
-        "\"localPath\" : \"%s\","
-        "\"md5\" : \"%s\","
-        "\"opertype\" : %d,"
-        "\"isLog\" : %d}",
-        parent_folder_id, local_path.c_str(), md5.c_str(), oper_type, is_log);
-
+    Json::Value json_value;
+    json_value["parentFolderId"] = parent_folder_id;
+    json_value["localPath"] = local_path;
+    json_value["md5"] = md5;
+    json_value["opertype"] = oper_type;
+    json_value["isLog"] = is_log;
+    Json::FastWriter json_fastwrite;
+    json_str = json_fastwrite.write(json_value);
   } while (false);
-
   return json_str;
 }
 
@@ -78,20 +78,19 @@ bool HttpRequestEncode(const std::string& params_json,
     if (params_json.empty()) {
       break;
     }
-    // parse json
-    static Json::CharReaderBuilder char_reader_builder;
-    std::unique_ptr<Json::CharReader> char_reader(
-        char_reader_builder.newCharReader());
-    if (nullptr == char_reader) {
-      break;
-    }
     Json::Value json_str;
-    if (!char_reader->parse(params_json.c_str(),
-                            params_json.c_str() + params_json.length(),
-                            &json_str, nullptr)) {
+    Json::CharReaderBuilder reader_builder;
+    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
+    std::unique_ptr<Json::CharReader> const reader(
+        reader_builder.newCharReader());
+    if (nullptr == reader) {
       break;
     }
-
+    if (!reader->parse(params_json.c_str(),
+                       params_json.c_str() + params_json.size(), &json_str,
+                       nullptr)) {
+      break;
+    }
     int64_t parent_folder_id =
         restful_common::jsoncpp_helper::GetInt64(json_str["parentFolderId"]);
     std::string local_path =
@@ -117,6 +116,7 @@ bool HttpRequestEncode(const std::string& params_json,
             assistant::tools::utf8ToWstring(local_path), file_last_change)) {
       break;
     }
+    std::string file_name_temp = assistant::tools::wstringToUtf8(file_name);
 
     request.url = GetHost() + GetURI();
     request.method = GetMethod();
@@ -150,8 +150,11 @@ bool HttpRequestEncode(const std::string& params_json,
         "&resumePolicy=%d"
         "&isLog=%d"
         "&fileExt=",
-        parent_folder_id, assistant::tools::wstringToUtf8(file_name).c_str(),
-        file_size, md5.c_str(), file_last_change.c_str(), local_path.c_str(),
+        parent_folder_id,
+        cloud_base::url_encode::http_post_form::url_encode(file_name_temp)
+            .c_str(),
+        file_size, md5.c_str(), file_last_change.c_str(),
+        cloud_base::url_encode::http_post_form::url_encode(local_path).c_str(),
         oper_type, GetFlag(), GetResumePolicy(), is_log);
     is_ok = true;
   } while (false);
@@ -163,28 +166,64 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
                         const assistant::HttpRequest& request,
                         std::string& response_info) {
   bool is_success = false;
+  Json::Value result_json;
+  Json::StreamWriterBuilder wbuilder;
+  wbuilder.settings_["indentation"] = "";
+  pugi::xml_document result_xml;
+  auto http_status_code = response.status_code;
+  auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
+  auto content_type = response.headers.Get("Content-Type");
+  auto content_length = atoll(response.headers.Get("Content-Length").c_str());
   do {
-    if (200 != response.status_code) {
+    if (0 == curl_code && http_status_code / 100 == 2) {
+      if (response.body.size() == 0) {
+        break;
+      }
+      auto prs = result_xml.load_string(response.body.c_str());
+      if (prs.status != pugi::xml_parse_status::status_ok) {
+        break;
+      }
+      auto upload_file = result_xml.child("uploadFile");
+      result_json["uploadFileId"] =
+          upload_file.child("uploadFileId").text().as_llong();
+      result_json["fileUploadUrl"] =
+          upload_file.child("fileUploadUrl").text().as_string();
+      result_json["fileCommitUrl"] =
+          upload_file.child("fileCommitUrl").text().as_string();
+      result_json["fileDataExists"] =
+          upload_file.child("fileDataExists").text().as_int();
+      result_json["waitingTime"] =
+          upload_file.child("waitingTime").text().as_int();
+      response_info = result_json.toStyledString();
+    } else if (0 == curl_code && http_status_code / 100 != 2) {
+      if (!response.body.empty() &&
+          content_type.find("application/xml; charset=utf-8") ==
+              std::string::npos) {
+        result_json["errorCode"] = Cloud189::ErrorCode::strErrCode(
+            ErrorCode::nderr_content_type_error);
+        result_json["int32ErrorCode"] = ErrorCode::nderr_content_type_error;
+        break;
+      }
+      if (result_json["errorCode"].isString()) {
+        result_json["int32ErrorCode"] = Cloud189::ErrorCode::int32ErrCode(
+            restful_common::jsoncpp_helper::GetString(result_json["errorCode"])
+                .c_str());
+      } else {
+        result_json["int32ErrorCode"] =
+            restful_common::jsoncpp_helper::GetInt(result_json["errorCode"]);
+      }
+      break;
+    } else if (0 >= http_status_code) {
+      break;
+    } else {
       break;
     }
-    pugi::xml_document result_xml;
-    auto prs = result_xml.load_string(response.body.c_str());
-    if (prs.status != pugi::xml_parse_status::status_ok) {
-      break;
-    }
-    Json::Value result_json;
-    auto upload_file = result_xml.child("uploadFile");
-    result_json["uploadFileId"] =
-        upload_file.child("uploadFileId").text().as_llong();
-    result_json["fileUploadUrl"] =
-        upload_file.child("fileUploadUrl").text().as_string();
-    result_json["fileCommitUrl"] =
-        upload_file.child("fileCommitUrl").text().as_string();
-    result_json["fileDataExists"] =
-        upload_file.child("fileDataExists").text().as_int();
-    response_info = result_json.toStyledString();
     is_success = true;
   } while (false);
+  result_json["isSuccess"] = is_success;
+  result_json["httpStatusCode"] = http_status_code;
+  result_json["curlCode"] = curl_code;
+  response_info = Json::writeString(wbuilder, result_json);
   return is_success;
 }
 

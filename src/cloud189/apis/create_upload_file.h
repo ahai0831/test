@@ -8,9 +8,8 @@
 #define CREATE_UPLOAD_FILE_H
 
 #include <cinttypes>
-#include <iostream>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
 // 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace Cloud189 {

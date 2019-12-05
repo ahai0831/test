@@ -9,7 +9,7 @@
 
 #include <cinttypes>
 
-#include <http_primitives.h>
+#include <Assistant_v3.hpp>
 
 // 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace Cloud189 {
@@ -32,9 +32,8 @@ namespace CommitSliceUploadFile {
 // resumePolicy,[int32_t],
 // [表明是否支持断点续传控制，1-断点续传控制策略版本1，空-不支持]
 // sliceMD5, [string],
-// [表明所有分片的md5大写末尾加上\n拼接组成md5list，且最后片也加\n，并用Signature=hmac_sha1(MD5List,
-// SessionSecret) 签名，再计算Signature的md5结果作为sliceMD5]
-
+// [表明第1、2、3、4、5等片的MD5大写（换行）为MD5List，并用Signature=hmac_sha1(MD5List,
+// SessionSecret) 签名，再计算 Signature 的MD5]
 std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const int64_t uploadFileId, const int32_t isLog,
                              const int32_t opertype, const int32_t resumePolicy,
@@ -44,8 +43,7 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
 // jsoncpp reader 严格模式
 //
 // 请求方式：POST
-// header规定：Content—Type:
-// application/x-www-form-urlencoded(安卓端为application/xml; charset=utf-8)
+// header规定:Content—Type: text/xml; charset=UTF-8
 //
 // 需要放到url中的参数：
 //
@@ -79,15 +77,14 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
 // resumePolicy,[int32_t],
 // [从json字符串中作为int64_t解析，参数放到body中，表明是否支持断点续传控制，1-断点续传控制策略版本1，空-不支持]
 // sliceMD5, [string],
-// [从json字符串中作为string解析，参数放到body中，表明所有分片的md5大写末尾加上\n拼接组成md5list，且最后片也加\n，
-// 并用Signature=hmac_sha1(MD5List,SessionSecret) 签名，再计算Signature的md5结果作为sliceMD5]
+// [从json字符串中作为string解析，参数放到body中，表明第1、2、3、4、5等片的MD5大写（换行）为MD5List，并用Signature=hmac_sha1(MD5List,
+// SessionSecret) 签名，再计算 Signature 的MD5]
 //
 // albumId,[int64_t],
 // [表明上传图片至云相册，目标相册id,
 // 传此参数后无需再调用上传图片关联相册接口photo/relatedToAlbum.action，暂时json字符串中不用传，也不作为请求参数]
 // access_token, [string],
 // [表明合作应用token，暂时json字符串中不用传，也不作为请求参数]
-
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request);
 
