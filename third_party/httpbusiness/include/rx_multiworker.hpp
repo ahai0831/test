@@ -19,35 +19,46 @@
 /// 过程中可能会需要其他物料，应由worker自身进行保存
 /// 并确保过程是线程安全的
 /// 保存物料的线程安全队列
-/// 初始化：传入若干份物料，将保存到Queue<M>中
+/// 初始化：传入若干份物料，将保存到Queue<Material>中
 /// 设定worker数的上限（先假定worker 数量，初始传入，后面不会变化）
 namespace httpbusiness {
 template <class M, class R>
 struct rx_multi_worker {
+  /// 声明所需用到的类型
  public:
-  rxcpp::observable<R> data_source;
-  typedef std::vector<M> MaterialVector;
-  typedef std::unique_ptr<M> MaterialType;
+  //////////////////////////////////////////////////////////////////////////
+  typedef typename M Material;
+  typedef typename R Report;
+  typedef rxcpp::observable<Report> DataSource;
+  typedef std::vector<Material> MaterialVector;
+  typedef std::unique_ptr<Material> MaterialType;
   typedef std::unique_ptr<rx_multi_worker> MultiWorkerUnique;
+  //////////////////////////////////////////////////////////////////////////
   typedef std::function<MaterialType()> GetMaterialCallback;
   typedef std::function<void(int32_t)> GetMaterialResultCallback;
   /// 消费报告方法
-  typedef std::function<void(const M &)> ExtraMaterialCallback;
-  typedef std::function<void(const R &)> ReportCallback;
+  typedef std::function<void(const Material &)> ExtraMaterialCallback;
+  typedef std::function<void(const Report &)> ReportCallback;
   /// 用于传给worker方法调用
   /// 用于检查此物料生产是否已停止
   /// 包含外部要求停止的场景，以及内部出现严重错误，“罢工”
   typedef std::function<bool()> CheckStopCallback;
   typedef std::function<void()> SeriousErrorCallback;
-  typedef struct rx_multi_worker_callbacks_package {
+
+ private:
+  struct rx_multi_worker_callbacks_package {
     const GetMaterialCallback get_material;
     const GetMaterialResultCallback get_material_result;
     const ExtraMaterialCallback extra_material;
     const ReportCallback send_report;
     const CheckStopCallback check_stop;
     const SeriousErrorCallback serious_error;
+
+   private:
     /// 禁用默认构造方法
     rx_multi_worker_callbacks_package() = delete;
+
+   public:
     /// 显式构造方法
     rx_multi_worker_callbacks_package(
         GetMaterialCallback get_material_cb,
@@ -73,15 +84,18 @@ struct rx_multi_worker {
         const rx_multi_worker_callbacks_package &) = default;
     rx_multi_worker_callbacks_package &operator=(
         const rx_multi_worker_callbacks_package &) = default;
+  };
 
-  } CalledCallbacks;
+ public:
+  typedef struct rx_multi_worker_callbacks_package CalledCallbacks;
   typedef std::function<void(CalledCallbacks)> WorkerCallback;
+  //////////////////////////////////////////////////////////////////////////
 
  private:
   struct internal_data {
     std::atomic_bool stop_flag;
     std::atomic_bool serious_error;
-    assistant::tools::safequeue_closure<M> material_queue;
+    assistant::tools::safequeue_closure<Material> material_queue;
     std::atomic_int32_t worker_number;
     std::atomic_int32_t worker_limit;
     internal_data()
@@ -96,6 +110,9 @@ struct rx_multi_worker {
   };
   std::shared_ptr<internal_data> data;
   /// 令默认构造方法保护
+ public:
+  rxcpp::observable<Report> data_source;
+
  private:
   /// 传入初始物料
   rx_multi_worker(const MaterialVector &material, WorkerCallback worker,
@@ -103,14 +120,14 @@ struct rx_multi_worker {
       : data(std::make_shared<internal_data>()) {
     data->worker_limit = worker_limit;
     for (const auto &x : material) {
-      data->material_queue.Enqueue(std::make_unique<M>(x));
+      data->material_queue.Enqueue(std::make_unique<Material>(x));
     }
     auto data_weak = std::weak_ptr<internal_data>(data);
     ExtraMaterialCallback extra_material =
-        [data_weak](const M &material) -> void {
+        [data_weak](const Material &material) -> void {
       auto data = data_weak.lock();
       if (nullptr != data) {
-        data->material_queue.Enqueue(std::make_unique<M>(material));
+        data->material_queue.Enqueue(std::make_unique<Material>(material));
       }
     };
     /// worker根据语义，应在取物料前调用此标志位方法
@@ -129,10 +146,10 @@ struct rx_multi_worker {
     };
     /// 每次worker调用一次ReportCallback，视为发射了一项数据
     /// 直至worker数为0时（由归零的那个worker）发送完成通知
-    data_source = rxcpp::observable<>::create<R>(
+    data_source = rxcpp::observable<>::create<Report>(
         [worker, data_weak, extra_material, check_stop,
-         serious_error](rxcpp::subscriber<R> s) -> void {
-          ReportCallback send_report = [s](const R &report) -> void {
+         serious_error](rxcpp::subscriber<Report> s) -> void {
+          ReportCallback send_report = [s](const Report &report) -> void {
             s.on_next(report);
           };
           /// 这里解释了“获取物料”这一流程 的秘密

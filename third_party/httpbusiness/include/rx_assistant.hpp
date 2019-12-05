@@ -8,8 +8,20 @@
 #include <memory>
 
 #include <Assistant_v3.hpp>
+
 #include <rxcpp/rx.hpp>
+
+#include "speed_counter.hpp"
 namespace rx_assistant {
+
+struct default_asssitant_v3 {
+  static std::weak_ptr<assistant::Assistant_v3> get_assistant() {
+    static std::shared_ptr<assistant::Assistant_v3> r =
+        std::make_shared<assistant::Assistant_v3>();
+    return r;
+  }
+};
+
 struct HttpResult {
   assistant::HttpRequest req;
   assistant::HttpResponse res;
@@ -197,5 +209,51 @@ struct rx_assistant_factory {
   rx_assistant_factory(rx_assistant_factory const&) = delete;
   rx_assistant_factory& operator=(rx_assistant_factory const&) = delete;
 };
+
+namespace rx_httpresult {
+
+namespace details {
+inline static rxcpp::observable<rx_assistant::HttpResult> create(
+    std::shared_ptr<assistant::HttpRequest> request_ptr) {
+  auto assistant_weak = default_asssitant_v3::get_assistant();
+  return rxcpp::observable<>::create<rx_assistant::HttpResult>(
+      [request_ptr,
+       assistant_weak](rxcpp::subscriber<rx_assistant::HttpResult> s) -> void {
+        auto assistant_ptr = assistant_weak.lock();
+        if (s.is_subscribed() && nullptr != assistant_ptr) {
+          /// 必须以值捕获的方式，保持rxcpp::subscriber<rx_assistant::HttpResult>生命周期
+          decltype(request_ptr->solve_func) subscriber_func =
+              [s](assistant::HttpResponse& res,
+                  assistant::HttpRequest& req) -> void {
+            /// 同理，由于移动构造后，会导致subscriber引用计数归零，需要临时保持subscriber生命周期
+            auto keep_subscriber = req.solve_func;
+            keep_subscriber.swap(req.solve_func);
+            s.on_next(std::move(rx_assistant::HttpResult(req, res)));
+            s.on_completed();
+          };
+          request_ptr->solve_func.swap(subscriber_func);
+          assistant_ptr->AsyncHttpRequest(*request_ptr);
+          request_ptr->solve_func.swap(subscriber_func);
+        }
+      });
+}
+}  // namespace details
+
+inline static rxcpp::observable<rx_assistant::HttpResult> create(
+    const assistant::HttpRequest& async_request) {
+  return details::create(
+      std::make_shared<assistant::HttpRequest>(async_request));
+}
+inline static rxcpp::observable<rx_assistant::HttpResult> create_with_delay(
+    const assistant::HttpRequest& async_request,
+    const int32_t delay_milliseconds) {
+  auto request_ptr = std::make_shared<assistant::HttpRequest>(async_request);
+  return rxcpp::observable<>::timer(
+             std::chrono::milliseconds(delay_milliseconds),
+             httpbusiness::default_worker::get_worker())
+      .flat_map([request_ptr](int) { return details::create(request_ptr); });
+}
+
+}  // namespace rx_httpresult
 }  // namespace rx_assistant
 #endif  /// RX_ASSISTANT
