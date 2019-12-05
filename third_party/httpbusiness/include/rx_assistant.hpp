@@ -49,6 +49,7 @@ struct rx_assistant_factory {
   explicit rx_assistant_factory(
       const std::weak_ptr<assistant::Assistant_v3>& _weak)
       : _assistant_weak(_weak){};
+  /// 废弃声明：不要使用此函数，尽量使用其替代品 rx_httpresult::create
   /// create
   /// 参数：const assistant::HttpRequest& 异步请求的Request
   /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
@@ -79,10 +80,10 @@ struct rx_assistant_factory {
           }
         });
   }
-  /// create_with_delay
-  /// 参数：const assistant::HttpRequest& 异步请求的Request
-  /// 参数：const int32_t 延时，单位毫秒数
-  /// 参数：const rxcpp::observe_on_one_worker 定时器所在线程
+  /// 废弃声明：不要使用此函数，尽量使用其替代品
+  /// rx_httpresult::create_with_delay create_with_delay 参数：const
+  /// assistant::HttpRequest& 异步请求的Request 参数：const int32_t
+  /// 延时，单位毫秒数 参数：const rxcpp::observe_on_one_worker 定时器所在线程
   /// 返回值：rxcpp::observable<rx_assistant::HttpResult>
   /// 请求结果（包含原始Request以及Response）的数据源
   /// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
@@ -123,6 +124,7 @@ struct rx_assistant_factory {
           }
         });
   }
+  /// 废弃声明：使用此函数毫无意义，尽量直接用flat_map
   /// next_result
   /// 参数：const rxcpp::observable<rx_assistant::HttpResult>&
   /// 上一个异步请求的请求结果的数据源
@@ -141,6 +143,7 @@ struct rx_assistant_factory {
       return ast_factory.create(callback(res));
     });
   }
+  /// 废弃声明：不要使用此函数，尽量使用其替代品 rx_httpresult::loop
   /// iterator_result
   /// 参数：const rxcpp::observable<rx_assistant::HttpResult>&
   /// 上一个异步请求的请求结果的数据源
@@ -167,6 +170,7 @@ struct rx_assistant_factory {
                        rxcpp::observable<>::just(res));
     });
   }
+  /// 废弃声明：不要使用此函数，尽量使用其替代品 rx_httpresult::loop_with_delay
   /// iterator_with_delay_result
   /// 参数：const rxcpp::observable<rx_assistant::HttpResult>&
   /// 上一个异步请求的请求结果的数据源
@@ -211,9 +215,10 @@ struct rx_assistant_factory {
 };
 
 namespace rx_httpresult {
+typedef rxcpp::observable<rx_assistant::HttpResult> ObsType;
 
 namespace details {
-inline static rxcpp::observable<rx_assistant::HttpResult> create(
+inline static ObsType create(
     std::shared_ptr<assistant::HttpRequest> request_ptr) {
   auto assistant_weak = default_asssitant_v3::get_assistant();
   return rxcpp::observable<>::create<rx_assistant::HttpResult>(
@@ -238,20 +243,70 @@ inline static rxcpp::observable<rx_assistant::HttpResult> create(
       });
 }
 }  // namespace details
-
-inline static rxcpp::observable<rx_assistant::HttpResult> create(
-    const assistant::HttpRequest& async_request) {
+inline static ObsType create(const assistant::HttpRequest& async_request) {
   return details::create(
       std::make_shared<assistant::HttpRequest>(async_request));
 }
-inline static rxcpp::observable<rx_assistant::HttpResult> create_with_delay(
+inline static ObsType create_with_delay(
     const assistant::HttpRequest& async_request,
     const int32_t delay_milliseconds) {
   auto request_ptr = std::make_shared<assistant::HttpRequest>(async_request);
   return rxcpp::observable<>::timer(
              std::chrono::milliseconds(delay_milliseconds),
              httpbusiness::default_worker::get_worker())
-      .flat_map([request_ptr](int) { return details::create(request_ptr); });
+      .flat_map([request_ptr](int) -> ObsType {
+        return details::create(request_ptr);
+      });
+}
+/// loop
+/// 参数：const rxcpp::observable<rx_assistant::HttpResult>&
+/// 上一个异步请求的请求结果的数据源
+/// 参数：std::function<bool(const rx_assistant::HttpResult&,
+/// assistant::HttpRequest&)>
+/// 传入参数为rx_assistant::HttpResult，输出HttpRequest，返回值为迭代是否继续的bool值的回调
+/// 利用同一个Delegate将rx_assistant::HttpResult转换为下一个将要调用的HttpRequest，Delegate返回值为true意味着继续迭代
+/// Delegate返回值为false意味着迭代结束
+/// 返回值：rxcpp::observable<rx_assistant::HttpResult>
+/// 请求结果（包含最后一次Request以及Response）的数据源
+/// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+inline static ObsType loop(const ObsType& obs,
+                           std::function<bool(const rx_assistant::HttpResult&,
+                                              assistant::HttpRequest&)>
+                               callback) {
+  return obs.flat_map([callback](rx_assistant::HttpResult& res) -> ObsType {
+    assistant::HttpRequest iterate_req("");
+    return callback(res, iterate_req)
+               ? loop(create(iterate_req), callback)
+               : static_cast<ObsType>(rxcpp::observable<>::just(res));
+  });
+}
+
+/// loop_with_delay
+/// 参数：const rxcpp::observable<rx_assistant::HttpResult>&
+/// 上一个异步请求的请求结果的数据源
+/// 参数：std::function<bool(const rx_assistant::HttpResult&,
+/// assistant::HttpRequest&, int32_t&)>
+/// 传入参数为rx_assistant::HttpResult，输出HttpRequest和延迟的毫秒数，返回值为迭代是否继续的bool值的回调
+/// 利用同一个Delegate将rx_assistant::HttpResult转换为下一个将要调用的HttpRequest，Delegate返回值为true意味着继续迭代
+/// Delegate返回值为false意味着迭代结束
+/// 返回值：rxcpp::observable<rx_assistant::HttpResult>
+/// 请求结果（包含最后一次Request以及Response）的数据源
+/// 特殊情况：当assistant::Assistant_v3的全部强引用失效时，返回的Observable，不会发射任何数据、通知
+inline static ObsType loop_with_delay(
+    const ObsType& obs, std::function<bool(const rx_assistant::HttpResult&,
+                                           assistant::HttpRequest&, int32_t&)>
+                            callback) {
+  return obs.flat_map([callback](rx_assistant::HttpResult& res) -> ObsType {
+    assistant::HttpRequest iterate_req("");
+    int32_t delay_milliseconds = 0;
+    return callback(res, iterate_req, delay_milliseconds)
+               ? loop_with_delay(
+                     delay_milliseconds > 0
+                         ? create_with_delay(iterate_req, delay_milliseconds)
+                         : create(iterate_req),
+                     callback)
+               : static_cast<ObsType>(rxcpp::observable<>::just(res));
+  });
 }
 
 }  // namespace rx_httpresult

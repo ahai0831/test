@@ -109,6 +109,9 @@ struct uploader_thread_data {
   uploader_thread_data& operator=(uploader_thread_data const&) = delete;
   uploader_thread_data(uploader_thread_data&&) = delete;
 };
+/// TODO: 由于将会用到计算分片MD5地方或许不止一处，有必要将公共范式抽取出来
+/// TODO: 建立一种公共的范式，以解决对数据结构 thread_data_weak 的依赖
+/// TODO: 对rx_multiworker的初始化有必要放到构造函数中直接进行处理
 typedef struct slicemd5_worker_function_generator {
  private:
   typedef httpbusiness::rx_multi_worker<std::tuple<int64_t, int64_t, int32_t>,
