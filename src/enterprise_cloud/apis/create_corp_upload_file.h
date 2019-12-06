@@ -22,9 +22,9 @@ namespace CreateUploadFile {
 //
 // localPath, [string],
 // [表明源文件的本地全路径，外部传入用于解析fileName和fileSize]
-// corpId,[int64_t],
+// corpId,[string],
 // [表明企业Id]
-// parentId,[int64_t],
+// parentId,[string],
 // [表明父文件夹Id]
 // md5, [string],
 // [表明上传文件的md5]
@@ -41,10 +41,11 @@ namespace CreateUploadFile {
 // 对于自动备份，需要把fileSource设置为3，isLog设置为0
 // 对于日志上传，需要把fileSource设置为1，isLog设置为1
 
-std::string JsonStringHelper(const std::string& localPath, int64_t corpId,
-                             int64_t parentId, const std::string& md5,
-                             int32_t fileSource, const std::string coshareId,
-                             int32_t isLog);
+std::string JsonStringHelper(const std::string& localPath,
+                             const std::string& corpId,
+                             const std::string& parentId,
+                             const std::string& md5, int32_t fileSource,
+                             const std::string coshareId, int32_t isLog);
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
 //
@@ -69,9 +70,9 @@ std::string JsonStringHelper(const std::string& localPath, int64_t corpId,
 //
 // 需要放到body中的参数：
 //
-// corpId,[int64_t],
+// corpId,[string],
 // [从json字符串中作为int64_t解析,表明企业Id]
-// parentId,[int64_t],
+// parentId,[string],
 // [从json字符串中作为int64_t解析,表明父文件夹Id]
 // baseFileId, [string]
 // [json字符串不用传, 值为空]

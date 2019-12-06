@@ -14,6 +14,7 @@ namespace {
 #define PARENTNOTFOLDER "ParentNotFolder"
 #define PERMISSIONDENIED "PermissionDenied"
 #define CORPUSERNOTBELONGCORP "CorpUserNotBelongCorp"
+#define CONTENTTYPEERROR "ContentTypeError"
 }  // namespace
 
 namespace EnterpriseCloud {
@@ -190,6 +191,9 @@ string strErrCode(int nErr) {
       break;
     case nderr_permission_denied:
       sErr = PERMISSIONDENIED;
+      break;
+    case nderr_content_type_error:
+      sErr = CONTENTTYPEERROR;
       break;
     default:
       sErr = "Unkonwn";

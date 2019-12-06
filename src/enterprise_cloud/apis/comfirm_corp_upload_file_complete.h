@@ -19,9 +19,9 @@ namespace ComfirmUploadFileComplete {
 // json字符串包含的字段应于这个函数声明完全一致
 // fileCommitUrl,[string],
 // [确认文件上传完成URL]
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // [表明上传文件Id]
-// corpId,[int64_t],
+// corpId,[string],
 // [表明企业Id]
 // fileSource, [int32_t],
 // [表明文件来源,1-企业空间文件,2-协作空间文件,3-工作空间文件]
@@ -37,7 +37,8 @@ namespace ComfirmUploadFileComplete {
 // 0-非客户端日志文件上传]
 
 std::string JsonStringHelper(const std::string& fileCommitUrl,
-                             const int64_t uploadFileId, const int64_t corpId,
+                             const std::string& uploadFileId,
+                             const std::string& corpId,
                              const int32_t fileSource, const int32_t opertype,
                              const std::string& coshareId, const int32_t isLog);
 
@@ -66,9 +67,9 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
 //
 // 需要放到body中的参数：
 //
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // [从json字符串中作为int64_t解析，参数放到body中，表明上传文件Id]
-// corpId,[int64_t],
+// corpId,[string],
 // [从json字符串中作为int64_t解析,表明企业Id]
 // opertype, [int32_t],
 // [从json字符串中作为int64_t解析,上传后操作方式

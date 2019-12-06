@@ -23,9 +23,9 @@ namespace UploadFileData {
 // [文件上传URL]
 // localPath, [string],
 // [表明源文件的本地全路径]
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // [表明上传文件Id]
-// corpId,[int64_t],
+// corpId,[string],
 // [表明企业Id]
 // fileSource, [int32_t],
 // [表明文件来源,1-企业空间文件,2-协作空间文件,3-工作空间文件]
@@ -39,7 +39,8 @@ namespace UploadFileData {
 // 0-非客户端日志文件上传]
 std::string JsonStringHelper(const std::string& fileUploadUrl,
                              const std::string& localPath,
-                             const int64_t uploadFileId, const int64_t corpId,
+                             const std::string& uploadFileId,
+                             const std::string& corpId,
                              const int32_t fileSource,
                              const int64_t startOffset,
                              const int64_t offsetLength, const int32_t isLog);
@@ -60,9 +61,9 @@ std::string JsonStringHelper(const std::string& fileUploadUrl,
 // 随机数，现固定为4位随机数加下划线加8位随机数（1234_12345678）]
 //
 // 需要放到header中的参数：
-// corpId,[int64_t],
+// corpId,[string],
 // [从json字符串中作为int64_t解析，表明企业Id]
-// UploadFileId,[int64_t],
+// UploadFileId,[string],
 // [从json字符串中作为int64_t解析，参数放到header中，表明断点续传文件Id]
 // UploadFileRange, [string],
 // [从json字符串中解析startOffset和offsetLength,计算断点续传文件的上传范围，拼接字符串bytes=起始偏移-最后位置，表明断点续传文件上传范围]

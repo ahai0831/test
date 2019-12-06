@@ -5,6 +5,8 @@
 
 #include <json/json.h>
 
+#include <rxcpp/rx.hpp>
+
 #include <tools/string_format.hpp>
 using assistant::tools::string::StringFormat;
 
@@ -16,6 +18,9 @@ using assistant::tools::string::StringFormat;
 #include "enterprise_cloud/error_code/nderror.h"
 using EnterpriseCloud::ErrorCode::nderr_infosecurityerrorcode;
 using EnterpriseCloud::ErrorCode::nderr_permission_denied;
+
+#include "restful_common\jsoncpp_helper\jsoncpp_helper.hpp"
+using namespace restful_common;
 
 namespace EnterpriseCloud {
 namespace UploadFileMasterControl {
@@ -32,7 +37,7 @@ UploadFileMasterControl::UploadFileMasterControl(
       upload_bytes_(0),
       file_size_(0),
       file_ptr_(nullptr),
-      file_exists_(false),
+      file_exists_(0),
       status_call_back_(nullptr),
       stop_flag_({false}),
       retry_count_ufd_all(0),
@@ -58,7 +63,7 @@ void UploadFileMasterControl::MD5CompleteCallback(const std::string& file_md5) {
     msg["stage"] = stage_code_0;
     msg["md5_process"] = md5_process;
     msg["md5"] = file_md5;
-    status_call_back_(msg.toStyledString());
+    status_call_back_(jsoncpp_helper::WriterHelper(msg));
   }
   msg.clear();
 
@@ -73,7 +78,7 @@ void UploadFileMasterControl::MD5CompleteCallback(const std::string& file_md5) {
       return;
     }
     if (!upload_file_id_.empty()) {
-      // 跳第四步
+      // 跳第二步
       if (!GUSRequest()) {
         msg["stage"] = 402;
         break;
@@ -88,7 +93,7 @@ void UploadFileMasterControl::MD5CompleteCallback(const std::string& file_md5) {
     return;
   } while (false);
   if (nullptr != status_call_back_) {
-    status_call_back_(msg.toStyledString());
+    status_call_back_(jsoncpp_helper::WriterHelper(msg));
   }
 }
 
@@ -99,7 +104,7 @@ void UploadFileMasterControl::MD5ProcessCallback(int64_t size) {
     Json::Value msg;
     msg["stage"] = stage_code_0;
     msg["md5_process"] = md5_process;
-    status_call_back_(msg.toStyledString());
+    status_call_back_(jsoncpp_helper::WriterHelper(msg));
   }
 }
 
@@ -115,9 +120,8 @@ void UploadFileMasterControl::UploadSpeedCallback(uint64_t upload_speed) {
     msg["upload_speed"] = upload_speed;
     msg["upload_bytes"] = upload_bytes_.load();
     msg["upload_file_id"] = upload_file_id_;
-    ;
     msg["file_size"] = file_size_;
-    status_call_back_(msg.toStyledString());
+    status_call_back_(jsoncpp_helper::WriterHelper(msg));
   }
 }
 
@@ -133,20 +137,21 @@ void UploadFileMasterControl::CRUFCallback(
   }
 
   Json::Value json_value;
-  Json::Reader json_reader;
   do {
     std::string res_info;
     EnterpriseCloud::Apis::CreateUploadFile::HttpResponseDecode(res, req,
                                                                 res_info);
-    if (!json_reader.parse(res_info, json_value)) {
+    if (!jsoncpp_helper::ReaderHelper(res_info, json_value)) {
       json_value["stage"] = stage_code_101;
       break;
     }
-    if (!json_value["isSuccess"].asBool()) {
-      auto http_statuc_code = json_value["httpStatusCode"].asInt();
-      if (4 == (http_statuc_code % 100)) {
+    if (!jsoncpp_helper::GetBool(json_value["isSuccess"])) {
+      auto http_statuc_code =
+          jsoncpp_helper::GetInt(json_value["httpStatusCode"]);
+      if (4 == (http_statuc_code / 100)) {
         // 4xx错误
-        auto int32_error_code = json_value["int32ErrorCode"].asInt();
+        auto int32_error_code =
+            jsoncpp_helper::GetInt(json_value["int32ErrorCode"]);
         if (int32_error_code == nderr_infosecurityerrorcode &&
             1 > retry_info_cruf.retry_count_is) {
           // 重试一次
@@ -166,14 +171,16 @@ void UploadFileMasterControl::CRUFCallback(
           retry_info_cruf.retry_count_pd += 1;
           return;
         }
-      } else if (5 == (http_statuc_code % 100) &&
+      } else if (5 == (http_statuc_code / 100) &&
                  retry_info_cruf.retry_count_max >
                      retry_info_cruf.retry_count_5xx) {
         // 5xx错误
-        // 重试，沉睡时长一开始1.5s, 然后1.5的2次方，以此类推，重试最多10次
+        // 重试，沉睡时长一开始1.5s, 然后1.5的2次方，以此类推，重试最多9次
         auto retry_time = (int)std::pow(retry_info_cruf.retry_time_5xx,
                                         retry_info_cruf.retry_count_5xx);
-        Sleep(retry_time);
+        // 等待一段时间
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_time));
+
         if (!CRUFRequest()) {
           json_value["stage"] = stage_code_102;
           break;
@@ -183,13 +190,15 @@ void UploadFileMasterControl::CRUFCallback(
       } else if (601 == http_statuc_code &&
                  retry_info_cruf.retry_count_max >
                      retry_info_cruf.retry_count_601) {
-        // 重试，沉睡时长一开始1.5s, 然后1.5的2次方，以此类推，重试最多10次
+        // 重试，沉睡时长一开始1.5s, 然后1.5的2次方，以此类推，重试最多9次
         auto retry_time = (int)std::pow(retry_info_cruf.retry_time_601,
                                         retry_info_cruf.retry_count_601);
-        if (retry_time < json_value["waitingTime"].asInt()) {
-          retry_time = json_value["waitingTime"].asInt();
+        if (retry_time < jsoncpp_helper::GetInt(json_value["waitingTime"])) {
+          retry_time = jsoncpp_helper::GetInt(json_value["waitingTime"]);
         }
-        Sleep(retry_time);
+        // 等待一段时间
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_time));
+
         if (!CRUFRequest()) {
           json_value["stage"] = stage_code_102;
           break;
@@ -204,18 +213,17 @@ void UploadFileMasterControl::CRUFCallback(
 
     retry_info_cruf.init();
 
-    file_upload_url_ = json_value["fileUploadUrl"].asString();
-    file_commit_url_ = json_value["fileCommitUrl"].asString();
-    file_upload_size_ = json_value["size"].asInt64();
-    file_exists_ = json_value["fileDataExists"].asBool();
-    upload_file_id_ = json_value["uploadFileId"].asString();
-
+    file_upload_url_ = jsoncpp_helper::GetString(json_value["fileUploadUrl"]);
+    file_commit_url_ = jsoncpp_helper::GetString(json_value["fileCommitUrl"]);
+    file_upload_size_ = jsoncpp_helper::GetInt64(json_value["size"]);
+    file_exists_ = jsoncpp_helper::GetInt(json_value["fileDataExists"]);
+    upload_file_id_ = jsoncpp_helper::GetString(json_value["uploadFileId"]);
+    // 文件只差第四步上传完成
     if (file_size_ == file_upload_size_ || file_exists_) {
       // 跳第四步
       if (!COUFRequest()) {
         json_value["stage"] = stage_code_402;
       }
-      return;
     } else {
       // 跳第三步
       if (!UFDRequest()) {
@@ -223,9 +231,11 @@ void UploadFileMasterControl::CRUFCallback(
         break;
       }
     }
-    return;
+    json_value["stage"] = stage_code_100;
   } while (false);
-  status_call_back_(json_value.toStyledString());
+  if (nullptr != status_call_back_) {
+    status_call_back_(jsoncpp_helper::WriterHelper(json_value));
+  }
 }
 
 void UploadFileMasterControl::GUSCallback(
@@ -240,19 +250,21 @@ void UploadFileMasterControl::GUSCallback(
   }
 
   Json::Value json_value;
-  Json::Reader json_reader;
   do {
     std::string res_info;
     EnterpriseCloud::Apis::GetUploadFileStatus::HttpResponseDecode(res, req,
                                                                    res_info);
-    if (!json_reader.parse(res_info, json_value)) {
+    if (!jsoncpp_helper::ReaderHelper(res_info, json_value)) {
       json_value["stage"] = stage_code_201;
       break;
     }
-    if (!json_value["isSuccess"].asBool()) {
-      auto http_statuc_code = json_value["httpStatusCode"].asInt();
-      if (4 == (http_statuc_code % 100)) {
-        auto int32_error_code = json_value["int32ErrorCode"].asInt();
+    if (!jsoncpp_helper::GetBool(json_value["isSuccess"])) {
+      auto http_status_code =
+          jsoncpp_helper::GetInt(json_value["httpStatusCode"]);
+      if (4 == (http_status_code / 100)) {
+        // 4xx错误
+        auto int32_error_code =
+            jsoncpp_helper::GetInt(json_value["int32ErrorCode"]);
         if (int32_error_code == nderr_infosecurityerrorcode &&
             1 > retry_info_gus.retry_count_is) {
           // 重试一次
@@ -272,36 +284,40 @@ void UploadFileMasterControl::GUSCallback(
           retry_info_gus.retry_count_pd += 1;
           return;
         }
-      } else if (5 == (http_statuc_code % 100) &&
+      } else if (5 == (http_status_code / 100) &&
                  retry_info_gus.retry_count_max >
                      retry_info_gus.retry_count_5xx) {
+        // 重试，最多重试9次
         auto retry_time = (int)std::pow(retry_info_gus.retry_time_5xx,
                                         retry_info_gus.retry_count_5xx);
-        // 重试，最多重试10次
-        Sleep(retry_time);
+        // 等待一段时间
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_time));
+
         if (!GUSRequest()) {
           json_value["stage"] = stage_code_202;
           break;
         }
         retry_info_gus.retry_count_5xx += 1;
         return;
-      } else if (601 == http_statuc_code &&
+      } else if (601 == http_status_code &&
                  retry_info_gus.retry_count_max >
                      retry_info_gus.retry_count_601) {
-        // 重试，最多重试10次
+        // 重试，最多重试9次
         auto retry_time = (int)std::pow(retry_info_gus.retry_time_601,
                                         retry_info_gus.retry_count_601);
-        if (retry_time < json_value["waitingTime"].asInt()) {
-          retry_time = json_value["waitingTime"].asInt();
+        if (retry_time < jsoncpp_helper::GetInt(json_value["waitingTime"])) {
+          retry_time = jsoncpp_helper::GetInt(json_value["waitingTime"]);
         }
-        Sleep(retry_time);
+        // 等待一段时间
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_time));
+
         if (!GUSRequest()) {
           json_value["stage"] = stage_code_202;
           break;
         }
         retry_info_gus.retry_count_601 += 1;
         return;
-      } else if (602 == http_statuc_code &&
+      } else if (602 == http_status_code &&
                  retry_info_gus.retry_count_max >
                      retry_info_gus.retry_count_602) {
         // 跳第一步
@@ -319,11 +335,11 @@ void UploadFileMasterControl::GUSCallback(
 
     retry_info_gus.init();
 
-    file_upload_url_ = json_value["fileUploadUrl"].asString();
-    file_commit_url_ = json_value["fileCommitUrl"].asString();
-    file_upload_size_ = json_value["size"].asInt64();
-    file_exists_ = json_value["fileDataExists"].asBool();
-    upload_file_id_ = json_value["uploadFileId"].asString();
+    file_upload_url_ = jsoncpp_helper::GetString(json_value["fileUploadUrl"]);
+    file_commit_url_ = jsoncpp_helper::GetString(json_value["fileCommitUrl"]);
+    file_upload_size_ = jsoncpp_helper::GetInt64(json_value["size"]);
+    file_exists_ = jsoncpp_helper::GetInt(json_value["fileDataExists"]);
+    upload_file_id_ = jsoncpp_helper::GetString(json_value["uploadFileId"]);
 
     if (file_size_ == file_upload_size_ || file_exists_) {
       // 跳第四步
@@ -339,7 +355,9 @@ void UploadFileMasterControl::GUSCallback(
 
     return;
   } while (false);
-  status_call_back_(json_value.toStyledString());
+  if (nullptr != status_call_back_) {
+    status_call_back_(jsoncpp_helper::WriterHelper(json_value));
+  }
 }
 
 void UploadFileMasterControl::UFDCallback(
@@ -354,31 +372,33 @@ void UploadFileMasterControl::UFDCallback(
   }
 
   Json::Value json_value;
-  Json::Reader json_reader;
   do {
     upload_speedcounter.Stop();
 
     std::string res_info;
     EnterpriseCloud::Apis::UploadFileData::HttpResponseDecode(res, req,
                                                               res_info);
-    if (!json_reader.parse(res_info, json_value)) {
+    if (!jsoncpp_helper::ReaderHelper(res_info, json_value)) {
       json_value["stage"] = stage_code_301;
       break;
     }
-    if (!json_value["isSuccess"].asBool()) {
-      auto http_statuc_code = json_value["httpStatusCode"].asInt();
+    if (!jsoncpp_helper::GetBool(json_value["isSuccess"])) {
+      auto http_status_code =
+          jsoncpp_helper::GetInt(json_value["httpStatusCode"]);
       if (retry_info_ufd.retry_count_max <= retry_info_ufd.retry_count_601) {
         json_value["stage"] = stage_code_303;
         break;
       }
-      if (601 == http_statuc_code) {
-        // 重试，最多重试10次
+      if (601 == http_status_code) {
+        // 重试，最多重试9次
         auto retry_time = (int)std::pow(retry_info_ufd.retry_time_601,
                                         retry_info_ufd.retry_count_601);
-        if (retry_time < json_value["waitingTime"].asInt()) {
-          retry_time = json_value["waitingTime"].asInt();
+        if (retry_time < jsoncpp_helper::GetInt(json_value["waitingTime"])) {
+          retry_time = jsoncpp_helper::GetInt(json_value["waitingTime"]);
         }
-        Sleep(retry_time);
+        // 等待一段时间
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_time));
+
         if (!UFDRequest()) {
           json_value["stage"] = stage_code_302;
           break;
@@ -388,7 +408,7 @@ void UploadFileMasterControl::UFDCallback(
       }
 
       if (10 > retry_count_ufd_current) {
-        // 跳第一步，最多跳10次
+        // 跳第一步，最多跳9次
         if (!CRUFRequest()) {
           json_value["stage"] = stage_code_102;
           break;
@@ -411,7 +431,7 @@ void UploadFileMasterControl::UFDCallback(
     return;
   } while (false);
   if (nullptr != status_call_back_) {
-    status_call_back_(json_value.toStyledString());
+    status_call_back_(jsoncpp_helper::WriterHelper(json_value));
   }
 }
 
@@ -427,19 +447,21 @@ void UploadFileMasterControl::COUFCallback(
   }
 
   Json::Value json_value;
-  Json::Reader json_reader;
   do {
     std::string res_info;
     EnterpriseCloud::Apis::ComfirmUploadFileComplete::HttpResponseDecode(
         res, req, res_info);
-    if (!json_reader.parse(res_info, json_value)) {
+    if (!jsoncpp_helper::ReaderHelper(res_info, json_value)) {
       json_value["stage"] = stage_code_401;
       break;
     }
-    if (!json_value["isSuccess"].asBool()) {
-      auto http_statuc_code = json_value["httpStatusCode"].asInt();
-      if (4 == (http_statuc_code % 100)) {
-        auto int32_error_code = json_value["int32ErrorCode"].asInt();
+    if (!jsoncpp_helper::GetBool(json_value["isSuccess"])) {
+      auto http_status_code =
+          jsoncpp_helper::GetInt(json_value["httpStatusCode"]);
+      if (4 == (http_status_code / 100)) {
+        // 4xx错误
+        auto int32_error_code =
+            jsoncpp_helper::GetInt(json_value["int32ErrorCode"]);
         if (int32_error_code == nderr_infosecurityerrorcode &&
             1 > retry_info_couf.retry_count_is) {
           // 重试1次
@@ -459,36 +481,40 @@ void UploadFileMasterControl::COUFCallback(
           retry_info_couf.retry_count_pd += 1;
           return;
         }
-      } else if (5 == (http_statuc_code % 100) &&
+      } else if (5 == (http_status_code / 100) &&
                  retry_info_couf.retry_count_max >
                      retry_info_couf.retry_count_5xx) {
-        // 重试，最多重试10次
+        // 重试，最多重试9次
         auto retry_time = (int)std::pow(retry_info_couf.retry_time_5xx,
                                         retry_info_couf.retry_count_5xx);
-        Sleep(retry_time);
+        // 等待一段时间
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_time));
+
         if (!COUFRequest()) {
           json_value["stage"] = stage_code_402;
           break;
         }
         retry_info_couf.retry_count_5xx += 1;
         return;
-      } else if (601 == http_statuc_code &&
+      } else if (601 == http_status_code &&
                  retry_info_couf.retry_count_max >
                      retry_info_couf.retry_count_601) {
-        // 重试，最多重试10次
+        // 重试，最多重试9次
         auto retry_time = (int)std::pow(retry_info_couf.retry_time_601,
                                         retry_info_couf.retry_count_601);
-        if (retry_time < json_value["waitingTime"].asInt()) {
-          retry_time = json_value["waitingTime"].asInt();
+        if (retry_time < jsoncpp_helper::GetInt(json_value["waitingTime"])) {
+          retry_time = jsoncpp_helper::GetInt(json_value["waitingTime"]);
         }
-        Sleep(retry_time);
+        // 等待一段时间
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_time));
+
         if (!COUFRequest()) {
           json_value["stage"] = stage_code_402;
           break;
         }
         retry_info_couf.retry_count_601 += 1;
         return;
-      } else if (602 == http_statuc_code &&
+      } else if (602 == http_status_code &&
                  retry_info_couf.retry_count_max >
                      retry_info_couf.retry_count_602) {
         // 跳第一步
@@ -498,7 +524,7 @@ void UploadFileMasterControl::COUFCallback(
         }
         retry_info_couf.retry_count_602 += 1;
         return;
-      } else if (600 == http_statuc_code) {
+      } else if (600 == http_status_code) {
         // 跳第二步
         if (!GUSRequest()) {
           json_value["stage"] = stage_code_202;
@@ -518,7 +544,7 @@ void UploadFileMasterControl::COUFCallback(
     json_value["fileExists"] = file_exists_;
   } while (false);
   if (nullptr != status_call_back_) {
-    status_call_back_(json_value.toStyledString());
+    status_call_back_(jsoncpp_helper::WriterHelper(json_value));
   }
 }
 
@@ -549,10 +575,10 @@ bool UploadFileMasterControl::Start() {
       //跳第一步
       md5_ = "D41D8CD98F00B204E9800998ECF8427E";
       if (!CRUFRequest()) {
-        Json::Value json_value;
-        json_value["stage"] = stage_code_102;
         if (nullptr != status_call_back_) {
-          status_call_back_(json_value.toStyledString());
+          Json::Value json_value;
+          json_value["stage"] = stage_code_102;
+          status_call_back_(jsoncpp_helper::WriterHelper(json_value));
         }
         break;
       }
@@ -570,9 +596,8 @@ bool UploadFileMasterControl::Start() {
 }
 
 void UploadFileMasterControl::Stop() {
-  // TODO(sun): other code
   if (!stop_flag_.exchange(true)) {
-    // 生成根据UUID批量停止连接的Req
+    // 生成根据UUID停止连接的请求
     std::string uuids;
     auto GenerateUuidstr = [&uuids](const std::string& uuid) -> void {
       uuids += uuid + ";";
@@ -590,9 +615,12 @@ void UploadFileMasterControl::Stop() {
     }
   }
   fclose(file_ptr_);
-  Json::Value msg;
-  msg["stage"] = stage_code_1;
-  status_call_back_(msg.toStyledString());
+
+  if (nullptr != status_call_back_) {
+    Json::Value msg;
+    msg["stage"] = stage_code_1;
+    status_call_back_(jsoncpp_helper::WriterHelper(msg));
+  }
 }
 
 bool UploadFileMasterControl::CRUFRequest() {
@@ -601,8 +629,8 @@ bool UploadFileMasterControl::CRUFRequest() {
     assistant::HttpRequest create_upload_file("");
     auto json_params =
         EnterpriseCloud::Apis::CreateUploadFile::JsonStringHelper(
-            file_path_, atoll(corp_id_.c_str()), atoll(parent_id_.c_str()),
-            md5_, file_source_, coshare_id_, is_log_);
+            file_path_, corp_id_, parent_id_, md5_, file_source_, coshare_id_,
+            is_log_);
     if (json_params.empty()) {
       break;
     }
@@ -634,7 +662,7 @@ bool UploadFileMasterControl::GUSRequest() {
     assistant::HttpRequest get_upload_status("");
     auto json_params =
         EnterpriseCloud::Apis::GetUploadFileStatus::JsonStringHelper(
-            atoll(upload_file_id_.c_str()), atoll(corp_id_.c_str()), is_log_);
+            upload_file_id_, corp_id_, is_log_);
     if (json_params.empty()) {
       break;
     }
@@ -671,9 +699,8 @@ bool UploadFileMasterControl::UFDRequest() {
     upload_bytes_ = file_upload_size_;
     assistant::HttpRequest upload_file_data("");
     auto json_params = EnterpriseCloud::Apis::UploadFileData::JsonStringHelper(
-        file_upload_url_, file_path_, atoll(upload_file_id_.c_str()),
-        atoll(corp_id_.c_str()), file_source_, file_upload_size_,
-        file_size_ - file_upload_size_, is_log_);
+        file_upload_url_, file_path_, upload_file_id_, corp_id_, file_source_,
+        file_upload_size_, file_size_ - file_upload_size_, is_log_);
     if (json_params.empty()) {
       break;
     }
@@ -715,9 +742,8 @@ bool UploadFileMasterControl::COUFRequest() {
     assistant::HttpRequest comfirm_upload_file("");
     auto json_params =
         EnterpriseCloud::Apis::ComfirmUploadFileComplete::JsonStringHelper(
-            file_commit_url_, atoll(upload_file_id_.c_str()),
-            atoll(corp_id_.c_str()), file_source_, oper_type_, coshare_id_,
-            is_log_);
+            file_commit_url_, upload_file_id_, corp_id_, file_source_,
+            oper_type_, coshare_id_, is_log_);
     if (json_params.empty()) {
       break;
     }

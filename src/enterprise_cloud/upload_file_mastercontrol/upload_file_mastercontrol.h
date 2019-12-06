@@ -9,9 +9,11 @@
 #include <memory>
 #include <string>
 
+#include <json/json.h>
+
 #include <Assistant_v3.hpp>
-#include <speed_counter.hpp>
 #include <rx_md5.hpp>
+#include <speed_counter.hpp>
 
 namespace {
 typedef std::function<void(std::string)> STATUSCALLBACK;
@@ -22,7 +24,7 @@ typedef struct RI {
   // 权限不足重试次数
   int retry_count_pd;
   // 最大重试次数
-  const int retry_count_max = 10;
+  const int retry_count_max = 9;
   // http status code 5xx
   int retry_count_5xx;
   const int retry_time_5xx = 1500;
@@ -184,11 +186,12 @@ class UploadFileMasterControl {
   std::string file_upload_url_;
   std::string file_commit_url_;
   int64_t file_upload_size_;
-  bool file_exists_;
+  int32_t file_exists_;
 
   // md5计算相关
   int64_t md5_finish_size;
-  decltype(rx_assistant::md5::md5_async_factory::create("",nullptr,nullptr)) md5_ptr;
+  decltype(rx_assistant::md5::md5_async_factory::create("", nullptr,
+                                                        nullptr)) md5_ptr;
 
   // 主控状态回调
   STATUSCALLBACK status_call_back_;
