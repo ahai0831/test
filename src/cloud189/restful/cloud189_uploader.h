@@ -1,4 +1,5 @@
 ﻿
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -17,8 +18,11 @@ struct Uploader {
   /// uploader传参必须参数之一，为一个字符串，避免大量字段
   /// 在构造函数中解析json字符串
 
-  Uploader(const std::string &upload_info);
+  Uploader(const std::string &upload_info,
+           std::function<void(const std::string &)> complete_callback);
   ~Uploader();
+  void AsyncStart();
+  void SyncWait();
 
  private:
   std::shared_ptr<details::uploader_thread_data> thread_data;

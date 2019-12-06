@@ -1,6 +1,5 @@
 ﻿#include "cloud189_uploader.h"
-// #define WIN32_LEAN_AND_MEAN
-// #include <Assistant_v3.hpp>
+
 /// 避免因Windows.h在WinSock2.h之前被包含导致的问题
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -10,6 +9,7 @@
 #include <rx_md5.hpp>
 #include <rx_uploader.hpp>
 #include <tools/safecontainer.hpp>
+#include <tools/string_convert.hpp>
 
 #include "cloud189/apis/comfirm_upload_file_complete.h"
 #include "cloud189/apis/create_upload_file.h"
@@ -24,9 +24,14 @@ using httpbusiness::uploader::proof::stage_result;
 using httpbusiness::uploader::proof::uploader_proof;
 using httpbusiness::uploader::proof::uploader_stage;
 using rx_assistant::HttpResult;
-using rx_assistant::rx_assistant_factory;
-using rx_assistant::md5::md5_async_factory;
+// using rx_assistant::rx_assistant_factory;
+// using rx_assistant::md5::md5_async_factory;
 /// TODO: 既然是源文件，那么对比较复杂的命名空间使用，都可以使用using
+using restful_common::jsoncpp_helper::GetInt;
+using restful_common::jsoncpp_helper::GetInt64;
+using restful_common::jsoncpp_helper::GetString;
+using restful_common::jsoncpp_helper::ReaderHelper;
+using restful_common::jsoncpp_helper::WriterHelper;
 
 namespace Cloud189 {
 namespace Restful {
@@ -34,11 +39,33 @@ namespace Restful {
 namespace details {
 
 struct uploader_internal_data {
+ private:
   /// 在此占据某个文件的相应句柄
-
+  FILE* file_protect;
   /// 以ScopeGuard机制在析构时释放此句柄
-  uploader_internal_data() = default;
+  assistant::tools::scope_guard guard_file_protect;
+
+ public:
+  std::unique_ptr<httpbusiness::uploader::rx_uploader> const master_control;
+
+  explicit uploader_internal_data(
+      const std::string& file_path,
+      const httpbusiness::uploader::proof::proof_obs_packages& proof_orders,
+      const httpbusiness::uploader::rx_uploader::CompleteCallback
+          complete_callback)
+      : file_protect(
+            _wfsopen(assistant::tools::string::utf8ToWstring(file_path).c_str(),
+                     L"r", _SH_DENYWR)),
+        guard_file_protect([this]() {
+          if (nullptr != file_protect) {
+            fclose(file_protect);
+            file_protect = nullptr;
+          }
+        }),
+        master_control(std::make_unique<httpbusiness::uploader::rx_uploader>(
+            proof_orders, complete_callback)) {}
   ~uploader_internal_data() = default;
+  /// 由于scope_guard的存在，无需再显式地禁用另外四个构造函数
 };
 
 struct uploader_thread_data {
@@ -84,48 +111,43 @@ struct uploader_thread_data {
 
 }  // namespace details
 
-Uploader::Uploader(const std::string& upload_info) {
+/// 将构造函数完全进行模块化分解，避免单个函数承担过多功能
+/// 在此将Uploader所需的函数模块抽取出来
+namespace {
+
+/// 根据传入的字符串，对线程数据进行初始化
+std::shared_ptr<details::uploader_thread_data> InitThreadData(
+    const std::string& upload_info) {
   /// 根据传入信息，初始化线程信息结构体
-  do {
-    if (upload_info.empty()) {
-      break;
-    }
-    /// TODO: 改为jsoncpp_helper内的工具函数进行解析
-    Json::Value json_str;
-    Json::CharReaderBuilder reader_builder;
-    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(
-        reader_builder.newCharReader());
-    if (nullptr == reader) {
-      break;
-    }
-    if (!reader->parse(upload_info.c_str(),
-                       upload_info.c_str() + upload_info.size(), &json_str,
-                       nullptr)) {
-      break;
-    }
-    std::string local_filepath =
-        restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
-    std::string last_md5 =
-        restful_common::jsoncpp_helper::GetString(json_str["md5"]);
-    int64_t last_upload_id =
-        restful_common::jsoncpp_helper::GetInt64(json_str["uploadFileId"]);
-    int64_t parent_folder_id =
-        restful_common::jsoncpp_helper::GetInt64(json_str["parentFolderId"]);
-    int64_t start_offset =
-        restful_common::jsoncpp_helper::GetInt64(json_str["startOffset"]);
-    int64_t offset_length =
-        restful_common::jsoncpp_helper::GetInt64(json_str["offsetLength"]);
-    int32_t oper_type =
-        restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
-    int32_t is_log = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
-    thread_data = std::make_shared<details::uploader_thread_data>(
-        local_filepath, last_md5, last_upload_id, parent_folder_id,
-        start_offset, offset_length, oper_type, is_log);
-  } while (false);
-  /// 根据弱指针，初始化各RX指令
-  auto thread_data_weak =
-      std::weak_ptr<details::uploader_thread_data>(thread_data);
+  Json::Value json_value;
+  ReaderHelper(upload_info, json_value);
+  /// 改为jsoncpp_helper内的工具函数进行解析
+  const auto& local_filepath = GetString(json_value["localPath"]);
+  const auto& last_md5 = GetString(json_value["md5"]);
+  const auto last_upload_id = GetInt64(json_value["uploadFileId"]);
+  const auto parent_folder_id = GetInt64(json_value["parentFolderId"]);
+  const auto start_offset = GetInt64(json_value["startOffset"]);
+  const auto offset_length = GetInt64(json_value["offsetLength"]);
+  const auto oper_type = GetInt(json_value["opertype"]);
+  const auto is_log = GetInt(json_value["isLog"]);
+  return std::make_shared<details::uploader_thread_data>(
+      local_filepath, last_md5, last_upload_id, parent_folder_id, start_offset,
+      offset_length, oper_type, is_log);
+}
+/// 生成总控使用的完成回调
+const httpbusiness::uploader::rx_uploader::CompleteCallback
+GenerateCompleteCallback(
+    const std::weak_ptr<details::uploader_thread_data>& thread_data_weak,
+    const std::function<void(const std::string&)>& complete_callback) {
+  return [thread_data_weak, complete_callback](
+             const httpbusiness::uploader::rx_uploader&) -> void {
+    /// TODO: 在此处取出相应的信息，传递给回调
+    complete_callback("");
+  };
+}
+/// 根据弱指针，初始化各RX指令
+httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
+    const std::weak_ptr<details::uploader_thread_data>& thread_data_weak) {
   //////////////////////////////////////////////////////////////////////////
   /// 计算MD5指令
   /// 输入proof，根据线程信息中的路径信息，异步地进行MD5计算并返回proof
@@ -309,12 +331,7 @@ Uploader::Uploader(const std::string& upload_info) {
     /// Encode
     Cloud189::Apis::GetUploadFileStatus::HttpRequestEncode(
         json_str, check_upload_request);
-    //     /// 提供一个网络库的Helper工具方法，用于提供网络库对象的弱指针
-    //     auto assistant_v3 = std::make_shared<assistant::Assistant_v3>();
-    //     auto assistant_weak =
-    //     std::weak_ptr<assistant::Assistant_v3>(assistant_v3);
-    //     rx_assistant_factory factory(assistant_weak);
-    //     auto obs = factory.create(check_upload_request);
+
     auto obs = rx_assistant::rx_httpresult::create(check_upload_request);
 
     /// 提供根据HttpResponse解析得到结果的json字符串
@@ -434,12 +451,7 @@ Uploader::Uploader(const std::string& upload_info) {
         thread_data->upload_bytes += value;
       } while (false);
     };
-    //     /// 提供一个网络库的Helper工具方法，用于提供网络库对象的弱指针
-    //     auto assistant_v3 = std::make_shared<assistant::Assistant_v3>();
-    //     auto assistant_weak =
-    //     std::weak_ptr<assistant::Assistant_v3>(assistant_v3);
-    //     rx_assistant_factory factory(assistant_weak);
-    //     auto obs = factory.create(file_upload_request);
+
     auto obs = rx_assistant::rx_httpresult::create(file_upload_request);
 
     /// 需提供根据HttpResponse解析得到结果的json字符串
@@ -518,12 +530,6 @@ Uploader::Uploader(const std::string& upload_info) {
     Cloud189::Apis::ComfirmUploadFileComplete::HttpRequestEncode(
         json_str, file_commit_request);
 
-    //     /// 提供一个网络库的Helper工具方法，用于提供网络库对象的弱指针
-    //     auto assistant_v3 = std::make_shared<assistant::Assistant_v3>();
-    //     auto assistant_weak =
-    //     std::weak_ptr<assistant::Assistant_v3>(assistant_v3);
-    //     rx_assistant_factory factory(assistant_weak);
-    //     auto obs = factory.create(file_commit_request);
     auto obs = rx_assistant::rx_httpresult::create(file_commit_request);
 
     /// 提供根据HttpResponse解析得到结果的json字符串
@@ -587,7 +593,23 @@ Uploader::Uploader(const std::string& upload_info) {
   };
   /// file uplaod end.
   //////////////////////////////////////////////////////////////////////////
+  return httpbusiness::uploader::proof::proof_obs_packages{
+      std::move(calculate_md5), std::move(create_upload),
+      std::move(check_upload), std::move(file_upload), std::move(file_commit)};
 }
+
+}  // namespace
+
+Uploader::Uploader(const std::string& upload_info,
+                   std::function<void(const std::string&)> complete_callback)
+    : thread_data(InitThreadData(upload_info)),
+      data(std::make_unique<details::uploader_internal_data>(
+          thread_data->local_filepath, GenerateOrders(thread_data),
+          GenerateCompleteCallback(thread_data, complete_callback))) {}
+
+void Uploader::AsyncStart() { data->master_control->AsyncStart(); }
+
+void Uploader::SyncWait() { data->master_control->SyncWait(); }
 
 Uploader::~Uploader() = default;
 
@@ -603,8 +625,6 @@ std::string uploader_info_helper(
       break;
     }
     Json::Value json_value;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder.settings_["indentation"] = "";
     json_value["localPath"] = local_path;
     json_value["md5"] = md5;
     json_value["uploadFileId"] = last_upload_id;
@@ -613,7 +633,8 @@ std::string uploader_info_helper(
     json_value["offsetLength"] = offset_length;
     json_value["opertype"] = oper_type;
     json_value["isLog"] = is_log;
-    uploader_json_str = Json::writeString(wbuilder, json_value);
+
+    uploader_json_str = WriterHelper(json_value);
   } while (false);
   return uploader_json_str;
 }

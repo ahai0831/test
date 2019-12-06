@@ -1,13 +1,15 @@
 ﻿#include "cloud189_slice_uploader.h"
 
-/// TODO: 需要对rx_md5进行调整，避免引用顺序导致的编译问题
-#include <json/json.h>
-#include <rx_md5.hpp>
-
-#include <rx_uploader.hpp>
+/// 避免因Windows.h在WinSock2.h之前被包含导致的问题
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 
 #include <rx_assistant.hpp>
+#include <rx_md5.hpp>
+#include <rx_uploader.hpp>
 #include <tools/safecontainer.hpp>
+#include <tools/string_convert.hpp>
 
 #include "cloud189/apis/commit_slice_upload_file.h"
 #include "cloud189/apis/create_slice_upload_file.h"
@@ -24,24 +26,52 @@ using httpbusiness::uploader::proof::uploader_stage;
 using rx_assistant::HttpResult;
 using rx_assistant::rx_assistant_factory;
 using rx_assistant::md5::md5_async_factory;
+/// TODO: 既然是源文件，那么对比较复杂的命名空间使用，都可以使用using
+using restful_common::jsoncpp_helper::GetInt;
+using restful_common::jsoncpp_helper::GetInt64;
+using restful_common::jsoncpp_helper::GetString;
+using restful_common::jsoncpp_helper::ReaderHelper;
+using restful_common::jsoncpp_helper::WriterHelper;
 
 namespace Cloud189 {
-namespace RestfulSlice {
+namespace Restful {
 
 namespace details {
 
-struct uploader_internal_data {
+struct sliceuploader_internal_data {
+ private:
   /// 在此占据某个文件的相应句柄
-
+  FILE* file_protect;
   /// 以ScopeGuard机制在析构时释放此句柄
-  uploader_internal_data() = default;
-  ~uploader_internal_data() = default;
+  assistant::tools::scope_guard guard_file_protect;
+
+ public:
+  std::unique_ptr<httpbusiness::uploader::rx_uploader> const master_control;
+
+  explicit sliceuploader_internal_data(
+      const std::string& file_path,
+      const httpbusiness::uploader::proof::proof_obs_packages& proof_orders,
+      const httpbusiness::uploader::rx_uploader::CompleteCallback
+          complete_callback)
+      : file_protect(
+            _wfsopen(assistant::tools::string::utf8ToWstring(file_path).c_str(),
+                     L"r", _SH_DENYWR)),
+        guard_file_protect([this]() {
+          if (nullptr != file_protect) {
+            fclose(file_protect);
+            file_protect = nullptr;
+          }
+        }),
+        master_control(std::make_unique<httpbusiness::uploader::rx_uploader>(
+            proof_orders, complete_callback)) {}
+  ~sliceuploader_internal_data() = default;
+  /// 由于scope_guard的存在，无需再显式地禁用另外四个构造函数
 };
 // typedef httpbusiness::uploader::rx_uploader rx_uploader;
 //
 // httpbusiness::uploader::proof::proof_obs_packages pkgs;
 
-struct uploader_thread_data {
+struct sliceuploader_thread_data {
  public:
   /// const的数据成员，必须在构造函数中进行显式的初始化
   const std::string local_filepath;
@@ -56,7 +86,7 @@ struct uploader_thread_data {
   const int32_t oper_type;
   const int32_t is_log;
   /// 禁用移动复制默认构造和=号操作符，必须通过显式指定所有必须字段进行初始化
-  uploader_thread_data(
+  sliceuploader_thread_data(
       const std::string& file_path, const std::string& last_trans_md5,
       const int64_t& last_trans_upload_id, const int64_t& parent_folder_id_,
       const int64_t& start_offset_, const int64_t& offset_length_,
@@ -85,68 +115,75 @@ struct uploader_thread_data {
   decltype(md5_async_factory::create("", nullptr, nullptr)) md5_unique;
 
  private:
-  uploader_thread_data() = delete;
-  uploader_thread_data(uploader_thread_data const&) = delete;
-  uploader_thread_data& operator=(uploader_thread_data const&) = delete;
-  uploader_thread_data(uploader_thread_data&&) = delete;
+  sliceuploader_thread_data() = delete;
+  sliceuploader_thread_data(sliceuploader_thread_data const&) = delete;
+  sliceuploader_thread_data& operator=(sliceuploader_thread_data const&) =
+      delete;
+  sliceuploader_thread_data(sliceuploader_thread_data&&) = delete;
 };
 
 }  // namespace details
+namespace {
+/// 根据传入的字符串，对线程数据进行初始化
+std::shared_ptr<details::sliceuploader_thread_data> InitThreadData(
+    const std::string& upload_info) {
+  Json::Value json_str;
+  Json::CharReaderBuilder reader_builder;
+  Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
+  std::unique_ptr<Json::CharReader> const reader(
+      reader_builder.newCharReader());
 
-Uploader::Uploader(const std::string& upload_info) {
-  /// 根据传入信息，初始化线程信息结构体
-  do {
-    if (upload_info.empty()) {
-      break;
-    }
-    Json::Value json_str;
-    Json::CharReaderBuilder reader_builder;
-    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(
-        reader_builder.newCharReader());
-    if (nullptr == reader) {
-      break;
-    }
-    if (!reader->parse(upload_info.c_str(),
-                       upload_info.c_str() + upload_info.size(), &json_str,
-                       nullptr)) {
-      break;
-    }
-    std::string local_filepath =
-        restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
-    std::string last_md5 =
-        restful_common::jsoncpp_helper::GetString(json_str["md5"]);
-    int64_t last_upload_id =
-        restful_common::jsoncpp_helper::GetInt64(json_str["uploadFileId"]);
-    int64_t parent_folder_id =
-        restful_common::jsoncpp_helper::GetInt64(json_str["parentFolderId"]);
-    int64_t start_offset =
-        restful_common::jsoncpp_helper::GetInt64(json_str["startOffset"]);
-    int64_t offset_length =
-        restful_common::jsoncpp_helper::GetInt64(json_str["offsetLength"]);
-    int32_t upload_slice_id =
-        restful_common::jsoncpp_helper::GetInt(json_str["uploadSliceId"]);
-    int64_t per_slice_size =
-        restful_common::jsoncpp_helper::GetInt64(json_str["perSliceSize"]);
-    int32_t resume_policy =
-        restful_common::jsoncpp_helper::GetInt(json_str["resumePolicy"]);
-    int32_t oper_type =
-        restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
-    int32_t is_log = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
-    std::string slice_md5_list;
-    std::string slice_md5;
-    auto solve_slice_md5 = [&slice_md5](const std::string& temp) {
-      slice_md5 = temp;
-    };
-    thread_data->slice_md5_map.FindDelegate(upload_slice_id, solve_slice_md5);
-    thread_data = std::make_shared<details::uploader_thread_data>(
-        local_filepath, last_md5, last_upload_id, parent_folder_id,
-        start_offset, offset_length, upload_slice_id, per_slice_size,
-        resume_policy, oper_type, is_log);
-  } while (false);
-  /// 根据弱指针，初始化各RX指令
-  auto thread_data_weak =
-      std::weak_ptr<details::uploader_thread_data>(thread_data);
+  if (!reader->parse(upload_info.c_str(),
+                     upload_info.c_str() + upload_info.size(), &json_str,
+                     nullptr)) {
+    //  break;
+  }
+  std::string local_filepath =
+      restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
+  std::string last_md5 =
+      restful_common::jsoncpp_helper::GetString(json_str["md5"]);
+  int64_t last_upload_id =
+      restful_common::jsoncpp_helper::GetInt64(json_str["uploadFileId"]);
+  int64_t parent_folder_id =
+      restful_common::jsoncpp_helper::GetInt64(json_str["parentFolderId"]);
+  int64_t start_offset =
+      restful_common::jsoncpp_helper::GetInt64(json_str["startOffset"]);
+  int64_t offset_length =
+      restful_common::jsoncpp_helper::GetInt64(json_str["offsetLength"]);
+  int32_t upload_slice_id =
+      restful_common::jsoncpp_helper::GetInt(json_str["uploadSliceId"]);
+  int64_t per_slice_size =
+      restful_common::jsoncpp_helper::GetInt64(json_str["perSliceSize"]);
+  int32_t resume_policy =
+      restful_common::jsoncpp_helper::GetInt(json_str["resumePolicy"]);
+  int32_t oper_type =
+      restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
+  int32_t is_log = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
+  std::string slice_md5_list;
+  std::string slice_md5;
+  auto solve_slice_md5 = [&slice_md5](const std::string& temp) {
+    slice_md5 = temp;
+  };
+  // thread_data->slice_md5_map.FindDelegate(upload_slice_id, solve_slice_md5);
+  return std::make_shared<details::sliceuploader_thread_data>(
+      local_filepath, last_md5, last_upload_id, parent_folder_id, start_offset,
+      offset_length, upload_slice_id, per_slice_size, resume_policy, oper_type,
+      is_log);
+}
+/// 生成总控使用的完成回调
+const httpbusiness::uploader::rx_uploader::CompleteCallback
+GenerateCompleteCallback(
+    const std::weak_ptr<details::sliceuploader_thread_data>& thread_data_weak,
+    const std::function<void(const std::string&)>& complete_callback) {
+  return [thread_data_weak, complete_callback](
+             const httpbusiness::uploader::rx_uploader&) -> void {
+    /// TODO: 在此处取出相应的信息，传递给回调
+    complete_callback("");
+  };
+}
+/// 根据弱指针，初始化各RX指令
+httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
+    const std::weak_ptr<details::sliceuploader_thread_data>& thread_data_weak) {
   //////////////////////////////////////////////////////////////////////////
   /// 计算MD5指令
   /// 输入proof，根据线程信息中的路径信息，异步地进行MD5计算并返回proof
@@ -630,12 +667,28 @@ Uploader::Uploader(const std::string& upload_info) {
   };
   /// file uplaod end.
   //////////////////////////////////////////////////////////////////////////
+  return httpbusiness::uploader::proof::proof_obs_packages{
+      std::move(calculate_md5), std::move(create_slice_upload),
+      std::move(check_slice_upload), std::move(slice_file_upload),
+      std::move(slice_file_commit)};
 }
+}  // namespace
+SliceUploader::SliceUploader(
+    const std::string& upload_info,
+    std::function<void(const std::string&)> complete_callback)
+    : thread_data(InitThreadData(upload_info)),
+      data(std::make_unique<details::sliceuploader_internal_data>(
+          thread_data->local_filepath, GenerateOrders(thread_data),
+          GenerateCompleteCallback(thread_data, complete_callback))) {}
 
-Uploader::~Uploader() = default;
+void SliceUploader::AsyncStart() {}
+
+void SliceUploader::SyncWait() {}
+
+SliceUploader::~SliceUploader() = default;
 
 /// 为此Uploader提供一个Helper函数，用于生成合规的json字符串
-std::string uploader_info_helper(
+std::string sliceuploader_info_helper(
     const std::string& local_path, const std::string& md5,
     const std::string slice_md5, const std::string slice_md5_list,
     const int64_t last_upload_id, const int64_t parent_folder_id,
@@ -643,28 +696,20 @@ std::string uploader_info_helper(
     const int32_t upload_slice_id, const int64_t per_slice_size,
     const int32_t resume_policy, const int32_t oper_type,
     const int32_t is_log) {
-  std::string uploader_json_str = "";
-  do {
-    if (local_path.empty() || md5.empty()) {
-      break;
-    }
-    Json::Value json_value;
-    Json::StreamWriterBuilder wbuilder;
-    wbuilder.settings_["indentation"] = "";
-    json_value["localPath"] = local_path;
-    json_value["md5"] = md5;
-    json_value["uploadFileId"] = last_upload_id;
-    json_value["parentFolderId"] = parent_folder_id;
-    json_value["startOffset"] = start_offset;
-    json_value["offsetLength"] = offset_length;
-    json_value["uploadSliceId"] = upload_slice_id;
-    json_value["perSliceSize"] = per_slice_size;
-    json_value["resumePolicy"] = resume_policy;
-    json_value["opertype"] = oper_type;
-    json_value["isLog"] = is_log;
-    uploader_json_str = Json::writeString(wbuilder, json_value);
-  } while (false);
-  return uploader_json_str;
+  Json::Value json_value;
+
+  json_value["localPath"] = local_path;
+  json_value["md5"] = md5;
+  json_value["uploadFileId"] = last_upload_id;
+  json_value["parentFolderId"] = parent_folder_id;
+  json_value["startOffset"] = start_offset;
+  json_value["offsetLength"] = offset_length;
+  json_value["uploadSliceId"] = upload_slice_id;
+  json_value["perSliceSize"] = per_slice_size;
+  json_value["resumePolicy"] = resume_policy;
+  json_value["opertype"] = oper_type;
+  json_value["isLog"] = is_log;
+  return restful_common::jsoncpp_helper::WriterHelper(json_value);
 }
-}  // namespace RestfulSlice
+}  // namespace Restful
 }  // namespace Cloud189
