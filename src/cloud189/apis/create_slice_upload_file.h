@@ -21,7 +21,7 @@ namespace CreateSliceUploadFile {
 //
 // localPath, [string],
 // [表明源文件的本地全路径，外部传入用于解析fileName和size]
-// parentFolderId,[int64_t],
+// parentFolderId,[string],
 // [表明父文件夹Id]
 // md5, [string],
 // [表明上传文件的md5]
@@ -34,7 +34,7 @@ namespace CreateSliceUploadFile {
 // 1-遇到相同文件名(只检查文件名)，执行重命名操作。
 // 3-遇到相同文件名（只检查文件名），执行覆盖原文件]
 std::string JsonStringHelper(const std::string& localPath,
-                             const int64_t parentFolderId,
+                             const std::string& parentFolderId,
                              const std::string& md5, const int32_t isLog,
                              const int32_t opertype);
 
@@ -62,8 +62,8 @@ std::string JsonStringHelper(const std::string& localPath,
 //
 // 需要放到body中的参数：
 //
-// parentFolderId,[int64_t],
-// [从json字符串中作为int64_t解析,表明父文件夹Id]
+// parentFolderId,[string],
+// [从json字符串中作为string解析,表明父文件夹Id]
 // fileName, [string],
 // [json字符串不用传，从json字符串中的local_path中提取，表明创建的上传文件名称]
 // md5, [string],

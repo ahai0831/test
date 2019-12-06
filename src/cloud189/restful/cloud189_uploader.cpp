@@ -23,6 +23,8 @@ using assistant::tools::lockfree_string_closure;
 using httpbusiness::uploader::proof::stage_result;
 using httpbusiness::uploader::proof::uploader_proof;
 using httpbusiness::uploader::proof::uploader_stage;
+using restful_common::jsoncpp_helper::ReaderHelper;
+using restful_common::jsoncpp_helper::WriterHelper;
 using rx_assistant::HttpResult;
 // using rx_assistant::rx_assistant_factory;
 // using rx_assistant::md5::md5_async_factory;
@@ -73,8 +75,8 @@ struct uploader_thread_data {
   /// const的数据成员，必须在构造函数中进行显式的初始化
   const std::string local_filepath;
   const std::string last_md5;
-  const int64_t last_upload_id;
-  const int64_t parent_folder_id;
+  const std::string last_upload_id;
+  const std::string parent_folder_id;
   const int64_t start_offset;
   const int64_t offset_length;
   const int32_t oper_type;
@@ -82,8 +84,8 @@ struct uploader_thread_data {
   /// 禁用移动复制默认构造和=号操作符，必须通过显式指定所有必须字段进行初始化
   uploader_thread_data(const std::string& file_path,
                        const std::string& last_trans_md5,
-                       const int64_t& last_trans_upload_id,
-                       const int64_t& parent_folder_id_,
+                       const std::string& last_trans_upload_id,
+                       const std::string& parent_folder_id_,
                        const int64_t& start_offset_,
                        const int64_t& offset_length_, const int32_t& oper_type_,
                        const int32_t& is_log_)
@@ -97,10 +99,21 @@ struct uploader_thread_data {
         is_log(is_log_) {}
   /// 线程安全的数据成员
   lockfree_string_closure<std::string> file_md5;
+  lockfree_string_closure<std::string> upload_file_id;
   lockfree_string_closure<std::string> file_upload_url;
   lockfree_string_closure<std::string> file_commit_url;
-  std::atomic<int64_t> upload_id;
-  std::atomic<int64_t> upload_bytes;
+  std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
+  std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
+  /// 以下为确认文件上传完成后解析到的字段
+  lockfree_string_closure<std::string> commit_id;
+  lockfree_string_closure<std::string> commit_name;
+  lockfree_string_closure<std::string> commit_size;
+  lockfree_string_closure<std::string> commit_md5;
+  lockfree_string_closure<std::string> commit_create_date;
+  lockfree_string_closure<std::string> commit_rev;
+  lockfree_string_closure<std::string> commit_user_id;
+  lockfree_string_closure<std::string> commit_request_id;
+  lockfree_string_closure<std::string> commit_is_safe;
 
  private:
   uploader_thread_data() = delete;
@@ -124,8 +137,8 @@ std::shared_ptr<details::uploader_thread_data> InitThreadData(
   /// 改为jsoncpp_helper内的工具函数进行解析
   const auto& local_filepath = GetString(json_value["localPath"]);
   const auto& last_md5 = GetString(json_value["md5"]);
-  const auto last_upload_id = GetInt64(json_value["uploadFileId"]);
-  const auto parent_folder_id = GetInt64(json_value["parentFolderId"]);
+  const auto& last_upload_id = GetString(json_value["uploadFileId"]);
+  const auto& parent_folder_id = GetString(json_value["parentFolderId"]);
   const auto start_offset = GetInt64(json_value["startOffset"]);
   const auto offset_length = GetInt64(json_value["offsetLength"]);
   const auto oper_type = GetInt(json_value["opertype"]);
@@ -207,9 +220,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         break;
       }
       HttpRequest create_upload_request("");
-      const std::string& file_path = thread_data->local_filepath;
+      const std::string file_path = thread_data->local_filepath;
       const std::string file_md5 = thread_data->file_md5.load();
-      const int64_t parent_folder_id = thread_data->parent_folder_id;
+      const std::string parent_folder_id = thread_data->parent_folder_id;
       const int32_t oper_type = thread_data->oper_type;
       const int32_t is_log = thread_data->is_log;
       const std::string create_upload_json_str =
@@ -223,11 +236,12 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 
       /// 提供根据HttpResponse解析得到结果的json字符串
       std::function<std::string(HttpResult&)> solve_create_upload =
-          [](HttpResult& create_upload_httpResult) -> std::string {
-        std::string result;
+          [](HttpResult& create_upload_http_result) -> std::string {
+        std::string decode_result;
         Cloud189::Apis::CreateUploadFile::HttpResponseDecode(
-            create_upload_httpResult.res, create_upload_httpResult.req, result);
-        return result;
+            create_upload_http_result.res, create_upload_http_result.req,
+            decode_result);
+        return decode_result;
       };
 
       /// 提供根据结果的json字符串得到proof的lambda表达式
@@ -247,70 +261,58 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             break;
           }
           Json::Value json_value;
-          Json::CharReaderBuilder reader_builder;
-          Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-          std::unique_ptr<Json::CharReader> const reader(
-              reader_builder.newCharReader());
-          if (nullptr == reader) {
+          if (!restful_common::jsoncpp_helper::ReaderHelper(
+                  create_upload_result, json_value)) {
             break;
           }
-          if (!reader->parse(
-                  create_upload_result.c_str(),
-                  create_upload_result.c_str() + create_upload_result.size(),
-                  &json_value, nullptr)) {
-            break;
-          }
-          // 				  if (nullptr == thread_data) {
-          // 					  break;
-          // 				  }
           const auto is_success =
               restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
           const auto file_data_exists = restful_common::jsoncpp_helper::GetBool(
               json_value["fileDataExists"]);
           if (is_success) {
-            /// TODO: 保存此续传记录的fileUploadUrl、fileCommitUrl和uploadFileId
-            // 			  thread_data->file_upload_url.store(
-            // 				  json_value["fileUploadUrl"].asString());
-            // 			  thread_data->file_commit_url.store(
-            // 				  json_value["fileCommitUrl"].asString());
+            thread_data->upload_file_id.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["uploadFileId"]));
+            thread_data->file_upload_url.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["fileUploadUrl"]));
+            thread_data->file_commit_url.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["fileCommitUrl"]));
           }
           if (is_success && file_data_exists) {
             /// 成功且文件可秒传
             create_upload_proof.result = stage_result::Succeeded;
             create_upload_proof.next_stage = uploader_stage::FileCommit;
-            /// TODO: 加上对URL的处理
             break;
           }
           if (is_success) {
-            /// 成功且文件不存在
+            /// 成功且文件不可秒传
             create_upload_proof.result = stage_result::Succeeded;
             create_upload_proof.next_stage = uploader_stage::CheckUpload;
-            /// TODO: 加上对URL的处理
             break;
           }
           const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
               json_value["int32ErrorCode"]);
-          ////
-          ///最坏的失败，是无需重试的，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
-          if (4 == (http_statuc_code / 100)) {
+          /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
+          if (4 == (http_statuc_code / 100) &&
+              (int32_error_code == ErrorCode::nderr_sessionbreak ||
+               int32_error_code == ErrorCode::nderr_session_expired ||
+               int32_error_code == ErrorCode::nderr_no_diskspace)) {
             create_upload_proof.result = stage_result::GiveupRetry;
             create_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
           }
-
-          /// 初次以外，均应按照指数增幅进行重试
+          /// 除此以外，均应按照指数增幅进行重试
           /// 什么也不用做，默认的result即是stage_result::RetrySelf
-
         } while (false);
         return create_upload_proof;
       };
-
       /// 生成数据源成功，保存到result
       result = obs.map(solve_create_upload).map(get_create_upload_result);
     } while (false);
-
     return result;
   };
   /// create_upload end.
@@ -321,99 +323,117 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
   httpbusiness::uploader::proof::ProofObsCallback check_upload;
   check_upload =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
-    HttpRequest check_upload_request("");
-    auto thread_data = thread_data_weak.lock();
-    /// 线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
-    int64_t upload_id =
-        nullptr != thread_data ? thread_data->last_upload_id : int64_t();
-    std::string json_str =
-        Cloud189::Apis::GetUploadFileStatus::JsonStringHelper(upload_id);
-    /// Encode
-    Cloud189::Apis::GetUploadFileStatus::HttpRequestEncode(
-        json_str, check_upload_request);
+    /// 初始化请求失败，应如此返回
+    rxcpp::observable<uploader_proof> result = rxcpp::observable<>::just(
+        uploader_proof{uploader_stage::CheckUpload, stage_result::GiveupRetry,
+                       uploader_stage::UploadFinal, 0, 0});
+    do {
+      auto thread_data = thread_data_weak.lock();
+      if (nullptr == thread_data) {
+        break;
+      }
+      HttpRequest check_upload_request("");
+      /// 线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
+      const std::string upload_id = thread_data->upload_file_id.load();
+      const std::string check_upload_json_str =
+          Cloud189::Apis::GetUploadFileStatus::JsonStringHelper(upload_id);
+      /// HttpRequestEncode
+      Cloud189::Apis::GetUploadFileStatus::HttpRequestEncode(
+          check_upload_json_str, check_upload_request);
+      /// 使用rx_assistant::rx_httpresult::create 创建数据源，下同
+      auto obs = rx_assistant::rx_httpresult::create(check_upload_request);
 
-    auto obs = rx_assistant::rx_httpresult::create(check_upload_request);
+      /// 提供根据HttpResponse解析得到结果的json字符串
+      std::function<std::string(HttpResult&)> solve_check_upload =
+          [](HttpResult& check_upload_http_result) -> std::string {
+        std::string decode_result;
+        Cloud189::Apis::GetUploadFileStatus::HttpResponseDecode(
+            check_upload_http_result.res, check_upload_http_result.req,
+            decode_result);
+        return decode_result;
+      };
 
-    /// 提供根据HttpResponse解析得到结果的json字符串
-    std::function<std::string(HttpResult&)> solve_check_upload =
-        [](HttpResult& check_upload_httpResult) -> std::string {
-      std::string result;
-      Cloud189::Apis::GetUploadFileStatus::HttpResponseDecode(
-          check_upload_httpResult.res, check_upload_httpResult.req, result);
-      return result;
-    };
-
-    /// 提供根据结果的json字符串得到proof的lambda表达式
-    std::function<uploader_proof(const std::string&)> get_check_upload_result =
-        [](const std::string& check_upload_result) -> uploader_proof {
-      auto check_upload_proof =
-          uploader_proof{uploader_stage::CheckUpload, stage_result::GiveupRetry,
-                         uploader_stage::UploadFinal, 0, 0};
-      Json::Value json_value;
-      do {
-        if (check_upload_result.empty()) {
-          break;
-        }
-        Json::CharReaderBuilder reader_builder;
-        Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-        std::unique_ptr<Json::CharReader> const reader(
-            reader_builder.newCharReader());
-        if (nullptr == reader) {
-          break;
-        }
-        if (!reader->parse(
-                check_upload_result.c_str(),
-                check_upload_result.c_str() + check_upload_result.size(),
-                &json_value, nullptr)) {
-          break;
-        }
-        if (json_value["isSuccess"].asBool()) {
-          if (json_value["fileDataExists"].asBool()) {
-            /// 成功且文件存在
+      /// 提供根据结果的json字符串得到proof的lambda表达式
+      std::function<uploader_proof(const std::string&)>
+          get_check_upload_result =
+              [thread_data_weak](
+                  const std::string& check_upload_result) -> uploader_proof {
+        auto check_upload_proof =
+            uploader_proof{uploader_stage::CheckUpload, stage_result::RetrySelf,
+                           uploader_stage::CheckUpload, 0, 0};
+        do {
+          if (check_upload_result.empty()) {
+            break;
+          }
+          auto thread_data = thread_data_weak.lock();
+          if (nullptr == thread_data) {
+            break;
+          }
+          Json::Value json_value;
+          if (!restful_common::jsoncpp_helper::ReaderHelper(check_upload_result,
+                                                            json_value)) {
+            break;
+          }
+          const auto is_success =
+              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
+          const auto file_data_exists = restful_common::jsoncpp_helper::GetBool(
+              json_value["fileDataExists"]);
+          if (is_success) {
+            thread_data->upload_file_id.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["uploadFileId"]));
+            thread_data->file_upload_url.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["fileUploadUrl"]));
+            thread_data->file_commit_url.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["fileCommitUrl"]));
+            thread_data->already_upload_bytes.store(
+                restful_common::jsoncpp_helper::GetInt64(json_value["size"]));
+          }
+          if (is_success && file_data_exists) {
+            /// 成功且文件可秒传
             check_upload_proof.result = stage_result::Succeeded;
             check_upload_proof.next_stage = uploader_stage::FileCommit;
             break;
-          } else {
-            /// 成功且文件不存在
+          }
+          if (is_success) {
+            /// 成功且文件不可秒传
             check_upload_proof.result = stage_result::Succeeded;
             check_upload_proof.next_stage = uploader_stage::FileUplaod;
             break;
           }
-        }
-        auto http_statuc_code = json_value["httpStatusCode"].asInt();
-        auto int32_error_code = json_value["int32ErrorCode"].asInt();
-        if (4 == (http_statuc_code / 100) &&
-            (int32_error_code == ErrorCode::nderr_infosecurityerrorcode ||
-             int32_error_code == ErrorCode::nderr_permission_denied)) {
-          /// 4XX 权限不足或信安相关错误重试一次
-          check_upload_proof.result = stage_result::RetrySelf;
-          check_upload_proof.next_stage = uploader_stage::CheckUpload;
-        }
-        if ((5 == (http_statuc_code / 100))) {
-          /// 5XX 按重试规则重试
-          check_upload_proof.result = stage_result::RetrySelf;
-          check_upload_proof.next_stage = uploader_stage::CheckUpload;
-          break;
-        }
-        if (601 == http_statuc_code) {
-          /// 601 按重试规则重试
-          check_upload_proof.result = stage_result::RetrySelf;
-          check_upload_proof.next_stage = uploader_stage::CheckUpload;
+          const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
+              json_value["httpStatusCode"]);
+          const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
+              json_value["int32ErrorCode"]);
+
+          /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
+          if (4 == (http_statuc_code / 100) &&
+              (int32_error_code == ErrorCode::nderr_sessionbreak ||
+               int32_error_code == ErrorCode::nderr_session_expired ||
+               int32_error_code == ErrorCode::nderr_no_diskspace)) {
+            check_upload_proof.result = stage_result::GiveupRetry;
+            check_upload_proof.next_stage = uploader_stage::UploadFinal;
+            break;
+          }
+          if (602 == http_statuc_code) {
+            /// 602 特定错误，需要重新创建续传
+            check_upload_proof.result = stage_result::RetryTargetStage;
+            check_upload_proof.next_stage = uploader_stage::CreateUpload;
+            break;
+          }
+          /// 除此以外，均应按照指数增幅进行重试，并记录suggest_waittime
+          /// 默认的result即是stage_result::RetrySelf
           check_upload_proof.suggest_waittime =
-              json_value["waitingTime"].asInt();
-          break;
-        }
-        if (602 == http_statuc_code) {
-          /// 602 重新创建续传
-          check_upload_proof.result = stage_result::RetryTargetStage;
-          check_upload_proof.next_stage = uploader_stage::CreateUpload;
-          break;
-        }
-      } while (false);
-      check_upload_proof.transfered_length = json_value["size"].asInt64();
-      return check_upload_proof;
-    };
-    return obs.map(solve_check_upload).map(get_check_upload_result);
+              restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
+        } while (false);
+        return check_upload_proof;
+      };
+      /// 生成数据源成功，保存到result
+      result = obs.map(solve_check_upload).map(get_check_upload_result);
+    } while (false);
+    return result;
   };
   /// check_upload end.
   //////////////////////////////////////////////////////////////////////////
@@ -423,86 +443,89 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
   httpbusiness::uploader::proof::ProofObsCallback file_upload;
   file_upload =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
-    HttpRequest file_upload_request("");
-    auto thread_data = thread_data_weak.lock();
-    /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
-    std::string file_path =
-        nullptr != thread_data ? thread_data->local_filepath : std::string();
-    int64_t upload_id =
-        nullptr != thread_data ? thread_data->last_upload_id : int64_t();
-    int64_t start_offset =
-        nullptr != thread_data ? thread_data->start_offset : int64_t();
-    int64_t offset_length =
-        nullptr != thread_data ? thread_data->offset_length : int64_t();
-    std::string file_upload_url = nullptr != thread_data
-                                      ? thread_data->file_upload_url.load()
-                                      : std::string();
-    std::string json_str = Cloud189::Apis::UploadFileData::JsonStringHelper(
-        file_upload_url, file_path, upload_id, start_offset, offset_length);
-    /// Encode
-    Cloud189::Apis::UploadFileData::HttpRequestEncode(json_str,
-                                                      file_upload_request);
-    file_upload_request.retval_func = [thread_data_weak](uint64_t value) {
-      do {
-        auto thread_data = thread_data_weak.lock();
-        if (nullptr == thread_data) {
-          break;
-        }
-        thread_data->upload_bytes += value;
-      } while (false);
-    };
-
-    auto obs = rx_assistant::rx_httpresult::create(file_upload_request);
-
-    /// 需提供根据HttpResponse解析得到结果的json字符串
-    std::function<std::string(HttpResult&)> solve_file_uplaod =
-        [](HttpResult& file_upload_httpResult) -> std::string {
-      std::string result;
-      Cloud189::Apis::UploadFileData::HttpResponseDecode(
-          file_upload_httpResult.res, file_upload_httpResult.req, result);
-      return result;
-    };
-
-    /// 提供根据结果的json字符串得到proof的lambda表达式
-    std::function<uploader_proof(const std::string&)> get_file_uplaod_result =
-        [thread_data_weak](
-            const std::string& file_upload_result) -> uploader_proof {
+    /// 初始化请求失败，应如此返回
+    rxcpp::observable<uploader_proof> result = rxcpp::observable<>::just(
+        uploader_proof{uploader_stage::FileUplaod, stage_result::GiveupRetry,
+                       uploader_stage::UploadFinal, 0, 0});
+    do {
       auto thread_data = thread_data_weak.lock();
-      int64_t upload_bytes =
-          nullptr != thread_data ? thread_data->upload_bytes.load() : int64_t();
-      auto file_uplaod_proof = uploader_proof{
-          uploader_stage::FileUplaod, stage_result::RetryTargetStage,
-          uploader_stage::CheckUpload, 0, upload_bytes};
-      Json::Value json_value;
-      do {
-        if (file_upload_result.empty()) {
-          break;
-        }
-        Json::CharReaderBuilder reader_builder;
-        Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-        std::unique_ptr<Json::CharReader> const reader(
-            reader_builder.newCharReader());
-        if (nullptr == reader) {
-          break;
-        }
-        if (!reader->parse(
-                file_upload_result.c_str(),
-                file_upload_result.c_str() + file_upload_result.size(),
-                &json_value, nullptr)) {
-          break;
-        }
-        if (json_value["isSuccess"].asBool()) {
-          /// 成功
-          file_uplaod_proof.result = stage_result::Succeeded;
-          file_uplaod_proof.next_stage = uploader_stage::FileCommit;
-          break;
-        }
-      } while (false);
-      // 除上述情况外的一切情况，提交失败应前往CheckUpload
-      file_uplaod_proof.transfered_length += upload_bytes;
-      return file_uplaod_proof;
-    };
-    return obs.map(solve_file_uplaod).map(get_file_uplaod_result);
+      if (nullptr == thread_data) {
+        break;
+      }
+      HttpRequest file_upload_request("");
+      /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
+      const std::string file_path = thread_data->local_filepath;
+      const std::string upload_id = thread_data->upload_file_id.load();
+      const int64_t start_offset = thread_data->start_offset;
+      const int64_t offset_length = thread_data->offset_length;
+      const std::string file_upload_url = thread_data->file_upload_url.load();
+      std::string file_upload_json_str =
+          Cloud189::Apis::UploadFileData::JsonStringHelper(
+              file_upload_url, file_path, upload_id, start_offset,
+              offset_length);
+      /// HttpRequestEncode
+      Cloud189::Apis::UploadFileData::HttpRequestEncode(file_upload_json_str,
+                                                        file_upload_request);
+      file_upload_request.retval_func = [thread_data_weak](uint64_t value) {
+        do {
+          auto thread_data = thread_data_weak.lock();
+          if (nullptr == thread_data) {
+            break;
+          }
+          thread_data->current_upload_bytes.store(value);
+        } while (false);
+      };
+      /// 使用rx_assistant::rx_httpresult::create 创建数据源，下同
+      auto obs = rx_assistant::rx_httpresult::create(file_upload_request);
+
+      std::function<std::string(HttpResult&)> solve_file_uplaod =
+          [](HttpResult& file_upload_http_result) -> std::string {
+        std::string decode_result;
+        Cloud189::Apis::UploadFileData::HttpResponseDecode(
+            file_upload_http_result.res, file_upload_http_result.req,
+            decode_result);
+        return decode_result;
+      };
+
+      /// 提供根据结果的json字符串得到proof的lambda表达式
+      std::function<uploader_proof(const std::string&)> get_file_uplaod_result =
+          [thread_data_weak](
+              const std::string& file_upload_result) -> uploader_proof {
+        auto file_uplaod_proof = uploader_proof{
+            uploader_stage::FileUplaod, stage_result::RetryTargetStage,
+            uploader_stage::CheckUpload, 0, 0};
+        do {
+          if (file_upload_result.empty()) {
+            break;
+          }
+          auto thread_data = thread_data_weak.lock();
+          if (nullptr == thread_data) {
+            break;
+          }
+          Json::Value json_value;
+          if (!restful_common::jsoncpp_helper::ReaderHelper(file_upload_result,
+                                                            json_value)) {
+            break;
+          }
+          const auto is_success =
+              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
+          file_uplaod_proof.transfered_length =
+              thread_data->current_upload_bytes.load();
+          if (is_success) {
+            /// 成功
+            file_uplaod_proof.result = stage_result::Succeeded;
+            file_uplaod_proof.next_stage = uploader_stage::FileCommit;
+            break;
+          }
+          file_uplaod_proof.suggest_waittime =
+              restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
+        } while (false);
+        // 除上述情况外的一切情况，提交失败应前往CheckUpload
+        return file_uplaod_proof;
+      };
+      result = obs.map(solve_file_uplaod).map(get_file_uplaod_result);
+    } while (false);
+    return result;
   };
   /// file uplaod end.
   //////////////////////////////////////////////////////////////////////////
@@ -512,85 +535,118 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
   httpbusiness::uploader::proof::ProofObsCallback file_commit;
   file_commit =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
-    HttpRequest file_commit_request("");
-    /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
-    auto thread_data = thread_data_weak.lock();
-    int64_t upload_id =
-        nullptr != thread_data ? thread_data->last_upload_id : int64_t();
-    int32_t oper_type =
-        nullptr != thread_data ? thread_data->oper_type : int32_t();
-    int32_t is_log = nullptr != thread_data ? thread_data->is_log : int32_t();
-    std::string file_commit_url = nullptr != thread_data
-                                      ? thread_data->file_commit_url.load()
-                                      : std::string();
-    std::string json_str =
-        Cloud189::Apis::ComfirmUploadFileComplete::JsonStringHelper(
-            file_commit_url, upload_id, oper_type, is_log);
-    /// Encode
-    Cloud189::Apis::ComfirmUploadFileComplete::HttpRequestEncode(
-        json_str, file_commit_request);
+    /// 初始化请求失败，应如此返回
+    rxcpp::observable<uploader_proof> result = rxcpp::observable<>::just(
+        uploader_proof{uploader_stage::FileCommit, stage_result::GiveupRetry,
+                       uploader_stage::UploadFinal, 0, 0});
+    do {
+      auto thread_data = thread_data_weak.lock();
+      if (nullptr == thread_data) {
+        break;
+      }
+      HttpRequest file_commit_request("");
+      /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
+      const std::string upload_id = thread_data->last_upload_id;
+      const int32_t oper_type = thread_data->oper_type;
+      const int32_t is_log = thread_data->is_log;
+      const std::string file_commit_url = thread_data->file_commit_url.load();
+      std::string file_commit_json_str =
+          Cloud189::Apis::ComfirmUploadFileComplete::JsonStringHelper(
+              file_commit_url, upload_id, oper_type, is_log);
+      /// HttpRequestEncode
+      Cloud189::Apis::ComfirmUploadFileComplete::HttpRequestEncode(
+          file_commit_json_str, file_commit_request);
+      /// 使用rx_assistant::rx_httpresult::create 创建数据源
+      auto obs = rx_assistant::rx_httpresult::create(file_commit_request);
 
-    auto obs = rx_assistant::rx_httpresult::create(file_commit_request);
-
-    /// 提供根据HttpResponse解析得到结果的json字符串
-    std::function<std::string(HttpResult&)> solve_file_commit =
-        [](HttpResult& file_commit_httpResult) -> std::string {
-      std::string result;
-      Cloud189::Apis::ComfirmUploadFileComplete::HttpResponseDecode(
-          file_commit_httpResult.res, file_commit_httpResult.req, result);
-      return result;
-    };
-
-    /// 提供根据结果的json字符串得到proof的lambda表达式
-    std::function<uploader_proof(const std::string&)> get_file_commit_result =
-        [](const std::string& file_commit_result) -> uploader_proof {
-      auto file_commit_proof = uploader_proof{
-          uploader_stage::FileCommit, stage_result::RetryTargetStage,
-          uploader_stage::CheckUpload, 0, 0};
-      Json::Value json_value;
-      do {
-        if (file_commit_result.empty()) {
-          break;
-        }
-        Json::CharReaderBuilder reader_builder;
-        Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-        std::unique_ptr<Json::CharReader> const reader(
-            reader_builder.newCharReader());
-        if (nullptr == reader) {
-          break;
-        }
-        if (!reader->parse(
-                file_commit_result.c_str(),
-                file_commit_result.c_str() + file_commit_result.size(),
-                &json_value, nullptr)) {
-          break;
-        }
-        if (json_value["isSuccess"].asBool()) {
-          /// 成功
-          file_commit_proof.result = stage_result::Succeeded;
-          file_commit_proof.next_stage = uploader_stage::UploadFinal;
-          break;
-        }
-        auto http_statuc_code = json_value["httpStatusCode"].asInt();
-        auto int32_error_code = json_value["int32ErrorCode"].asInt();
-        if (4 == (http_statuc_code / 100) &&
-            (int32_error_code == ErrorCode::nderr_userdayflowoverlimited ||
-             int32_error_code == ErrorCode::nderr_no_diskspace ||
-             int32_error_code == ErrorCode::nderr_over_filesize_error ||
-             int32_error_code == ErrorCode::nderr_invalid_parent_folder ||
-             int32_error_code ==
-                 ErrorCode::nderr_errordownloadfileinvalidsessionkey)) {
-          /// 4XX 以上错误不重试直接结束
-          file_commit_proof.result = stage_result::GiveupRetry;
-          file_commit_proof.next_stage = uploader_stage::UploadFinal;
-          break;
-        }
+      std::function<std::string(HttpResult&)> solve_file_commit =
+          [](HttpResult& file_commit_http_result) -> std::string {
+        std::string decode_result;
+        Cloud189::Apis::ComfirmUploadFileComplete::HttpResponseDecode(
+            file_commit_http_result.res, file_commit_http_result.req,
+            decode_result);
+        return decode_result;
+      };
+      /// 提供根据结果的json字符串得到proof的lambda表达式
+      std::function<uploader_proof(const std::string&)> get_file_commit_result =
+          [thread_data_weak](
+              const std::string& file_commit_result) -> uploader_proof {
+        auto file_commit_proof = uploader_proof{
+            uploader_stage::FileCommit, stage_result::RetryTargetStage,
+            uploader_stage::CheckUpload, 0, 0};
+        do {
+          if (file_commit_result.empty()) {
+            break;
+          }
+          auto thread_data = thread_data_weak.lock();
+          if (nullptr == thread_data) {
+            break;
+          }
+          Json::Value json_value;
+          if (!restful_common::jsoncpp_helper::ReaderHelper(file_commit_result,
+                                                            json_value)) {
+            break;
+          }
+          const auto is_success =
+              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
+          if (is_success) {
+            /// 确认文件上传完成后解析到的字段
+            thread_data->commit_id.store(
+                restful_common::jsoncpp_helper::GetString(json_value["id"]));
+            thread_data->commit_name.store(
+                restful_common::jsoncpp_helper::GetString(json_value["name"]));
+            thread_data->commit_size.store(
+                restful_common::jsoncpp_helper::GetString(json_value["size"]));
+            thread_data->commit_md5.store(
+                restful_common::jsoncpp_helper::GetString(json_value["md5"]));
+            thread_data->commit_create_date.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["createDate"]));
+            thread_data->commit_rev.store(
+                restful_common::jsoncpp_helper::GetString(json_value["rev"]));
+            thread_data->commit_user_id.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["userId"]));
+            thread_data->commit_request_id.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["requestId"]));
+            thread_data->commit_is_safe.store(
+                restful_common::jsoncpp_helper::GetString(
+                    json_value["isSafe"]));
+          }
+          if (is_success) {
+            file_commit_proof.result = stage_result::Succeeded;
+            file_commit_proof.next_stage = uploader_stage::UploadFinal;
+            break;
+          }
+          const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
+              json_value["httpStatusCode"]);
+          const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
+              json_value["int32ErrorCode"]);
+          /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
+          if (4 == (http_statuc_code / 100) &&
+              (int32_error_code == ErrorCode::nderr_sessionbreak ||
+               int32_error_code == ErrorCode::nderr_session_expired ||
+               int32_error_code == ErrorCode::nderr_no_diskspace ||
+               int32_error_code == ErrorCode::nderr_userdayflowoverlimited ||
+               int32_error_code == ErrorCode::nderr_no_diskspace ||
+               int32_error_code == ErrorCode::nderr_over_filesize_error ||
+               int32_error_code == ErrorCode::nderr_invalid_parent_folder)) {
+            file_commit_proof.result = stage_result::GiveupRetry;
+            file_commit_proof.next_stage = uploader_stage::UploadFinal;
+            break;
+          }
+          file_commit_proof.suggest_waittime =
+              restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
+        } while (false);
         // 除上述情况外的一切情况，提交失败应前往CheckUpload
-      } while (false);
-      return file_commit_proof;
-    };
-    return obs.map(solve_file_commit).map(get_file_commit_result);
+        return file_commit_proof;
+      };
+      result = obs.map(solve_file_commit).map(get_file_commit_result);
+    } while (false);
+    return result;
   };
+
   /// file uplaod end.
   //////////////////////////////////////////////////////////////////////////
   return httpbusiness::uploader::proof::proof_obs_packages{
@@ -615,28 +671,26 @@ Uploader::~Uploader() = default;
 
 /// 为此Uploader提供一个Helper函数，用于生成合规的json字符串
 std::string uploader_info_helper(
-    const std::string& local_path, const std::string& md5,
-    const int64_t last_upload_id, const int64_t parent_folder_id,
+    const std::string& local_path, const std::string& last_md5,
+    const std::string& last_upload_id, const std::string& parent_folder_id,
     const int64_t start_offset, const int64_t offset_length,
     const int32_t oper_type, const int32_t is_log) {
-  std::string uploader_json_str = "";
-  do {
-    if (local_path.empty() || md5.empty()) {
-      break;
-    }
-    Json::Value json_value;
-    json_value["localPath"] = local_path;
-    json_value["md5"] = md5;
-    json_value["uploadFileId"] = last_upload_id;
-    json_value["parentFolderId"] = parent_folder_id;
-    json_value["startOffset"] = start_offset;
-    json_value["offsetLength"] = offset_length;
-    json_value["opertype"] = oper_type;
-    json_value["isLog"] = is_log;
+  Json::Value json_value;
 
-    uploader_json_str = WriterHelper(json_value);
-  } while (false);
-  return uploader_json_str;
+  if (local_path.empty() || last_md5.empty() || last_upload_id.empty() ||
+      parent_folder_id.empty()) {
+    //   break;
+  }
+  json_value["localPath"] = local_path;
+  json_value["last_md5"] = last_md5;
+  json_value["uploadFileId"] = last_upload_id;
+  json_value["parentFolderId"] = parent_folder_id;
+  json_value["startOffset"] = start_offset;
+  json_value["offsetLength"] = offset_length;
+  json_value["opertype"] = oper_type;
+  json_value["isLog"] = is_log;
+
+  return WriterHelper(json_value);
 }
 }  // namespace Restful
 }  // namespace Cloud189

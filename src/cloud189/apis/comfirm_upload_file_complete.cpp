@@ -42,17 +42,17 @@ namespace ComfirmUploadFileComplete {
 
 // 用于构建一个json字符串，包含创建文件上传需要的参数
 std::string JsonStringHelper(const std::string& fileCommitUrl,
-                             const int64_t uploadFileId, const int32_t opertype,
-                             const int32_t isLog) {
+                             const std::string& uploadFileId,
+                             const int32_t opertype, const int32_t isLog) {
   std::string json_str = "";
   do {
-    if (fileCommitUrl.empty()) {
+    if (fileCommitUrl.empty() || uploadFileId.empty()) {
       break;
     }
     json_str = assistant::tools::string::StringFormat(
-        "{\"fileCommitUrl\" :\"%s\",\"uploadFileId\" : %" PRId64
-        ",\"opertype\" : %d,\"isLog\" : %d}",
-        fileCommitUrl.c_str(), uploadFileId, opertype, isLog);
+        "{\"fileCommitUrl\" :\"%s\",\"uploadFileId\" : %s\",\"opertype\" : "
+        "%d,\"isLog\" : %d}",
+        fileCommitUrl.c_str(), uploadFileId.c_str(), opertype, isLog);
   } while (false);
   return json_str;
 }
@@ -61,26 +61,14 @@ bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request) {
   bool is_ok = false;
   do {
-    if (params_json.empty()) {
-      break;
-    }
     Json::Value json_str;
-    Json::CharReaderBuilder reader_builder;
-    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(
-        reader_builder.newCharReader());
-    if (nullptr == reader) {
-      break;
-    }
-    if (!reader->parse(params_json.c_str(),
-                       params_json.c_str() + params_json.size(), &json_str,
-                       nullptr)) {
+    if (!restful_common::jsoncpp_helper::ReaderHelper(params_json, json_str)) {
       break;
     }
     std::string fileCommitUrl =
         restful_common::jsoncpp_helper::GetString(json_str["fileCommitUrl"]);
-    int64_t uploadFileId =
-        restful_common::jsoncpp_helper::GetInt64(json_str["uploadFileId"]);
+    std::string uploadFileId =
+        restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"]);
     int32_t opertype =
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
     int32_t isLog = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
@@ -105,16 +93,13 @@ bool HttpRequestEncode(const std::string& params_json,
 
     // set body
     request.body = assistant::tools::string::StringFormat(
-        "uploadFileId=%" PRId64
-        ""
+        "uploadFileId=%s"
         "&opertype=%d"
         "&isLog=%d"
         "&ResumePolicy=%d",
-        uploadFileId, opertype, isLog, GetResumePolicy());
-
+        uploadFileId.c_str(), opertype, isLog, GetResumePolicy());
     is_ok = true;
   } while (false);
-
   return is_ok;
 }
 
@@ -123,8 +108,6 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
                         std::string& response_info) {
   bool is_success = false;
   Json::Value result_json;
-  Json::StreamWriterBuilder wbuilder;
-  wbuilder.settings_["indentation"] = "";
   pugi::xml_document result_xml;
   auto http_status_code = response.status_code;
   auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
@@ -140,17 +123,17 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
         break;
       }
       auto upload_file = result_xml.child("file");
-      result_json["id"] = upload_file.child("id").text().as_llong();
+      result_json["id"] = upload_file.child("id").text().as_string();
       result_json["name"] = upload_file.child("name").text().as_string();
-      result_json["size"] = upload_file.child("size").text().as_llong();
+      result_json["size"] = upload_file.child("size").text().as_string();
       result_json["md5"] = upload_file.child("md5").text().as_string();
       result_json["createDate"] =
           upload_file.child("createDate").text().as_string();
       result_json["rev"] = upload_file.child("rev").text().as_string();
-      result_json["userId"] = upload_file.child("userId").text().as_llong();
+      result_json["userId"] = upload_file.child("userId").text().as_string();
       result_json["requestId"] =
           upload_file.child("requestId").text().as_string();
-      result_json["isSafe"] = upload_file.child("isSafe").text().as_int();
+      result_json["isSafe"] = upload_file.child("isSafe").text().as_string();
       response_info = result_json.toStyledString();
     } else if (0 == curl_code && http_status_code / 100 != 2) {
       if (!response.body.empty() &&
@@ -179,7 +162,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   result_json["isSuccess"] = is_success;
   result_json["httpStatusCode"] = http_status_code;
   result_json["curlCode"] = curl_code;
-  response_info = Json::writeString(wbuilder, result_json);
+  response_info = restful_common::jsoncpp_helper::WriterHelper(result_json);
   return is_success;
 }
 

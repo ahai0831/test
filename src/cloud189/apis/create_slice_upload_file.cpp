@@ -47,24 +47,21 @@ namespace CreateSliceUploadFile {
 
 // 用于构建一个json字符串，包含创建分片文件上传需要的参数
 std::string JsonStringHelper(const std::string& localPath,
-                             const int64_t parentFolderId,
+                             const std::string& parentFolderId,
                              const std::string& md5, const int32_t isLog,
                              const int32_t opertype) {
-  std::string json_str = "";
+  Json::Value json_value;
   do {
-    if (localPath.empty() || md5.empty()) {
+    if (localPath.empty() || parentFolderId.empty() || md5.empty()) {
       break;
     }
-    Json::Value json_value;
     json_value["localPath"] = localPath;
     json_value["parentFolderId"] = parentFolderId;
     json_value["md5"] = md5;
     json_value["isLog"] = isLog;
     json_value["opertype"] = opertype;
-    Json::FastWriter json_fastwrite;
-    json_str = json_fastwrite.write(json_value);
   } while (false);
-  return json_str;
+  return restful_common::jsoncpp_helper::WriterHelper(json_value);
 }
 
 // 创建文件上传请求
@@ -72,33 +69,21 @@ bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request) {
   bool is_ok = false;
   do {
-    if (params_json.empty()) {
-      break;
-    }
     Json::Value json_str;
-    Json::CharReaderBuilder reader_builder;
-    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(
-        reader_builder.newCharReader());
-    if (nullptr == reader) {
-      break;
-    }
-    if (!reader->parse(params_json.c_str(),
-                       params_json.c_str() + params_json.size(), &json_str,
-                       nullptr)) {
+    if (!restful_common::jsoncpp_helper::ReaderHelper(params_json, json_str)) {
       break;
     }
     std::string localPath =
         restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
-    int64_t parentFolderId =
-        restful_common::jsoncpp_helper::GetInt64(json_str["parentFolderId"]);
+    std::string parentFolderId =
+        restful_common::jsoncpp_helper::GetString(json_str["parentFolderId"]);
     std::string md5 =
         restful_common::jsoncpp_helper::GetString(json_str["md5"]);
     int32_t isLog = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
     int32_t opertype =
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
 
-    if (localPath.empty() || md5.empty()) {
+    if (localPath.empty() || parentFolderId.empty() || md5.empty()) {
       break;
     }
 
@@ -126,10 +111,10 @@ bool HttpRequestEncode(const std::string& params_json,
     request.url += assistant::tools::string::StringFormat(
         "?parentFolderId=%s&filename=%s&md5=%s&size=%s&sliceSize=%s&isLog=%s&"
         "opertype=%s&clientType=%s&version=%s&channelId=%s&rand=%s",
-        std::to_string(parentFolderId).c_str(), file_name_temp.c_str(),
-        md5.c_str(), std::to_string(size).c_str(),
-        std::to_string(sliceSize).c_str(), std::to_string(isLog).c_str(),
-        std::to_string(opertype).c_str(), GetClientType().c_str(),
+        parentFolderId.c_str(), file_name_temp.c_str(), md5.c_str(),
+        std::to_string(size).c_str(), std::to_string(sliceSize).c_str(),
+        std::to_string(isLog).c_str(), std::to_string(opertype).c_str(),
+        GetClientType().c_str(),
         cloud_base::process_version::GetCurrentProcessVersion().c_str(),
         GetChannelId().c_str(),
         restful_common::rand_helper::GetRandString().c_str());
@@ -138,11 +123,10 @@ bool HttpRequestEncode(const std::string& params_json,
     request.headers.Set("X-Request-ID", assistant::uuid::generate());
     // set body
     request.body = assistant::tools::string::StringFormat(
-        R"({"parentFolderId":%s,"filename":"%s","md5": "%s","size": %s,"sliceSize": %s,"isLog": %s,"opertype": %s})",
-        std::to_string(parentFolderId).c_str(), file_name_temp.c_str(),
-        md5.c_str(), std::to_string(size).c_str(),
-        std::to_string(sliceSize).c_str(), std::to_string(isLog).c_str(),
-        std::to_string(opertype).c_str());
+        R"({"parentFolderId":"%s","filename":"%s","md5": "%s","size": %s,"sliceSize": %s,"isLog": %s,"opertype": %s})",
+        parentFolderId.c_str(), file_name_temp.c_str(), md5.c_str(),
+        std::to_string(size).c_str(), std::to_string(sliceSize).c_str(),
+        std::to_string(isLog).c_str(), std::to_string(opertype).c_str());
     is_ok = true;
   } while (false);
 
@@ -154,8 +138,6 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
                         std::string& response_info) {
   bool is_success = false;
   Json::Value result_json;
-  Json::StreamWriterBuilder wbuilder;
-  wbuilder.settings_["indentation"] = "";
   pugi::xml_document result_xml;
   auto http_status_code = response.status_code;
   auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
@@ -210,7 +192,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   result_json["isSuccess"] = is_success;
   result_json["httpStatusCode"] = http_status_code;
   result_json["curlCode"] = curl_code;
-  response_info = Json::writeString(wbuilder, result_json);
+  response_info = restful_common::jsoncpp_helper::WriterHelper(result_json);
   return is_success;
 }
 

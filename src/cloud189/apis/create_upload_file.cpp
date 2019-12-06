@@ -49,25 +49,22 @@ namespace Apis {
 namespace CreateUploadFile {
 
 // 用于构建一个json字符串，包含创建文件上传需要的参数
-std::string JsonStringHelper(const int64_t parent_folder_id,
+std::string JsonStringHelper(const std::string& parent_folder_id,
                              const std::string& local_path,
                              const std::string& md5, const int32_t oper_type,
                              const int32_t is_log) {
-  std::string json_str = "";
+  Json::Value json_value;
   do {
-    if (local_path.empty() || md5.empty()) {
+    if (parent_folder_id.empty() || local_path.empty() || md5.empty()) {
       break;
     }
-    Json::Value json_value;
     json_value["parentFolderId"] = parent_folder_id;
     json_value["localPath"] = local_path;
     json_value["md5"] = md5;
     json_value["opertype"] = oper_type;
     json_value["isLog"] = is_log;
-    Json::FastWriter json_fastwrite;
-    json_str = json_fastwrite.write(json_value);
   } while (false);
-  return json_str;
+  return restful_common::jsoncpp_helper::WriterHelper(json_value);
 }
 
 // 创建文件上传请求
@@ -75,24 +72,12 @@ bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request) {
   bool is_ok = false;
   do {
-    if (params_json.empty()) {
-      break;
-    }
     Json::Value json_str;
-    Json::CharReaderBuilder reader_builder;
-    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(
-        reader_builder.newCharReader());
-    if (nullptr == reader) {
+    if (!restful_common::jsoncpp_helper::ReaderHelper(params_json, json_str)) {
       break;
     }
-    if (!reader->parse(params_json.c_str(),
-                       params_json.c_str() + params_json.size(), &json_str,
-                       nullptr)) {
-      break;
-    }
-    int64_t parent_folder_id =
-        restful_common::jsoncpp_helper::GetInt64(json_str["parentFolderId"]);
+    std::string parent_folder_id =
+        restful_common::jsoncpp_helper::GetString(json_str["parentFolderId"]);
     std::string local_path =
         restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
     std::string md5 =
@@ -101,7 +86,7 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
     int32_t is_log = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
 
-    if (local_path.empty() || md5.empty()) {
+    if (parent_folder_id.empty() || local_path.empty() || md5.empty()) {
       break;
     }
 
@@ -136,8 +121,7 @@ bool HttpRequestEncode(const std::string& params_json,
     request.headers.Set("X-Request-ID", assistant::uuid::generate());
     // set body
     request.body = assistant::tools::string::StringFormat(
-        "parentFolderId=%" PRId64
-        ""
+        "parentFolderId=%s"
         "&baseFileId="
         "&fileName=%s"
         "&size=%" PRIu64
@@ -150,7 +134,7 @@ bool HttpRequestEncode(const std::string& params_json,
         "&resumePolicy=%d"
         "&isLog=%d"
         "&fileExt=",
-        parent_folder_id,
+        parent_folder_id.c_str(),
         cloud_base::url_encode::http_post_form::url_encode(file_name_temp)
             .c_str(),
         file_size, md5.c_str(), file_last_change.c_str(),
@@ -167,8 +151,6 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
                         std::string& response_info) {
   bool is_success = false;
   Json::Value result_json;
-  Json::StreamWriterBuilder wbuilder;
-  wbuilder.settings_["indentation"] = "";
   pugi::xml_document result_xml;
   auto http_status_code = response.status_code;
   auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
@@ -185,7 +167,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
       }
       auto upload_file = result_xml.child("uploadFile");
       result_json["uploadFileId"] =
-          upload_file.child("uploadFileId").text().as_llong();
+          upload_file.child("uploadFileId").text().as_string();
       result_json["fileUploadUrl"] =
           upload_file.child("fileUploadUrl").text().as_string();
       result_json["fileCommitUrl"] =
@@ -223,7 +205,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   result_json["isSuccess"] = is_success;
   result_json["httpStatusCode"] = http_status_code;
   result_json["curlCode"] = curl_code;
-  response_info = Json::writeString(wbuilder, result_json);
+  response_info = restful_common::jsoncpp_helper::WriterHelper(result_json);
   return is_success;
 }
 

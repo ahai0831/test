@@ -17,9 +17,9 @@ namespace Apis {
 namespace GetUploadFileStatus {
 
 // json字符串包含的字段应于这个函数声明完全一致
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // [表明用于断点续传的临时文件Id]
-std::string JsonStringHelper(const int64_t uploadFileId);
+std::string JsonStringHelper(const std::string uploadFileId);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
@@ -27,8 +27,8 @@ std::string JsonStringHelper(const int64_t uploadFileId);
 // 请求方式：GET
 //
 // 需要放到url中的参数：
-// uploadFileId,[int64_t],
-// [从json字符串中作为int64_t解析，参数放到url中，表明上传文件Id]
+// uploadFileId,[string],
+// [从json字符串中作为string解析，参数放到url中，表明上传文件Id]
 // ResumePolicy, [int32_t],
 // [json字符串不用传,表明是否支持断点续传控制，1表示支持,0表示不支持]
 // clientType, [string],
