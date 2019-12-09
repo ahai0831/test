@@ -174,10 +174,14 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         if (nullptr == thread_data) {
           break;
         }
-        /// TODO: 需加入对上一次的UploadFileId是否非空的判断，并将其进行处理
-        /// TODO: 受限于last_uploadfileid类型还未改，需完善
-        if (!md5.empty() && thread_data->last_md5 == md5) {
+
+        /// “可能”检查上一次续传记录则尝试CheckUpload；
+        /// 否则一律直接CreateUpload
+        const auto& last_md5 = thread_data->last_md5;
+        const auto& last_upload_id = thread_data->last_upload_id;
+        if (!md5.empty() && last_md5 == md5 && !last_upload_id.empty()) {
           thread_data->file_md5 = md5;
+          thread_data->upload_file_id = last_upload_id;
           calculate_md5_result_proof.result = stage_result::Succeeded;
           calculate_md5_result_proof.next_stage = uploader_stage::CheckUpload;
           break;

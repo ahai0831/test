@@ -7,6 +7,7 @@
 
 #include <rx_assistant.hpp>
 #include <rx_md5.hpp>
+#include <rx_multiworker.hpp>
 #include <rx_uploader.hpp>
 #include <tools/safecontainer.hpp>
 #include <tools/string_convert.hpp>
@@ -34,6 +35,10 @@ using restful_common::jsoncpp_helper::GetInt64;
 using restful_common::jsoncpp_helper::GetString;
 using restful_common::jsoncpp_helper::ReaderHelper;
 using restful_common::jsoncpp_helper::WriterHelper;
+
+namespace {
+struct slicemd5_worker_function_generator;
+}
 
 namespace Cloud189 {
 namespace Restful {
@@ -103,7 +108,8 @@ struct sliceuploader_thread_data {
   lockfree_string_closure<std::string> file_upload_url;
   lockfree_string_closure<std::string> file_commit_url;
   lockfree_string_closure<std::string> md5_list_result;
-  assistant::tools::safemap_closure<int32_t, std::string> slice_md5_map;
+  assistant::tools::safemap_closure<int32_t, std::string>
+      slice_md5_map;                          // 保存各分片MD5
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
   /// 以下为确认文件上传完成后解析到的字段
@@ -115,6 +121,9 @@ struct sliceuploader_thread_data {
   lockfree_string_closure<std::string> commit_rev;
   lockfree_string_closure<std::string> commit_user_id;
   lockfree_string_closure<std::string> commit_is_safe;
+
+  /// 保存用于计算各分片MD5的multi_worker对象
+  std::unique_ptr<slicemd5_worker_function_generator> slicemd5_unique;
 
  private:
   sliceuploader_thread_data() = delete;
@@ -128,6 +137,289 @@ struct sliceuploader_thread_data {
 
 }  // namespace Restful
 }  // namespace Cloud189
+
+using Cloud189::Restful::details::sliceuploader_thread_data;
+/// 分片计算MD5以及分片进行数据上传
+namespace {
+typedef struct slicemd5_worker_function_generator {
+ private:
+  typedef httpbusiness::rx_multi_worker<std::tuple<int64_t, int64_t, int32_t>,
+                                        std::tuple<int32_t, std::string>>
+      SliceMd5;
+  explicit slicemd5_worker_function_generator(
+      const std::weak_ptr<sliceuploader_thread_data>& weak,
+      const SliceMd5::MaterialVector& materials)
+      : thread_data_weak(weak) {
+    auto slicemd5_worker = std::bind(&slicemd5_helper::slicemd5_worker, this,
+                                     std::placeholders::_1);
+    slicemd5_unique =
+        std::move(SliceMd5::Create(materials, slicemd5_worker, 3));
+  }
+  /// 禁用默认构造、复制构造、移动构造和=号操作符
+  slicemd5_worker_function_generator() = delete;
+  slicemd5_worker_function_generator(
+      slicemd5_worker_function_generator&& httpresult) = delete;
+  slicemd5_worker_function_generator(
+      const slicemd5_worker_function_generator&) = delete;
+  slicemd5_worker_function_generator& operator=(
+      const slicemd5_worker_function_generator&) = delete;
+
+ public:
+  typedef SliceMd5::MaterialVector MaterialVector;
+  typedef SliceMd5::DataSource DataSource;
+  typedef SliceMd5::Report Report;
+  ~slicemd5_worker_function_generator() = default;
+  /// TODO:
+  /// 从实现的角度看，仅用到了线程数据内的文件路径，可仅传入此字段的智能指针
+  /// TODO: 解除与sliceuploader_thread_data的耦合 2019.12.9
+  static std::unique_ptr<slicemd5_worker_function_generator> Create(
+      const std::weak_ptr<sliceuploader_thread_data>& weak,
+      const MaterialVector& materials) {
+    return std::unique_ptr<slicemd5_worker_function_generator>(
+        new (std::nothrow) slicemd5_worker_function_generator(weak, materials));
+  }
+  //// 增加一个MaterialHelper工具方法，辅助生成物料
+  static MaterialVector MaterialHelper(const int64_t file_length,
+                                       const int64_t slice_size) {
+    MaterialVector materials;
+    const int64_t length = file_length;
+    const auto& slicesize = slice_size;
+    int32_t slice_id = 1;
+    for (int64_t i = 0; i < length; i += slicesize, ++slice_id) {
+      const auto range_left = i;
+      const auto range_right =
+          i + slicesize > length ? length - 1 : i + slicesize - 1;
+      materials.emplace_back(
+          std::make_tuple(range_left, range_right, slice_id));
+    }
+    return materials;
+  }
+  DataSource GetDataSource() { return slicemd5_unique->data_source; }
+  void Stop() { slicemd5_unique->Stop(); }
+
+ private:
+  std::weak_ptr<sliceuploader_thread_data> thread_data_weak;
+  SliceMd5::MultiWorkerUnique slicemd5_unique;
+
+  void slicemd5_worker(SliceMd5::CalledCallbacks callbacks) {
+    SliceMd5::MaterialType material_unique = nullptr;
+    if (!callbacks.check_stop()) {
+      material_unique = callbacks.get_material();
+    }
+    /// 注意这里是新增的worker的对应的选项，要么新增，要么不变（指物料池空）
+    callbacks.get_material_result(nullptr != material_unique ? 1 : 0);
+    if (nullptr != material_unique) {
+      async_worker_function(
+          *material_unique,
+          std::bind(&slicemd5_worker_function_generator::after_work_callback,
+                    this, std::placeholders::_1, std::placeholders::_2),
+          callbacks);
+    }
+  }
+  void async_worker_function(
+      SliceMd5::Material material,
+      std::function<void(const SliceMd5::Report&, SliceMd5::CalledCallbacks)>
+          done_callback,
+      SliceMd5::CalledCallbacks callbacks) {
+    auto thread_data = thread_data_weak.lock();
+    if (nullptr != thread_data) {
+      const auto& file_path = thread_data->local_filepath;
+      const auto& range_left = std::get<0>(material);
+      const auto& range_right = std::get<1>(material);
+      const auto& slice_id = std::get<2>(material);
+      auto obs =
+          rx_assistant::rx_md5::create(file_path, range_left, range_right);
+      auto publish_obs =
+          obs.map([slice_id](std::string& md5) -> SliceMd5::Report {
+               return std::make_tuple(slice_id, md5);
+             })
+              .tap(
+                  [done_callback, callbacks](SliceMd5::Report& report) -> void {
+                    done_callback(report, callbacks);
+                  })
+              .publish();
+
+      /// TODO: 此处可完善
+      publish_obs.connect();
+    }
+  }
+  void after_work_callback(const SliceMd5::Report& report,
+                           SliceMd5::CalledCallbacks callbacks) {
+    /// 不产生额外物料，无需调用extra_material
+
+    /// 进行报告
+    callbacks.send_report(report);
+
+    /// 尝试下一轮生产
+    SliceMd5::MaterialType material_after = nullptr;
+    if (!callbacks.check_stop()) {
+      material_after = callbacks.get_material();
+    }
+    /// 注意这里是旧worker的对应的选项，要么不变，要么减少（指物料池空）
+    callbacks.get_material_result(nullptr != material_after ? 0 : -1);
+    if (nullptr != material_after) {
+      async_worker_function(
+          *material_after,
+          std::bind(&slicemd5_worker_function_generator::after_work_callback,
+                    this, std::placeholders::_1, std::placeholders::_2),
+          callbacks);
+    }
+  }
+} slicemd5_helper;
+
+typedef struct sliceupload_worker_function_generator {
+ private:
+  typedef httpbusiness::rx_multi_worker<std::tuple<int64_t, int64_t, int32_t>,
+                                        std::tuple<int32_t, bool>>
+      SliceUpload;
+  explicit sliceupload_worker_function_generator(
+      const std::weak_ptr<sliceuploader_thread_data>& weak,
+      const SliceUpload::MaterialVector& materials)
+      : thread_data_weak(weak) {
+    auto sliceupload_worker = std::bind(&sliceupload_helper::sliceupload_worker,
+                                        this, std::placeholders::_1);
+    sliceupload_unique =
+        std::move(SliceUpload::Create(materials, sliceupload_worker, 3));
+  }
+  /// 禁用默认构造、复制构造、移动构造和=号操作符
+  sliceupload_worker_function_generator() = delete;
+  sliceupload_worker_function_generator(
+      sliceupload_worker_function_generator&& httpresult) = delete;
+  sliceupload_worker_function_generator(
+      const sliceupload_worker_function_generator&) = delete;
+  sliceupload_worker_function_generator& operator=(
+      const sliceupload_worker_function_generator&) = delete;
+
+ public:
+  typedef SliceUpload::MaterialVector MaterialVector;
+  typedef SliceUpload::DataSource DataSource;
+  typedef SliceUpload::Report Report;
+  ~sliceupload_worker_function_generator() = default;
+
+  /// TODO: 解除与sliceuploader_thread_data的耦合 2019.12.9
+  static std::unique_ptr<sliceupload_worker_function_generator> Create(
+      const std::weak_ptr<sliceuploader_thread_data>& weak,
+      const MaterialVector& materials) {
+    return std::unique_ptr<sliceupload_worker_function_generator>(new (
+        std::nothrow) sliceupload_worker_function_generator(weak, materials));
+  }
+  //// 增加一个MaterialHelper工具方法，辅助生成物料
+  static MaterialVector MaterialHelper(const int64_t file_length,
+                                       const int64_t slice_size) {
+    MaterialVector materials;
+    const int64_t length = file_length;
+    const auto& slicesize = slice_size;
+    int32_t slice_id = 1;
+    for (int64_t i = 0; i < length; i += slicesize, ++slice_id) {
+      const auto range_left = i;
+      const auto range_right =
+          i + slicesize > length ? length - 1 : i + slicesize - 1;
+      materials.emplace_back(
+          std::make_tuple(range_left, range_right, slice_id));
+    }
+    return materials;
+  }
+  DataSource GetDataSource() { return sliceupload_unique->data_source; }
+  void Stop() { sliceupload_unique->Stop(); }
+
+ private:
+  std::weak_ptr<sliceuploader_thread_data> thread_data_weak;
+  SliceUpload::MultiWorkerUnique sliceupload_unique;
+
+  void sliceupload_worker(SliceUpload::CalledCallbacks callbacks) {
+    SliceUpload::MaterialType material_unique = nullptr;
+    if (!callbacks.check_stop()) {
+      material_unique = callbacks.get_material();
+    }
+    /// 注意这里是新增的worker的对应的选项，要么新增，要么不变（指物料池空）
+    callbacks.get_material_result(nullptr != material_unique ? 1 : 0);
+    if (nullptr != material_unique) {
+      async_worker_function(
+          *material_unique,
+          std::bind(&sliceupload_worker_function_generator::after_work_callback,
+                    this, std::placeholders::_1, std::placeholders::_2),
+          callbacks);
+    }
+  }
+  void async_worker_function(SliceUpload::Material material,
+                             std::function<void(const SliceUpload::Report&,
+                                                SliceUpload::CalledCallbacks)>
+                                 done_callback,
+                             SliceUpload::CalledCallbacks callbacks) {
+    auto thread_data = thread_data_weak.lock();
+    if (nullptr != thread_data) {
+      /// 生成单个分片请求
+      assistant::HttpRequest per_sliceupload_req("");
+      const auto& range_left = std::get<0>(material);
+      const auto& range_right = std::get<1>(material);
+      const auto& slice_id = std::get<2>(material);
+
+      /// TODO: 根据thread_data中相应信息和以上的信息，拼出单个分片请求
+      /// 2019.12.9
+      ////   Do some coding...
+      /// 保证每一个per_sliceupload_req是完全完备
+
+      std::function<bool(const rx_assistant::HttpResult&,
+                         assistant::HttpRequest&, int32_t&)>
+          sliceupload_solve_callback = [](const rx_assistant::HttpResult&,
+                                          assistant::HttpRequest&,
+                                          int32_t&) -> bool {
+        /// 无需循环+成功：（非常重要，需要考虑一些，看似“失败”，但最终提交会成功的情况）
+        /// 无需循环+失败：彻底失败：（循环次数达到上限，或其他严重情况）
+        /// 在此情况下，无需循环，并发出严重错误信号。此时其他worker也不再重试。
+        /// 需要循环：非已知的错误
+
+        /// TODO: 需要完善错误处理
+        return false;
+      };
+
+      /// 根据最后一次响应判定当前分片的结果
+      std::function<sliceupload_helper::Report(rx_assistant::HttpResult&)>
+          result_2_report =
+              [](rx_assistant::HttpResult&) -> sliceupload_helper::Report {
+        /// TODO:
+        /// 根据rx_assistant::HttpResult内的slice_id的信息，找到线程数据内对应的线程安全Map内的值
+        /// 此值为0，返回true；此值不存在，或非0，返回false
+        return sliceupload_helper::Report{};
+      };
+
+      std::function<void(sliceupload_helper::Report&)> tap_callback =
+          std::bind(done_callback, std::placeholders::_1, callbacks);
+      rx_assistant::rx_httpresult::loop_with_delay(
+          rx_assistant::rx_httpresult::create(per_sliceupload_req),
+          sliceupload_solve_callback)
+          .map(result_2_report)
+          .tap(tap_callback)
+          .publish()
+          .connect();
+    }
+  }
+  void after_work_callback(const SliceUpload::Report& report,
+                           SliceUpload::CalledCallbacks callbacks) {
+    /// 不产生额外物料，无需调用extra_material
+
+    /// 进行报告
+    callbacks.send_report(report);
+
+    /// 尝试下一轮生产
+    SliceUpload::MaterialType material_after = nullptr;
+    if (!callbacks.check_stop()) {
+      material_after = callbacks.get_material();
+    }
+    /// 注意这里是旧worker的对应的选项，要么不变，要么减少（指物料池空）
+    callbacks.get_material_result(nullptr != material_after ? 0 : -1);
+    if (nullptr != material_after) {
+      async_worker_function(
+          *material_after,
+          std::bind(&sliceupload_worker_function_generator::after_work_callback,
+                    this, std::placeholders::_1, std::placeholders::_2),
+          callbacks);
+    }
+  }
+} sliceupload_helper;
+
+}  // namespace
+
 namespace {
 /// 根据传入的字符串，对线程数据进行初始化
 /// TODO: 这一块占代码行数太多，需要简化 2019.12.9
@@ -178,12 +470,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
   httpbusiness::uploader::proof::ProofObsCallback calculate_md5;
   calculate_md5 =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
-    /// TODO: 需要简化MD5的代码，并加入异步计算各分片MD5的流程 2019.12.9
     auto thread_data = thread_data_weak.lock();
     std::string file_path =
         nullptr != thread_data ? thread_data->local_filepath : std::string();
+
     /// 一旦计算成功，还需比较是否已有上一次的续传记录
     /// 检验上一次续传记录规则：上一次续传MD5和上传ID非空；MD5一致；认为上次的续传记录有效
+    /// 注意，算完整个文件MD5后，还需计算各分片的MD5
     std::function<uploader_proof(std::string&)> md5_result_callback =
         [thread_data_weak](std::string& md5) -> uploader_proof {
       uploader_proof calculate_md5_result_proof = {
@@ -194,24 +487,126 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         if (nullptr == thread_data) {
           break;
         }
-        /// TODO: 需加入对上一次的UploadFileId是否非空的判断，并将其进行处理
-        /// TODO: 受限于last_uploadfileid类型还未改，需完善
-        if (!md5.empty() && thread_data->last_md5 == md5) {
+
+        /// “可能”检查上一次续传记录则尝试CheckUpload；
+        /// 否则一律直接CreateUpload
+        const auto& last_md5 = thread_data->last_md5;
+        const auto& last_upload_id = thread_data->last_upload_id;
+        if (!md5.empty() && last_md5 == md5 && !last_upload_id.empty()) {
           thread_data->file_md5 = md5;
-          calculate_md5_result_proof.result = stage_result::Succeeded;
+          thread_data->upload_file_id = last_upload_id;
+          calculate_md5_result_proof.result = stage_result::Unfinished;
           calculate_md5_result_proof.next_stage = uploader_stage::CheckUpload;
           break;
         }
         if (!md5.empty()) {
           thread_data->file_md5 = md5;
-          calculate_md5_result_proof.result = stage_result::Succeeded;
+          calculate_md5_result_proof.result = stage_result::Unfinished;
           calculate_md5_result_proof.next_stage = uploader_stage::CreateUpload;
           break;
         }
       } while (false);
       return calculate_md5_result_proof;
     };
-    return rx_assistant::rx_md5::create(file_path).map(md5_result_callback);
+
+    /// 计算整个文件MD5的结果得到处理后，计算此文件各分片的MD5
+    std::function<slicemd5_helper::DataSource(uploader_proof&)>
+        generate_slicemd5 =
+            [thread_data_weak](uploader_proof&) -> slicemd5_helper::DataSource {
+      /// 一个单值的“起负面作用”的数据源，作为最坏情况下的处理
+      slicemd5_helper::DataSource result = rxcpp::observable<>::just(
+          std::make_tuple(int32_t(-1), std::string()));
+      do {
+        auto thread_data = thread_data_weak.lock();
+        if (nullptr == thread_data) {
+          break;
+        }
+
+        /// 需已知文件长度，以进行分割
+        uint64_t file_length = 0;
+        auto file_exist = cloud_base::filesystem_helper::GetFileSize(
+            assistant::tools::string::utf8ToWstring(
+                thread_data->local_filepath),
+            file_length);
+        if (!file_exist) {
+          break;
+        }
+        const auto slicesize = thread_data->per_slice_size;
+
+        auto materials =
+            slicemd5_helper::MaterialHelper(file_length, slicesize);
+        auto slicemd5_unique =
+            slicemd5_helper::Create(thread_data_weak, materials);
+        if (nullptr == slicemd5_unique) {
+          break;
+        }
+        result = slicemd5_unique->GetDataSource();
+        thread_data->slicemd5_unique = std::move(slicemd5_unique);
+      } while (false);
+      return result;
+    };
+
+    /// 处理并记录各分片的MD5
+    std::function<void(slicemd5_helper::Report&)> slicemd5_tap =
+        [thread_data_weak](slicemd5_helper::Report& report) -> void {
+      auto thread_data = thread_data_weak.lock();
+      if (nullptr != thread_data) {
+        const auto& slice_id = std::get<0>(report);
+        const auto& slice_md5 = std::get<1>(report);
+        thread_data->slice_md5_map.Set(slice_id, slice_md5);
+      }
+    };
+
+    /// 严格校验各分片MD5是否算好，连同之前整个文件MD5的结果，交卷
+    std::function<uploader_proof(slicemd5_helper::Report&)>
+        slicemd5_result_callback =
+            std::bind([thread_data_weak]() -> uploader_proof {
+              uploader_proof calculate_md5_result_proof = {
+                  uploader_stage::CalculateMd5, stage_result::GiveupRetry,
+                  uploader_stage::UploadInitial, 0, 0};
+              do {
+                auto thread_data = thread_data_weak.lock();
+                if (nullptr == thread_data) {
+                  break;
+                }
+                if (thread_data->file_md5.empty()) {
+                  break;
+                }
+                bool is_any_slice_md5_invalid = false;
+                auto check_per_slice_md5 =
+                    [&is_any_slice_md5_invalid](
+                        const int32_t slice_id,
+                        const std::string& slice_md5) -> void {
+                  if (slice_id <= 0 || slice_md5.empty()) {
+                    is_any_slice_md5_invalid = true;
+                  }
+                };
+                thread_data->slice_md5_map.ForeachDelegate(check_per_slice_md5);
+                if (is_any_slice_md5_invalid) {
+                  break;
+                }
+                if (!thread_data->upload_file_id.empty()) {
+                  calculate_md5_result_proof.result = stage_result::Succeeded;
+                  calculate_md5_result_proof.next_stage =
+                      uploader_stage::CheckUpload;
+                  break;
+                }
+
+                /// 至此，认为整个文件MD5和各分片MD5均有效，而无上一次的续传信息，应直接CreateUpload
+                calculate_md5_result_proof.result = stage_result::Succeeded;
+                calculate_md5_result_proof.next_stage =
+                    uploader_stage::CreateUpload;
+              } while (false);
+
+              return calculate_md5_result_proof;
+            });
+
+    return rx_assistant::rx_md5::create(file_path)
+        .map(md5_result_callback)
+        .flat_map(generate_slicemd5)
+        .tap(slicemd5_tap)
+        .last()
+        .map(slicemd5_result_callback);
   };
   /// calculate_md5 end.
   //////////////////////////////////////////////////////////////////////////
@@ -464,6 +859,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
   slice_file_upload =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
     /// TODO: 需要加入分片上传文件的流程 2019.12.9
+    /// TODO: 用上multi_worker的sliceupload流程
     /// 初始化请求失败，应如此返回
     rxcpp::observable<uploader_proof> result = rxcpp::observable<>::just(
         uploader_proof{uploader_stage::FileUplaod, stage_result::GiveupRetry,
