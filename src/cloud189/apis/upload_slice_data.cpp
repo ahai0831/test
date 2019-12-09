@@ -113,7 +113,7 @@ bool HttpRequestEncode(const std::string& params_json,
     request.headers.Set("Edrive-UploadFileRange",
                         assistant::tools::string::StringFormat(
                             "%" PRId64 "-%" PRId64 "/*", startOffset,
-                            startOffset + offsetLength));
+                            startOffset + offsetLength - 1));
     request.headers.Set("Edrive-UploadSliceId",
                         std::to_string(UploadSliceId).c_str());
     request.headers.Set("Edrive-MD5", MD5.c_str());
@@ -123,7 +123,7 @@ bool HttpRequestEncode(const std::string& params_json,
     request.extends.Set("upload_filepath", localPath.c_str());
     request.extends.Set("upload_filesize", std::to_string(file_size));
     request.extends.Set("upload_offset", std::to_string(startOffset));
-    request.extends.Set("upload_length", std::to_string(offsetLength + 1));
+    request.extends.Set("upload_length", std::to_string(offsetLength));
     is_ok = true;
   } while (false);
 

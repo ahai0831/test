@@ -81,5 +81,8 @@
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_slice_uploader.cpp">
       <Filter>Source Files\src\cloud189\restful</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\test\test_cloud_189\proxy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

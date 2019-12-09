@@ -50,7 +50,7 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
       break;
     }
     json_str = assistant::tools::string::StringFormat(
-        "{\"fileCommitUrl\" :\"%s\",\"uploadFileId\" : %s\",\"opertype\" : "
+        "{\"fileCommitUrl\" :\"%s\",\"uploadFileId\" : \"%s\",\"opertype\" : "
         "%d,\"isLog\" : %d}",
         fileCommitUrl.c_str(), uploadFileId.c_str(), opertype, isLog);
   } while (false);

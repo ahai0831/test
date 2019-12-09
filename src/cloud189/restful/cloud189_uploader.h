@@ -38,11 +38,9 @@ struct Uploader {
 
 /// 为此Uploader提供一个Helper函数，用于生成合规的json字符串
 std::string uploader_info_helper(const std::string &local_path,
-                                 const std::string &md5,
-                                 const int64_t last_upload_id,
-                                 const int64_t parent_folder_id,
-                                 const int64_t start_offset,
-                                 const int64_t offset_length,
+                                 const std::string &last_md5,
+                                 const std::string &last_upload_id,
+                                 const std::string &parent_folder_id,
                                  const int32_t oper_type, const int32_t is_log);
 
 }  // namespace Restful
