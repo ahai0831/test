@@ -5,14 +5,6 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-//#include <json/json.h>
-//#include <rx_md5.hpp>
-//
-//#include <rx_uploader.hpp>
-//
-//#include <rx_assistant.hpp>
-//#include <tools/safecontainer.hpp>
-
 #include <rx_assistant.hpp>
 #include <rx_md5.hpp>
 #include <rx_uploader.hpp>
@@ -77,9 +69,6 @@ struct sliceuploader_internal_data {
   ~sliceuploader_internal_data() = default;
   /// 由于scope_guard的存在，无需再显式地禁用另外四个构造函数
 };
-// typedef httpbusiness::uploader::rx_uploader rx_uploader;
-//
-// httpbusiness::uploader::proof::proof_obs_packages pkgs;
 
 struct sliceuploader_thread_data {
  public:
@@ -142,10 +131,14 @@ struct sliceuploader_thread_data {
 };
 
 }  // namespace details
+
+}  // namespace Restful
+}  // namespace Cloud189
 namespace {
 /// 根据传入的字符串，对线程数据进行初始化
-std::shared_ptr<details::sliceuploader_thread_data> InitThreadData(
-    const std::string& upload_info) {
+/// TODO: 这一块占代码行数太多，需要简化 2019.12.9
+std::shared_ptr<Cloud189::Restful::details::sliceuploader_thread_data>
+InitThreadData(const std::string& upload_info) {
   Json::Value json_str;
   Json::CharReaderBuilder reader_builder;
   Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
@@ -184,7 +177,8 @@ std::shared_ptr<details::sliceuploader_thread_data> InitThreadData(
     slice_md5 = temp;
   };
   // thread_data->slice_md5_map.FindDelegate(upload_slice_id, solve_slice_md5);
-  return std::make_shared<details::sliceuploader_thread_data>(
+  return std::make_shared<
+      Cloud189::Restful::details::sliceuploader_thread_data>(
       local_filepath, last_md5, last_upload_id, parent_folder_id, start_offset,
       offset_length, upload_slice_id, per_slice_size, resume_policy, oper_type,
       is_log);
@@ -192,7 +186,8 @@ std::shared_ptr<details::sliceuploader_thread_data> InitThreadData(
 /// 生成总控使用的完成回调
 const httpbusiness::uploader::rx_uploader::CompleteCallback
 GenerateCompleteCallback(
-    const std::weak_ptr<details::sliceuploader_thread_data>& thread_data_weak,
+    const std::weak_ptr<Cloud189::Restful::details::sliceuploader_thread_data>&
+        thread_data_weak,
     const std::function<void(const std::string&)>& complete_callback) {
   return [thread_data_weak, complete_callback](
              const httpbusiness::uploader::rx_uploader&) -> void {
@@ -202,13 +197,15 @@ GenerateCompleteCallback(
 }
 /// 根据弱指针，初始化各RX指令
 httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
-    const std::weak_ptr<details::sliceuploader_thread_data>& thread_data_weak) {
+    const std::weak_ptr<Cloud189::Restful::details::sliceuploader_thread_data>&
+        thread_data_weak) {
   //////////////////////////////////////////////////////////////////////////
   /// 计算MD5指令
   /// 输入proof，根据线程信息中的路径信息，异步地进行MD5计算并返回proof
   httpbusiness::uploader::proof::ProofObsCallback calculate_md5;
   calculate_md5 =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
+    /// TODO: 需要简化MD5的代码，并加入异步计算各分片MD5的流程 2019.12.9
     auto thread_data = thread_data_weak.lock();
     std::string file_path =
         nullptr != thread_data ? thread_data->local_filepath : std::string();
@@ -344,9 +341,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
-              (int32_error_code == ErrorCode::nderr_sessionbreak ||
-               int32_error_code == ErrorCode::nderr_session_expired ||
-               int32_error_code == ErrorCode::nderr_no_diskspace)) {
+              (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
+               int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
+               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace)) {
             create_slice_upload_proof.result = stage_result::GiveupRetry;
             create_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
@@ -458,9 +455,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
-              (int32_error_code == ErrorCode::nderr_sessionbreak ||
-               int32_error_code == ErrorCode::nderr_session_expired ||
-               int32_error_code == ErrorCode::nderr_no_diskspace)) {
+              (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
+               int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
+               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace)) {
             check_slice_upload_proof.result = stage_result::GiveupRetry;
             check_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
@@ -493,6 +490,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
   httpbusiness::uploader::proof::ProofObsCallback slice_file_upload;
   slice_file_upload =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
+    /// TODO: 需要加入分片上传文件的流程 2019.12.9
     /// 初始化请求失败，应如此返回
     rxcpp::observable<uploader_proof> result = rxcpp::observable<>::just(
         uploader_proof{uploader_stage::FileUplaod, stage_result::GiveupRetry,
@@ -594,6 +592,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
   //////////////////////////////////////////////////////////////////////////
   /// 确认上传指令
   /// TODO::未完成
+  /// 烦请提高研发效率。by: dengjzh1
   httpbusiness::uploader::proof::ProofObsCallback slice_file_commit;
   slice_file_commit =
       [thread_data_weak](uploader_proof) -> rxcpp::observable<uploader_proof> {
@@ -670,12 +669,16 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         auto http_statuc_code = json_value["httpStatusCode"].asInt();
         auto int32_error_code = json_value["int32ErrorCode"].asInt();
         if (4 == (http_statuc_code / 100) &&
-            (int32_error_code == ErrorCode::nderr_userdayflowoverlimited ||
-             int32_error_code == ErrorCode::nderr_no_diskspace ||
-             int32_error_code == ErrorCode::nderr_over_filesize_error ||
-             int32_error_code == ErrorCode::nderr_invalid_parent_folder ||
+            (int32_error_code ==
+                 Cloud189::ErrorCode::nderr_userdayflowoverlimited ||
+             int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace ||
              int32_error_code ==
-                 ErrorCode::nderr_errordownloadfileinvalidsessionkey)) {
+                 Cloud189::ErrorCode::nderr_over_filesize_error ||
+             int32_error_code ==
+                 Cloud189::ErrorCode::nderr_invalid_parent_folder ||
+             int32_error_code ==
+                 Cloud189::ErrorCode::
+                     nderr_errordownloadfileinvalidsessionkey)) {
           /// 4XX 以上错误不重试直接结束
           slice_file_commit_proof.result = stage_result::GiveupRetry;
           slice_file_commit_proof.next_stage = uploader_stage::UploadFinal;
@@ -695,6 +698,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       std::move(slice_file_commit)};
 }
 }  // namespace
+
+namespace Cloud189 {
+namespace Restful {
 SliceUploader::SliceUploader(
     const std::string& upload_info,
     std::function<void(const std::string&)> complete_callback)
