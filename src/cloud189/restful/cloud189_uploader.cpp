@@ -8,6 +8,7 @@
 #include <rx_assistant.hpp>
 #include <rx_md5.hpp>
 #include <rx_uploader.hpp>
+#include <speed_counter.hpp>
 #include <tools/safecontainer.hpp>
 #include <tools/string_convert.hpp>
 
@@ -53,8 +54,7 @@ struct uploader_internal_data {
   explicit uploader_internal_data(
       const std::string& file_path,
       const httpbusiness::uploader::proof::proof_obs_packages& proof_orders,
-      const httpbusiness::uploader::rx_uploader::CompleteCallback
-          complete_callback)
+      const httpbusiness::uploader::rx_uploader::CompleteCallback data_callback)
       : file_protect(
             _wfsopen(assistant::tools::string::utf8ToWstring(file_path).c_str(),
                      L"r", _SH_DENYWR)),
@@ -65,7 +65,7 @@ struct uploader_internal_data {
           }
         }),
         master_control(std::make_unique<httpbusiness::uploader::rx_uploader>(
-            proof_orders, complete_callback)) {}
+            proof_orders, data_callback)) {}
   ~uploader_internal_data() = default;
   /// 由于scope_guard的存在，无需再显式地禁用另外四个构造函数
 };
@@ -109,6 +109,11 @@ struct uploader_thread_data {
   lockfree_string_closure<std::string> commit_request_id;
   lockfree_string_closure<std::string> commit_is_safe;
 
+  /// 保存计速器，以进行平滑速度计算，以及1S一次的数据推送
+  httpbusiness::speed_counter_with_stop speed_count;
+  std::weak_ptr<httpbusiness::uploader::rx_uploader::rx_uploader_data>
+      master_control_data;
+
  private:
   uploader_thread_data() = delete;
   uploader_thread_data(uploader_thread_data const&) = delete;
@@ -143,11 +148,46 @@ std::shared_ptr<details::uploader_thread_data> InitThreadData(
 const httpbusiness::uploader::rx_uploader::CompleteCallback
 GenerateCompleteCallback(
     const std::weak_ptr<details::uploader_thread_data>& thread_data_weak,
-    const std::function<void(const std::string&)>& complete_callback) {
-  return [thread_data_weak, complete_callback](
-             const httpbusiness::uploader::rx_uploader&) -> void {
+    const std::function<void(const std::string&)>& data_callback) {
+  /// 为计速器提供每秒一次的回调
+  auto thread_data = thread_data_weak.lock();
+  if (nullptr != thread_data) {
+    thread_data->speed_count.RegSubscription(
+        [thread_data_weak, data_callback](uint64_t smooth_speed) {
+          /// TODO : 补充每秒一次的回调信息字段
+          Json::Value info;
+          info["speed"] = int64_t(smooth_speed);
+          auto thread_data = thread_data_weak.lock();
+          if (nullptr != thread_data) {
+            /// 仅供示例，没有必要的例子无需放进去
+            info["md5"] = thread_data->file_md5.load();
+            info["upload_id"] = thread_data->upload_file_id.load();
+            /// TODO: 需加上此字段
+            // 			info["file_size"] =
+            // thread_data->file_size.load();
+            /// 已传输数据量，此流程需进一步完备
+
+            auto mc_data = thread_data->master_control_data.lock();
+            if (nullptr != mc_data) {
+              /// TODO: 还需保证stage代表当前正在进行的阶段
+              info["stage"] = int32_t(mc_data->current_stage);
+            }
+          }
+
+          data_callback(WriterHelper(info));
+        },
+        []() {});
+  }
+
+  /// 提供流程完成（成功和失败均包括在内）时的回调
+  return [thread_data_weak,
+          data_callback](const httpbusiness::uploader::rx_uploader&) -> void {
     /// TODO: 在此处取出相应的信息，传递给回调
-    complete_callback("");
+    Json::Value info;
+    info["is_complete"] = bool(true);
+    info["stage"] = int32_t(uploader_stage::UploadFinal);
+
+    data_callback(WriterHelper(info));
   };
 }
 /// 根据弱指针，初始化各RX指令
@@ -654,11 +694,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 }  // namespace
 
 Uploader::Uploader(const std::string& upload_info,
-                   std::function<void(const std::string&)> complete_callback)
+                   std::function<void(const std::string&)> data_callback)
     : thread_data(InitThreadData(upload_info)),
       data(std::make_unique<details::uploader_internal_data>(
           thread_data->local_filepath, GenerateOrders(thread_data),
-          GenerateCompleteCallback(thread_data, complete_callback))) {}
+          GenerateCompleteCallback(thread_data, data_callback))) {
+  thread_data->master_control_data = data->master_control->data;
+}
 
 void Uploader::AsyncStart() { data->master_control->AsyncStart(); }
 

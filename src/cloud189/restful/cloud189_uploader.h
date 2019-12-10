@@ -19,7 +19,7 @@ struct Uploader {
   /// 在构造函数中解析json字符串
 
   Uploader(const std::string &upload_info,
-           std::function<void(const std::string &)> complete_callback);
+           std::function<void(const std::string &)> data_callback);
   ~Uploader();
   void AsyncStart();
   void SyncWait();

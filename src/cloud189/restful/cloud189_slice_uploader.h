@@ -19,7 +19,7 @@ struct SliceUploader {
   /// 在构造函数中解析json字符串
 
   SliceUploader(const std::string &upload_info,
-                std::function<void(const std::string &)> complete_callback);
+                std::function<void(const std::string &)> data_callback);
   ~SliceUploader();
   void AsyncStart();
   void SyncWait();
