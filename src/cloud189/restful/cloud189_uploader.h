@@ -37,6 +37,22 @@ struct Uploader {
 };
 
 /// 为此Uploader提供一个Helper函数，用于生成合规的json字符串
+/// local_path,[std::string]
+/// [表明上传文件的本地全路径]
+/// last_md5,[std::string]
+/// [表明上传文件的md5，如果为续传则必须传入，如果为创建新的上传可为空]
+/// last_upload_id,[std::string]
+/// [表明上传文件的id，如果为续传则必须传入且有效，如果为创建新的上传可为空]
+/// parent_folder_id,[std::string]
+/// [表明上传文件的父文件夹id]
+/// oper_type,[int32_t]
+/// [表明上传后操作方式，
+/// 1-遇到相同文件名(只检查文件名)，执行重命名操作，
+/// 3-遇到相同文件名（只检查文件名），执行覆盖原文件]
+/// is_log,[int32_t]
+/// [表明是否为客户端日志上传，
+/// 1–客户端日志文件上传至指定账户，
+/// 0-非客户端日志文件上传]
 std::string uploader_info_helper(const std::string &local_path,
                                  const std::string &last_md5,
                                  const std::string &last_upload_id,

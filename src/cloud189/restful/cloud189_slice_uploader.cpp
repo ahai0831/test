@@ -5,6 +5,8 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#include <HashAlgorithm/SHA1Digest.h>
+#include <HashAlgorithm/md5.h>
 #include <rx_assistant.hpp>
 #include <rx_md5.hpp>
 #include <rx_multiworker.hpp>
@@ -354,6 +356,7 @@ typedef struct sliceupload_worker_function_generator {
                                  done_callback,
                              SliceUpload::CalledCallbacks callbacks) {
     auto thread_data = thread_data_weak.lock();
+    auto thread_data_weak_temp = thread_data_weak;
     if (nullptr != thread_data) {
       /// 生成单个分片请求
       assistant::HttpRequest per_sliceupload_req("");
@@ -361,16 +364,11 @@ typedef struct sliceupload_worker_function_generator {
       const auto& range_right = std::get<1>(material);
       const auto& slice_id = std::get<2>(material);
 
-      /// TODO: 根据thread_data中相应信息和以上的信息，拼出单个分片请求
-      /// 2019.12.9
-      ////   Do some coding...
-      /// 保证每一个per_sliceupload_req是完全完备
-
-      //////
+      /// 根据thread_data中相应信息和以上的信息，拼出单个分片请求
       const auto& file_upload_url = thread_data->file_upload_url.load();
       const auto& file_path = thread_data->local_filepath;
       const auto& upload_id = thread_data->upload_file_id.load();
-      int32_t resume_policy = thread_data->resume_policy;
+      const int32_t resume_policy = thread_data->resume_policy;
       std::string current_slice_md5;
       auto solve_slice_md5 = [&current_slice_md5](const std::string& temp) {
         current_slice_md5 = temp;
@@ -385,21 +383,24 @@ typedef struct sliceupload_worker_function_generator {
       Cloud189::Apis::UploadSliceData::HttpRequestEncode(per_sliceupload_str,
                                                          per_sliceupload_req);
       /// HttpRequestEncode 完毕
-      //////
 
       std::function<bool(const rx_assistant::HttpResult&,
                          assistant::HttpRequest&, int32_t&)>
           sliceupload_solve_callback =
-              [thread_data](
+              [thread_data_weak_temp](
                   const rx_assistant::HttpResult& file_upload_http_result,
-                  assistant::HttpRequest&, int32_t& slice_id) -> bool {
+                  assistant::HttpRequest&, int32_t&) -> bool {
         /// 无需循环+成功：（非常重要，需要考虑一些，看似“失败”，但最终提交会成功的情况）
         /// 无需循环+失败：彻底失败：（循环次数达到上限，或其他严重情况）
         /// 在此情况下，无需循环，并发出严重错误信号。此时其他worker也不再重试。
         /// 需要循环：非已知的错误
         /// TODO: 需要完善错误处理
         bool solve_flag = false;
+        auto thread_data = thread_data_weak_temp.lock();
         do {
+          if (nullptr == thread_data) {
+            break;
+          }
           std::string decode_result;
           Cloud189::Apis::UploadSliceData::HttpResponseDecode(
               file_upload_http_result.res, file_upload_http_result.req,
@@ -412,14 +413,20 @@ typedef struct sliceupload_worker_function_generator {
                                                             json_value)) {
             break;
           }
+          std::string header_slice_id;
+          if (!file_upload_http_result.req.headers.Get("Edrive-UploadSliceId",
+                                                       header_slice_id) ||
+              header_slice_id.empty()) {
+            break;
+          }
           const auto is_success =
               restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
           if (is_success) {
-            thread_data->slice_result_map.Set(slice_id, 0);
+            thread_data->slice_result_map.Set(stoi(header_slice_id), 0);
             solve_flag = true;
           }
           if (!is_success) {
-            thread_data->slice_result_map.Set(slice_id, 1);
+            thread_data->slice_result_map.Set(stoi(header_slice_id), 1);
           }
         } while (false);
         return solve_flag;
@@ -429,28 +436,28 @@ typedef struct sliceupload_worker_function_generator {
       std::function<sliceupload_helper::Report(rx_assistant::HttpResult&)>
           result_2_report = [thread_data](rx_assistant::HttpResult& http_result)
           -> sliceupload_helper::Report {
-        /// TODO:
         /// 根据rx_assistant::HttpResult内的slice_id的信息，找到线程数据内对应的线程安全Map内的值
         /// 此值为0，返回true；此值不存在，或非0，返回false
         std::string header_slice_id;
+        std::tuple<int32_t, bool> slice_result_tuple;
         if (http_result.req.headers.Get("Edrive-UploadSliceId",
                                         header_slice_id) &&
             !header_slice_id.empty()) {
           int32_t slice_result;
-          auto solve_slice_md5 = [&slice_result](const int32_t& temp) {
+          auto solve_slice_result = [&slice_result](const int32_t& temp) {
             slice_result = temp;
           };
           thread_data->slice_result_map.FindDelegate(stoi(header_slice_id),
-                                                     solve_slice_md5);
+                                                     solve_slice_result);
           if (slice_result) {
-            std::tuple<int32_t, bool> slice_result_tuple =
+            slice_result_tuple =
                 std::make_tuple(int32_t(stoi(header_slice_id)), bool(true));
           } else {
-            std::tuple<int32_t, bool> slice_result_tuple =
+            slice_result_tuple =
                 std::make_tuple(int32_t(stoi(header_slice_id)), bool(false));
           }
         }
-        return sliceupload_helper::Report{};
+        return slice_result_tuple;
       };
 
       std::function<void(sliceupload_helper::Report&)> tap_callback =
@@ -745,8 +752,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           const auto is_success =
               restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
-          const auto file_data_exists = restful_common::jsoncpp_helper::GetInt(
-              json_value["fileDataExists"]);
+          const auto upload_status = restful_common::jsoncpp_helper::GetInt(
+              json_value["uploadStatus"]);
           if (is_success) {
             thread_data->upload_file_id.store(
                 restful_common::jsoncpp_helper::GetString(
@@ -757,22 +764,47 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             thread_data->file_commit_url.store(
                 restful_common::jsoncpp_helper::GetString(
                     json_value["fileCommitUrl"]));
+            /// 此处对already_upload_bytes清0
             thread_data->already_upload_bytes.store(0);
           }
 
-          if (is_success && file_data_exists) {
-            /// 成功且文件存在
+          if (is_success && (upload_status == 0)) {
+            /// 成功且断点状态为新建
+            create_slice_upload_proof.result = stage_result::Succeeded;
+            create_slice_upload_proof.next_stage = uploader_stage::FileUplaod;
+            break;
+          }
+          if (is_success && (upload_status == 1)) {
+            /// 成功且断点状态为上传中
+            create_slice_upload_proof.result = stage_result::Succeeded;
+            create_slice_upload_proof.next_stage = uploader_stage::CheckUpload;
+            break;
+          }
+          if (is_success && (upload_status == 2)) {
+            /// 成功且断点状态为分片上传完，需要commit且校验分片
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
             break;
-            if (is_success) {
-              /// 成功且文件不存在
-              create_slice_upload_proof.result = stage_result::Succeeded;
-              create_slice_upload_proof.next_stage =
-                  uploader_stage::CheckUpload;
-              break;
-            }
           }
+          if (is_success && (upload_status == 3)) {
+            /// 成功且断点状态为作废，需要重新创建
+            create_slice_upload_proof.result = stage_result::RetryTargetStage;
+            create_slice_upload_proof.next_stage = uploader_stage::CreateUpload;
+            break;
+          }
+          if (is_success && (upload_status == 4)) {
+            /// 成功且断点状态为可秒传，需要commit且不校验分片
+            create_slice_upload_proof.result = stage_result::Succeeded;
+            create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            break;
+          }
+          if (is_success && (upload_status == -1)) {
+            /// 成功且断点状态为已提交，可以直接结束
+            create_slice_upload_proof.result = stage_result::Succeeded;
+            create_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
+            break;
+          }
+
           const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
@@ -860,8 +892,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           const auto is_success =
               restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
-          const auto file_data_exists = restful_common::jsoncpp_helper::GetInt(
-              json_value["fileDataExists"]);
+          const auto upload_status = restful_common::jsoncpp_helper::GetInt(
+              json_value["uploadStatus"]);
           if (is_success) {
             thread_data->upload_file_id.store(
                 restful_common::jsoncpp_helper::GetString(
@@ -875,18 +907,43 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             thread_data->already_upload_bytes.store(
                 restful_common::jsoncpp_helper::GetInt64(json_value["size"]));
           }
-          if (is_success && file_data_exists) {
-            /// 成功且文件可秒传
-            check_slice_upload_proof.result = stage_result::Succeeded;
-            check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            break;
-          }
-          if (is_success) {
-            /// 成功且文件不可秒传
+          if (is_success && (upload_status == 0)) {
+            /// 成功且断点状态为新建
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::FileUplaod;
             break;
           }
+          if (is_success && (upload_status == 1)) {
+            /// 成功且断点状态为上传中
+            check_slice_upload_proof.result = stage_result::Succeeded;
+            check_slice_upload_proof.next_stage = uploader_stage::CheckUpload;
+            break;
+          }
+          if (is_success && (upload_status == 2)) {
+            /// 成功且断点状态为分片上传完，需要commit且校验分片
+            check_slice_upload_proof.result = stage_result::Succeeded;
+            check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            break;
+          }
+          if (is_success && (upload_status == 3)) {
+            /// 成功且断点状态为作废，需要重新创建
+            check_slice_upload_proof.result = stage_result::RetryTargetStage;
+            check_slice_upload_proof.next_stage = uploader_stage::CreateUpload;
+            break;
+          }
+          if (is_success && (upload_status == 4)) {
+            /// 成功且断点状态为可秒传，需要commit且不校验分片
+            check_slice_upload_proof.result = stage_result::Succeeded;
+            check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            break;
+          }
+          if (is_success && (upload_status == -1)) {
+            /// 成功且断点状态为已提交，可以直接结束
+            check_slice_upload_proof.result = stage_result::Succeeded;
+            check_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
+            break;
+          }
+
           const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
@@ -1002,6 +1059,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 
       result = sliceupload_unique->GetDataSource().last().map(
           generate_sliceupload_proof);
+      thread_data->sliceupload_unique = std::move(sliceupload_unique);
     } while (false);
     return result;
   };
@@ -1024,7 +1082,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       }
       HttpRequest slice_file_commit_request("");
       /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
-      std::string upload_id = thread_data->last_upload_id;
+      std::string upload_id = thread_data->upload_file_id.load();
       int32_t oper_type = thread_data->oper_type;
       int32_t is_log = thread_data->is_log;
       int32_t resume_policy = thread_data->resume_policy;
@@ -1165,15 +1223,15 @@ SliceUploader::SliceUploader(
           thread_data->local_filepath, GenerateOrders(thread_data),
           GenerateCompleteCallback(thread_data, complete_callback))) {}
 
-void SliceUploader::AsyncStart() {}
+void SliceUploader::AsyncStart() { data->master_control->AsyncStart(); }
 
-void SliceUploader::SyncWait() {}
+void SliceUploader::SyncWait() { data->master_control->SyncWait(); }
 
 SliceUploader::~SliceUploader() = default;
 
 /// 为此Uploader提供一个Helper函数，用于生成合规的json字符串
 std::string sliceuploader_info_helper(
-    const std::string& local_path, const std::string& md5,
+    const std::string& local_path, const std::string& last_md5,
     /*const std::string slice_md5, const std::string slice_md5_list,*/
     const std::string& last_upload_id, const std::string& parent_folder_id,
     /*const int32_t upload_slice_id,*/ const int64_t per_slice_size,
@@ -1182,14 +1240,14 @@ std::string sliceuploader_info_helper(
   Json::Value json_value;
 
   json_value["localPath"] = local_path;
-  json_value["md5"] = md5;
+  json_value["md5"] = last_md5;
   json_value["uploadFileId"] = last_upload_id;
   json_value["parentFolderId"] = parent_folder_id;
   json_value["perSliceSize"] = per_slice_size;
   json_value["resumePolicy"] = resume_policy;
   json_value["opertype"] = oper_type;
   json_value["isLog"] = is_log;
-  return restful_common::jsoncpp_helper::WriterHelper(json_value);
+  return WriterHelper(json_value);
 }
 }  // namespace Restful
 }  // namespace Cloud189

@@ -154,7 +154,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
       }
       auto upload_file = result_xml.child("uploadFile");
       result_json["uploadFileId"] =
-          upload_file.child("uploadFileId").text().as_llong();
+          upload_file.child("uploadFileId").text().as_string();
       result_json["fileUploadUrl"] =
           upload_file.child("fileUploadUrl").text().as_string();
       result_json["fileCommitUrl"] =

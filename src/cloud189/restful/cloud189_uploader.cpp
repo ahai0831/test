@@ -675,10 +675,6 @@ std::string uploader_info_helper(const std::string& local_path,
                                  const int32_t is_log) {
   Json::Value json_value;
 
-  if (local_path.empty() || last_md5.empty() || last_upload_id.empty() ||
-      parent_folder_id.empty()) {
-    //   break;
-  }
   json_value["localPath"] = local_path;
   json_value["last_md5"] = last_md5;
   json_value["uploadFileId"] = last_upload_id;

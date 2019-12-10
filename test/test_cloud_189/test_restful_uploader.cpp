@@ -22,7 +22,7 @@ TEST(cloud189_uploader, init) {
   std::string url =
       "https://api.cloud.189.cn/"
       "getSessionForPC.action?appId=8025431004&accessToken="
-      "b07b6a3d1a904419986bff608bccdfae&clientType=TELEPC&version=6.1.1.0&"
+      "786aa0751f66415489a468f06ae3ef84&clientType=TELEPC&version=6.1.1.0&"
       "clientSn=dc628a0f8a816f712579376e922eb2ff&channelId=web_cloud.189.cn&"
       "rand=10141_953109843";
   auto assistant_ptr = std::make_shared<assistant::Assistant_v3>();
@@ -61,7 +61,7 @@ TEST(cloud189_uploader, init) {
 }
 
 TEST(cloud189_slice_uploader, init) {
-  std::string file_path = "C:\\Users\\TY-PC\\Desktop\\slice01.rar";
+  std::string file_path = "C:\\Users\\TY-PC\\Desktop\\slice134.rar";
   std::string parent_id = "-11";
   std::string md5 = "";  //可有可无，如果要续传则必须传入，否则重新上传
   int32_t is_log = 0;
