@@ -12,11 +12,15 @@
 #include <tools/safecontainer.hpp>
 #include <tools/string_convert.hpp>
 
+#include "HashAlgorithm/SHA1Digest.h"
+#include "HashAlgorithm/md5.h"
+
 #include "cloud189/apis/commit_slice_upload_file.h"
 #include "cloud189/apis/create_slice_upload_file.h"
 #include "cloud189/apis/get_slice_upload_status.h"
 #include "cloud189/apis/upload_slice_data.h"
 #include "cloud189/error_code/nderror.h"
+#include "cloud189/session_helper/session_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
 using assistant::HttpRequest;
@@ -107,9 +111,10 @@ struct sliceuploader_thread_data {
   lockfree_string_closure<std::string> upload_file_id;
   lockfree_string_closure<std::string> file_upload_url;
   lockfree_string_closure<std::string> file_commit_url;
-  lockfree_string_closure<std::string> md5_list_result;
   assistant::tools::safemap_closure<int32_t, std::string>
-      slice_md5_map;                          // 保存各分片MD5
+      slice_md5_map;  // 保存各分片MD5
+  assistant::tools::safemap_closure<int32_t, int32_t>
+      slice_result_map;                       // 保存各分片请求的结果
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
   /// 以下为确认文件上传完成后解析到的字段
@@ -359,27 +364,90 @@ typedef struct sliceupload_worker_function_generator {
       ////   Do some coding...
       /// 保证每一个per_sliceupload_req是完全完备
 
+      //////
+      const auto& file_upload_url = thread_data->file_upload_url.load();
+      const auto& file_path = thread_data->local_filepath;
+      const auto& upload_id = thread_data->upload_file_id.load();
+      int32_t resume_policy = thread_data->resume_policy;
+      std::string current_slice_md5;
+      auto solve_slice_md5 = [&current_slice_md5](const std::string& temp) {
+        current_slice_md5 = temp;
+      };
+      thread_data->slice_md5_map.FindDelegate(slice_id, solve_slice_md5);
+
+      const std::string per_sliceupload_str =
+          Cloud189::Apis::UploadSliceData::JsonStringHelper(
+              file_upload_url, file_path, upload_id, range_left, range_right,
+              resume_policy, slice_id, current_slice_md5);
+      /// HttpRequestEncode
+      Cloud189::Apis::UploadSliceData::HttpRequestEncode(per_sliceupload_str,
+                                                         per_sliceupload_req);
+      /// HttpRequestEncode 完毕
+      //////
+
       std::function<bool(const rx_assistant::HttpResult&,
                          assistant::HttpRequest&, int32_t&)>
-          sliceupload_solve_callback = [](const rx_assistant::HttpResult&,
-                                          assistant::HttpRequest&,
-                                          int32_t&) -> bool {
+          sliceupload_solve_callback =
+              [thread_data](
+                  const rx_assistant::HttpResult& file_upload_http_result,
+                  assistant::HttpRequest&, int32_t& slice_id) -> bool {
         /// 无需循环+成功：（非常重要，需要考虑一些，看似“失败”，但最终提交会成功的情况）
         /// 无需循环+失败：彻底失败：（循环次数达到上限，或其他严重情况）
         /// 在此情况下，无需循环，并发出严重错误信号。此时其他worker也不再重试。
         /// 需要循环：非已知的错误
-
         /// TODO: 需要完善错误处理
-        return false;
+        bool solve_flag = false;
+        do {
+          std::string decode_result;
+          Cloud189::Apis::UploadSliceData::HttpResponseDecode(
+              file_upload_http_result.res, file_upload_http_result.req,
+              decode_result);
+          if (decode_result.empty()) {
+            break;
+          }
+          Json::Value json_value;
+          if (!restful_common::jsoncpp_helper::ReaderHelper(decode_result,
+                                                            json_value)) {
+            break;
+          }
+          const auto is_success =
+              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
+          if (is_success) {
+            thread_data->slice_result_map.Set(slice_id, 0);
+            solve_flag = true;
+          }
+          if (!is_success) {
+            thread_data->slice_result_map.Set(slice_id, 1);
+          }
+        } while (false);
+        return solve_flag;
       };
 
       /// 根据最后一次响应判定当前分片的结果
       std::function<sliceupload_helper::Report(rx_assistant::HttpResult&)>
-          result_2_report =
-              [](rx_assistant::HttpResult&) -> sliceupload_helper::Report {
+          result_2_report = [thread_data](rx_assistant::HttpResult& http_result)
+          -> sliceupload_helper::Report {
         /// TODO:
         /// 根据rx_assistant::HttpResult内的slice_id的信息，找到线程数据内对应的线程安全Map内的值
         /// 此值为0，返回true；此值不存在，或非0，返回false
+        std::string header_slice_id;
+        if (http_result.req.headers.Get("Edrive-UploadSliceId",
+                                        header_slice_id) &&
+            !header_slice_id.empty()) {
+          int32_t slice_result;
+          auto solve_slice_md5 = [&slice_result](const int32_t& temp) {
+            slice_result = temp;
+          };
+          thread_data->slice_result_map.FindDelegate(stoi(header_slice_id),
+                                                     solve_slice_md5);
+          if (slice_result) {
+            std::tuple<int32_t, bool> slice_result_tuple =
+                std::make_tuple(int32_t(stoi(header_slice_id)), bool(true));
+          } else {
+            std::tuple<int32_t, bool> slice_result_tuple =
+                std::make_tuple(int32_t(stoi(header_slice_id)), bool(false));
+          }
+        }
         return sliceupload_helper::Report{};
       };
 
@@ -687,6 +755,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             thread_data->file_commit_url.store(
                 restful_common::jsoncpp_helper::GetString(
                     json_value["fileCommitUrl"]));
+            thread_data->already_upload_bytes.store(0);
           }
 
           if (is_success && file_data_exists) {
@@ -981,11 +1050,34 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       int32_t is_log = thread_data->is_log;
       int32_t resume_policy = thread_data->resume_policy;
       std::string file_commit_url = thread_data->file_commit_url.load();
-      std::string slice_md5_list = thread_data->md5_list_result.load();
+      /// 获取Session
+      std::string get_session_key;
+      std::string get_session_secret;
+      if (!Cloud189::SessionHelper::GetCloud189Session(get_session_key,
+                                                       get_session_secret)) {
+        break;
+      }
+      /// 生成MD5List
+      std::string slice_md5_list;
+      auto generate_md5_list = [&slice_md5_list](
+                                   const int32_t slice_id,
+                                   const std::string& md5) -> void {
+        slice_md5_list += md5 + "\n";
+      };
+      thread_data->slice_md5_map.ForeachDelegate(generate_md5_list);
+      /// 对生成的MD5List做HMAC_SHA1加密
+      /// data为MD5List，key为SessionSecret
+      std::string slice_md5_list_signature =
+          cloud_base::hash_algorithm::GenerateSha1Digest(get_session_secret,
+                                                         slice_md5_list);
+      /// 对加密结果做MD5加密
+      cloud_base::hash_algorithm::MD5 md5_sig(slice_md5_list_signature);
+      auto signature_md5 = md5_sig.hex_string();
+
       std::string slice_file_commit_json_str =
           Cloud189::Apis::CommitSliceUploadFile::JsonStringHelper(
               file_commit_url, upload_id, is_log, oper_type, resume_policy,
-              slice_md5_list);
+              signature_md5);
       /// HttpRequestEncode
       Cloud189::Apis::CommitSliceUploadFile::HttpRequestEncode(
           slice_file_commit_json_str, slice_file_commit_request);
