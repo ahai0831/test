@@ -117,7 +117,9 @@ struct sliceuploader_thread_data {
   assistant::tools::safemap_closure<int32_t, std::string>
       slice_md5_map;  // 保存各分片MD5
   assistant::tools::safemap_closure<int32_t, int32_t>
-      slice_result_map;                       // 保存各分片请求的结果
+      slice_result_map;  // 保存各分片请求的结果
+  std::atomic<int64_t>
+      file_size;  /// 保存文件大小，由于文件已被锁定，全流程不变
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
   /// 以下为确认文件上传完成后解析到的字段
@@ -389,6 +391,16 @@ typedef struct sliceupload_worker_function_generator {
                                                          per_sliceupload_req);
       /// HttpRequestEncode 完毕
 
+      /// 保存thread_data，避免在传输线程中反复lock
+      /// 为需要使用的变量定义引用
+      auto& current_upload_bytes = thread_data->current_upload_bytes;
+      auto& Add = thread_data->speed_count.Add;
+      per_sliceupload_req.retval_func = [thread_data, &current_upload_bytes,
+                                         Add](uint64_t value) {
+        current_upload_bytes += value;
+        Add(value);
+      };
+
       std::function<bool(const rx_assistant::HttpResult&,
                          assistant::HttpRequest&, int32_t&)>
           sliceupload_solve_callback =
@@ -589,6 +601,14 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
     auto thread_data = thread_data_weak.lock();
     std::string file_path =
         nullptr != thread_data ? thread_data->local_filepath : std::string();
+
+    /// 计算MD5开始前，获取文件大小
+    uint64_t file_size = 0;
+    cloud_base::filesystem_helper::GetFileSize(
+        assistant::tools::string::utf8ToWstring(file_path), file_size);
+    if (nullptr != thread_data) {
+      thread_data->file_size.store(file_size);
+    }
 
     /// 一旦计算成功，还需比较是否已有上一次的续传记录
     /// 检验上一次续传记录规则：上一次续传MD5和上传ID非空；MD5一致；认为上次的续传记录有效
@@ -1077,6 +1097,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       if (nullptr == thread_data) {
         break;
       }
+
+      /// 上传文件这一流程即将开始时，清空current_upload_bytes字段
+      /// 避免涉及到弱网络有重传时，对进度记录不准确
+      thread_data->current_upload_bytes.store(0);
 
       /// 需已知文件长度，以进行分割
       uint64_t file_length = 0;

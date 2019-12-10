@@ -1,4 +1,4 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 #include <pugixml.hpp>
 
@@ -112,8 +112,9 @@ TEST(cloud189_slice_uploader, init) {
       Cloud189::Restful::sliceuploader_info_helper(
           file_path, md5, upload_file_id, parent_id, slice_size_6mb,
           resume_policy, oper_type, is_log);
-  Cloud189::Restful::SliceUploader sliceup(test_slice_uploader_info,
-                                           [](const std::string&) {});
+  Cloud189::Restful::SliceUploader sliceup(
+      test_slice_uploader_info,
+      [](const std::string& info) { printf("%s\n", info.c_str()); });
 
   sliceup.AsyncStart();
   sliceup.SyncWait();
