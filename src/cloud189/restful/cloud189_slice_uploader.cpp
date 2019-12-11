@@ -583,8 +583,6 @@ GenerateCompleteCallback(
 
             int32_t current_stage = -1;
             auto mc_data = thread_data->master_control_data.lock();
-            int32_t current_stage = -1;
-            int32_t ec = thread_data->int32_error_code.load();
             if (nullptr != mc_data) {
               current_stage = int32_t(mc_data->current_stage.load());
             }
@@ -594,6 +592,7 @@ GenerateCompleteCallback(
               info["file_upload_url"] = thread_data->file_upload_url.load();
             }
             /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
+            int32_t ec = thread_data->int32_error_code.load();
             if (current_stage >= 5 && ec == 0) {
               info["commit_id"] = thread_data->commit_id.load();
               info["commit_name"] = thread_data->commit_name.load();
