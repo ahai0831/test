@@ -31,12 +31,9 @@ using assistant::tools::lockfree_string_closure;
 using httpbusiness::uploader::proof::stage_result;
 using httpbusiness::uploader::proof::uploader_proof;
 using httpbusiness::uploader::proof::uploader_stage;
-using restful_common::jsoncpp_helper::ReaderHelper;
-using restful_common::jsoncpp_helper::WriterHelper;
 using rx_assistant::HttpResult;
-// using rx_assistant::rx_assistant_factory;
-// using rx_assistant::md5::md5_async_factory;
-/// TODO: 既然是源文件，那么对比较复杂的命名空间使用，都可以使用using
+// TODO: 既然是源文件，那么对比较复杂的命名空间使用，都可以使用using
+using restful_common::jsoncpp_helper::GetBool;
 using restful_common::jsoncpp_helper::GetInt;
 using restful_common::jsoncpp_helper::GetInt64;
 using restful_common::jsoncpp_helper::GetString;
@@ -67,7 +64,10 @@ struct sliceuploader_internal_data {
       const std::string& file_path,
       const httpbusiness::uploader::proof::proof_obs_packages& proof_orders,
       const httpbusiness::uploader::rx_uploader::CompleteCallback data_callback)
-      : file_protect(
+      :
+	  /// TODO: 需要增加机制，一旦此句柄在构造后为空，则进行frozen，避免进行无用操作
+	  /// 进行frozen以后，显式地将失败信息传递一次
+	  file_protect(
             _wfsopen(assistant::tools::string::utf8ToWstring(file_path).c_str(),
                      L"r", _SH_DENYWR)),
         guard_file_protect([this]() {
@@ -120,6 +120,7 @@ struct sliceuploader_thread_data {
       slice_result_map;  // 保存各分片请求的结果
   std::atomic<int64_t>
       file_size;  /// 保存文件大小，由于文件已被锁定，全流程不变
+  std::atomic<bool> data_exist;  /// 保存文件是否可秒传
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
   std::atomic<bool>
@@ -566,9 +567,7 @@ GenerateCompleteCallback(
             info["md5"] = thread_data->file_md5.load();
             info["upload_id"] = thread_data->upload_file_id.load();
             info["X-Request-ID"] = thread_data->x_request_id;
-            /// TODO: 需加上此字段
-            // 			info["file_size"] =
-            // thread_data->file_size.load();
+            info["file_size"] = thread_data->file_size.load();
             /// 已传输数据量，此流程需进一步完备
 
             auto mc_data = thread_data->master_control_data.lock();
@@ -684,14 +683,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         }
 
         /// 需已知文件长度，以进行分割
-        uint64_t file_length = 0;
-        auto file_exist = cloud_base::filesystem_helper::GetFileSize(
-            assistant::tools::string::utf8ToWstring(
-                thread_data->local_filepath),
-            file_length);
-        if (!file_exist) {
-          break;
-        }
+		const auto file_length = thread_data->file_size.load();
         const auto slicesize = thread_data->per_slice_size;
 
         auto materials =
@@ -787,23 +779,19 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       if (nullptr == thread_data) {
         break;
       }
-      HttpRequest create_slice_upload_request("");
-      const std::string file_path = thread_data->local_filepath;
-      const std::string file_md5 = thread_data->file_md5.load();
-      const std::string parent_folder_id = thread_data->parent_folder_id;
-      const std::string x_request_id = thread_data->x_request_id;
-      const int32_t oper_type = thread_data->oper_type;
-      const int32_t is_log = thread_data->is_log;
-      std::string create_slice_upload_json_str =
-          Cloud189::Apis::CreateSliceUploadFile::JsonStringHelper(
-              file_path, parent_folder_id, file_md5, x_request_id, is_log,
-              oper_type);
       /// HttpRequestEncode
+      HttpRequest create_slice_upload_request("");
+      const auto& file_path = thread_data->local_filepath;
+      const auto file_md5 = thread_data->file_md5.load();
+      const auto& parent_folder_id = thread_data->parent_folder_id;
+      const auto& x_request_id = thread_data->x_request_id;
+      const auto oper_type = thread_data->oper_type;
+      const auto is_log = thread_data->is_log;
       Cloud189::Apis::CreateSliceUploadFile::HttpRequestEncode(
-          create_slice_upload_json_str, create_slice_upload_request);
-      /// 使用rx_assistant::rx_httpresult::create 创建数据源，下同
-      auto obs =
-          rx_assistant::rx_httpresult::create(create_slice_upload_request);
+		  Cloud189::Apis::CreateSliceUploadFile::JsonStringHelper(
+		  file_path, parent_folder_id, file_md5, x_request_id, is_log,
+		  oper_type), create_slice_upload_request);
+	  /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
       std::function<std::string(HttpResult&)> solve_create_slice_upload =
@@ -836,19 +824,15 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
                   create_slice_upload_result, json_value)) {
             break;
           }
-          const auto is_success =
-              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
-          const auto upload_status = restful_common::jsoncpp_helper::GetInt(
+          const auto is_success = GetBool(json_value["isSuccess"]);
+          const auto upload_status =  GetInt(
               json_value["uploadStatus"]);
           if (is_success) {
-            thread_data->upload_file_id.store(
-                restful_common::jsoncpp_helper::GetString(
+            thread_data->upload_file_id.store(GetString(
                     json_value["uploadFileId"]));
-            thread_data->file_upload_url.store(
-                restful_common::jsoncpp_helper::GetString(
+            thread_data->file_upload_url.store(GetString(
                     json_value["fileUploadUrl"]));
-            thread_data->file_commit_url.store(
-                restful_common::jsoncpp_helper::GetString(
+            thread_data->file_commit_url.store(GetString(
                     json_value["fileCommitUrl"]));
             /// 此处对already_upload_bytes清0
             thread_data->already_upload_bytes.store(0);
@@ -915,7 +899,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         return create_slice_upload_proof;
       };
       /// 生成数据源成功，保存到result
-      result = obs.map(solve_create_slice_upload)
+	  result = rx_assistant::rx_httpresult::create(create_slice_upload_request).map(solve_create_slice_upload)
                    .map(get_create_slice_upload_result);
     } while (false);
     return result;
@@ -1140,14 +1124,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       thread_data->current_upload_bytes.store(0);
 
       /// 需已知文件长度，以进行分割
-      uint64_t file_length = 0;
-      auto file_exist = cloud_base::filesystem_helper::GetFileSize(
-          assistant::tools::string::utf8ToWstring(thread_data->local_filepath),
-          file_length);
-      if (!file_exist) {
-        break;
-      }
-      const auto slicesize = thread_data->per_slice_size;
+	  const auto file_length = thread_data->file_size.load();
+	  const auto slicesize = thread_data->per_slice_size;
 
       auto materials =
           sliceupload_helper::MaterialHelper(file_length, slicesize);
@@ -1321,7 +1299,9 @@ SliceUploader::SliceUploader(
     : thread_data(InitThreadData(upload_info)),
       data(std::make_unique<details::sliceuploader_internal_data>(
           thread_data->local_filepath, GenerateOrders(thread_data),
-          GenerateCompleteCallback(thread_data, data_callback))) {}
+          GenerateCompleteCallback(thread_data, data_callback))) {
+	thread_data->master_control_data = data->master_control->data;
+}
 
 void SliceUploader::AsyncStart() { data->master_control->AsyncStart(); }
 

@@ -24,12 +24,10 @@ using assistant::tools::lockfree_string_closure;
 using httpbusiness::uploader::proof::stage_result;
 using httpbusiness::uploader::proof::uploader_proof;
 using httpbusiness::uploader::proof::uploader_stage;
-using restful_common::jsoncpp_helper::ReaderHelper;
-using restful_common::jsoncpp_helper::WriterHelper;
 using rx_assistant::HttpResult;
-// using rx_assistant::rx_assistant_factory;
-// using rx_assistant::md5::md5_async_factory;
+
 /// TODO: 既然是源文件，那么对比较复杂的命名空间使用，都可以使用using
+using restful_common::jsoncpp_helper::GetBool;
 using restful_common::jsoncpp_helper::GetInt;
 using restful_common::jsoncpp_helper::GetInt64;
 using restful_common::jsoncpp_helper::GetString;
@@ -99,12 +97,14 @@ struct uploader_thread_data {
   lockfree_string_closure<std::string> upload_file_id;
   lockfree_string_closure<std::string> file_upload_url;
   lockfree_string_closure<std::string> file_commit_url;
+  /// TODO: 原子量需要进行
   std::atomic<int64_t>
       file_size;  /// 保存文件大小，由于文件已被锁定，全流程不变
+  std::atomic<bool> data_exist;  /// 保存文件是否可秒传
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
-  std::atomic<bool>
-      is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
+                                              //  std::atomic<bool>
+  //     is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
   /// 以下为确认文件上传完成后解析到的字段
   lockfree_string_closure<std::string> commit_id;
   lockfree_string_closure<std::string> commit_name;
@@ -171,31 +171,29 @@ GenerateCompleteCallback(
           info["speed"] = int64_t(smooth_speed);
           auto thread_data = thread_data_weak.lock();
           if (nullptr != thread_data) {
-            /// 仅供示例，没有必要的例子无需放进去
             info["md5"] = thread_data->file_md5.load();
             info["upload_id"] = thread_data->upload_file_id.load();
-            /// TODO: 需加上此字段
-            // 			info["file_size"] =
-            // thread_data->file_size.load();
-            /// 已传输数据量，此流程需进一步完备
+            info["file_size"] = thread_data->file_size.load();
+            info["transferred_size"] =
+                thread_data->already_upload_bytes.load() +
+                thread_data->current_upload_bytes.load();
 
             auto mc_data = thread_data->master_control_data.lock();
+            int32_t current_stage = -1;
             if (nullptr != mc_data) {
-              /// TODO: 还需保证stage代表当前正在进行的阶段
-              info["stage"] = int32_t(mc_data->current_stage);
-              auto current_stage_int = int32_t(mc_data->current_stage);
-              if (current_stage_int >= 1) {
-                info["fileUploadUrl"] = thread_data->file_upload_url.load();
-                info["fileDataExists"] = 1;
-              }
-              if (current_stage_int >= 2) {
-                info["fileUploadUrl"] = thread_data->file_upload_url.load();
-              }
-              if (current_stage_int >= 4) {
-                info["id"] = thread_data->commit_id.load();
-                info["name"] = thread_data->commit_name.load();
-                info["rev"] = thread_data->commit_rev.load();
-              }
+              current_stage = int32_t(mc_data->current_stage.load());
+            }
+            info["stage"] = current_stage;
+            if (current_stage >= 3) {
+              info["data_exist"] = thread_data->data_exist.load();
+              info["file_upload_url"] = thread_data->file_upload_url.load();
+            }
+            /// TODO:
+            /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
+            if (current_stage >= 5) {
+              info["commit_id"] = thread_data->commit_id.load();
+              info["commit_name"] = thread_data->commit_name.load();
+              info["commit_rev"] = thread_data->commit_rev.load();
             }
           }
 
@@ -209,17 +207,27 @@ GenerateCompleteCallback(
           data_callback](const httpbusiness::uploader::rx_uploader&) -> void {
     /// TODO: 在此处取出相应的信息，传递给回调
     Json::Value info;
+    info["is_complete"] = bool(true);
+    info["stage"] = int32_t(uploader_stage::UploadFinal);
     auto thread_data = thread_data_weak.lock();
     if (nullptr != thread_data) {
-      info["is_complete"] = bool(true);
-      info["stage"] = int32_t(uploader_stage::UploadFinal);
-      info["fileUploadUrl"] = thread_data->file_upload_url.load();
-      info["fileDataExists"] = thread_data->is_data_exist.load();
-      info["fileUploadUrl"] = thread_data->file_upload_url.load();
-      info["id"] = thread_data->commit_id.load();
-      info["name"] = thread_data->commit_name.load();
-      info["rev"] = thread_data->commit_rev.load();
+      info["md5"] = thread_data->file_md5.load();
+      info["upload_id"] = thread_data->upload_file_id.load();
+      info["file_size"] = thread_data->file_size.load();
+      info["transferred_size"] = thread_data->already_upload_bytes.load() +
+                                 thread_data->current_upload_bytes.load();
+      info["data_exist"] = thread_data->data_exist.load();
+
+      info["file_upload_url"] = thread_data->file_upload_url.load();
+
+      /// TODO: 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
+      if (true) {
+        info["commit_id"] = thread_data->commit_id.load();
+        info["commit_name"] = thread_data->commit_name.load();
+        info["commit_rev"] = thread_data->commit_rev.load();
+      }
     }
+
     data_callback(WriterHelper(info));
   };
 }
@@ -297,22 +305,20 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       if (nullptr == thread_data) {
         break;
       }
+      /// HttpRequestEncode
       HttpRequest create_upload_request("");
-      const std::string file_path = thread_data->local_filepath;
-      const std::string file_md5 = thread_data->file_md5.load();
-      const std::string parent_folder_id = thread_data->parent_folder_id;
-      const std::string x_request_id = thread_data->x_request_id;
-      const int32_t oper_type = thread_data->oper_type;
-      const int32_t is_log = thread_data->is_log;
-      const std::string create_upload_json_str =
+      const auto& file_path = thread_data->local_filepath;
+      const auto file_md5 = thread_data->file_md5.load();
+      const auto& parent_folder_id = thread_data->parent_folder_id;
+      const auto& x_request_id = thread_data->x_request_id;
+      const auto oper_type = thread_data->oper_type;
+      const auto is_log = thread_data->is_log;
+      Cloud189::Apis::CreateUploadFile::HttpRequestEncode(
           Cloud189::Apis::CreateUploadFile::JsonStringHelper(
               parent_folder_id, file_path, file_md5, x_request_id, oper_type,
-              is_log);
-      /// HttpRequestEncode
-      Cloud189::Apis::CreateUploadFile::HttpRequestEncode(
-          create_upload_json_str, create_upload_request);
-      /// 使用rx_assistant::rx_httpresult::create 创建数据源，下同
-      auto obs = rx_assistant::rx_httpresult::create(create_upload_request);
+              is_log),
+          create_upload_request);
+      /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
       std::function<std::string(HttpResult&)> solve_create_upload =
@@ -341,43 +347,40 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             break;
           }
           Json::Value json_value;
-          if (!restful_common::jsoncpp_helper::ReaderHelper(
-                  create_upload_result, json_value)) {
+          if (!ReaderHelper(create_upload_result, json_value)) {
             break;
           }
-          const auto is_success =
-              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
-          const auto file_data_exists = restful_common::jsoncpp_helper::GetInt(
-              json_value["fileDataExists"]);
+          const auto is_success = GetBool(json_value["isSuccess"]);
+          const auto file_data_exists = GetInt(json_value["fileDataExists"]);
           if (is_success) {
             thread_data->upload_file_id.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["uploadFileId"]));
+                GetString(json_value["uploadFileId"]));
             thread_data->file_upload_url.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["fileUploadUrl"]));
+                GetString(json_value["fileUploadUrl"]));
             thread_data->file_commit_url.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["fileCommitUrl"]));
-            thread_data->is_data_exist.store(false);
+                GetString(json_value["fileCommitUrl"]));
           }
           if (is_success && file_data_exists) {
             /// 成功且文件可秒传
             create_upload_proof.result = stage_result::Succeeded;
             create_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->is_data_exist.store(true);
+            /// 创建续传流程中：若可秒传，则将already_upload_bytes为文件大小，current_upload_bytes为0
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success) {
             /// 成功且文件不可秒传
             create_upload_proof.result = stage_result::Succeeded;
             create_upload_proof.next_stage = uploader_stage::CheckUpload;
+            /// 创建续传流程中：若不可秒传，则将already_upload_bytes为0，current_upload_bytes也为0
+            thread_data->already_upload_bytes = 0;
+            thread_data->current_upload_bytes = 0;
             break;
           }
-          const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
-              json_value["httpStatusCode"]);
-          const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
-              json_value["int32ErrorCode"]);
+          const auto http_statuc_code = GetInt(json_value["httpStatusCode"]);
+          const auto int32_error_code = GetInt(json_value["int32ErrorCode"]);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == ErrorCode::nderr_sessionbreak ||
@@ -392,8 +395,11 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         } while (false);
         return create_upload_proof;
       };
+
       /// 生成数据源成功，保存到result
-      result = obs.map(solve_create_upload).map(get_create_upload_result);
+      result = rx_assistant::rx_httpresult::create(create_upload_request)
+                   .map(solve_create_upload)
+                   .map(get_create_upload_result);
     } while (false);
     return result;
   };
@@ -414,18 +420,15 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       if (nullptr == thread_data) {
         break;
       }
-      HttpRequest check_upload_request("");
       /// 线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
-      const std::string upload_id = thread_data->upload_file_id.load();
-      const std::string x_request_id = thread_data->x_request_id;
-      const std::string check_upload_json_str =
-          Cloud189::Apis::GetUploadFileStatus::JsonStringHelper(upload_id,
-                                                                x_request_id);
-      /// HttpRequestEncode
+      HttpRequest check_upload_request("");
+      const auto upload_id = thread_data->upload_file_id.load();
+      const auto& x_request_id = thread_data->x_request_id;
       Cloud189::Apis::GetUploadFileStatus::HttpRequestEncode(
-          check_upload_json_str, check_upload_request);
-      /// 使用rx_assistant::rx_httpresult::create 创建数据源，下同
-      auto obs = rx_assistant::rx_httpresult::create(check_upload_request);
+          Cloud189::Apis::GetUploadFileStatus::JsonStringHelper(upload_id,
+                                                                x_request_id),
+          check_upload_request);
+      /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
       std::function<std::string(HttpResult&)> solve_check_upload =
@@ -454,39 +457,36 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             break;
           }
           Json::Value json_value;
-          if (!restful_common::jsoncpp_helper::ReaderHelper(check_upload_result,
-                                                            json_value)) {
+          if (!ReaderHelper(check_upload_result, json_value)) {
             break;
           }
-          const auto is_success =
-              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
-          const auto file_data_exists = restful_common::jsoncpp_helper::GetInt(
-              json_value["fileDataExists"]);
+          const auto is_success = GetBool(json_value["isSuccess"]);
+          const auto file_data_exists = GetInt(json_value["fileDataExists"]);
+          const auto already_upload_bytes = GetInt64(json_value["size"]);
           if (is_success) {
-            thread_data->upload_file_id.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["uploadFileId"]));
             thread_data->file_upload_url.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["fileUploadUrl"]));
+                GetString(json_value["fileUploadUrl"]));
             thread_data->file_commit_url.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["fileCommitUrl"]));
-            thread_data->already_upload_bytes.store(
-                restful_common::jsoncpp_helper::GetInt64(json_value["size"]));
-            thread_data->is_data_exist.store(false);
+                GetString(json_value["fileCommitUrl"]));
           }
           if (is_success && file_data_exists) {
             /// 成功且文件可秒传
             check_upload_proof.result = stage_result::Succeeded;
             check_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->is_data_exist.store(true);
+            /// 查询续传记录流程中：若可秒传，则令already_upload_bytes为文件大小，current_upload_bytes为0
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success) {
             /// 成功且文件不可秒传
             check_upload_proof.result = stage_result::Succeeded;
             check_upload_proof.next_stage = uploader_stage::FileUplaod;
+            /// 查询续传记录流程中：若不可秒传且无偏移记录，则将already_upload_bytes为0，current_upload_bytes也为0；
+            /// 查询续传记录流程中：若不可秒传且有偏移记录，则将already_upload_bytes为偏移长度，current_upload_bytes也为0；
+            thread_data->already_upload_bytes = already_upload_bytes;
+            thread_data->current_upload_bytes = 0;
             break;
           }
           const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
@@ -511,13 +511,16 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           /// 除此以外，均应按照指数增幅进行重试，并记录suggest_waittime
           /// 默认的result即是stage_result::RetrySelf
+          /// TODO: 还需确认，是否能确实取到此字段
           check_upload_proof.suggest_waittime =
-              restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
+              GetInt(json_value["waitingTime"]);
         } while (false);
         return check_upload_proof;
       };
       /// 生成数据源成功，保存到result
-      result = obs.map(solve_check_upload).map(get_check_upload_result);
+      result = rx_assistant::rx_httpresult::create(check_upload_request)
+                   .map(solve_check_upload)
+                   .map(get_check_upload_result);
     } while (false);
     return result;
   };
@@ -543,6 +546,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       /// 避免涉及到弱网络有重传时，对进度记录不准确
       thread_data->current_upload_bytes.store(0);
 
+      /// TODO: 这一段的代码风格和内存占用，有待完善
       HttpRequest file_upload_request("");
       /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
       const std::string file_path = thread_data->local_filepath;
@@ -602,7 +606,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           const auto is_success =
               restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
+          /// 交卷，填写此文件已上传数据量
           file_uplaod_proof.transfered_length =
+              thread_data->already_upload_bytes.load() +
               thread_data->current_upload_bytes.load();
           if (is_success) {
             /// 成功
@@ -610,8 +616,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             file_uplaod_proof.next_stage = uploader_stage::FileCommit;
             break;
           }
-          file_uplaod_proof.suggest_waittime =
-              restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
+          /// 总控根本不管上传数据这一步的waittingTime
+          //           file_uplaod_proof.suggest_waittime =
+          //               restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
         } while (false);
         // 除上述情况外的一切情况，提交失败应前往CheckUpload
         return file_uplaod_proof;
