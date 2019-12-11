@@ -64,10 +64,10 @@ struct sliceuploader_internal_data {
       const std::string& file_path,
       const httpbusiness::uploader::proof::proof_obs_packages& proof_orders,
       const httpbusiness::uploader::rx_uploader::CompleteCallback data_callback)
-      :
-	  /// TODO: 需要增加机制，一旦此句柄在构造后为空，则进行frozen，避免进行无用操作
-	  /// 进行frozen以后，显式地将失败信息传递一次
-	  file_protect(
+      :  /// TODO:
+         /// 需要增加机制，一旦此句柄在构造后为空，则进行frozen，避免进行无用操作
+         /// 进行frozen以后，显式地将失败信息传递一次
+        file_protect(
             _wfsopen(assistant::tools::string::utf8ToWstring(file_path).c_str(),
                      L"r", _SH_DENYWR)),
         guard_file_protect([this]() {
@@ -108,7 +108,12 @@ struct sliceuploader_thread_data {
         x_request_id(x_request_id_),
         per_slice_size(per_slice_size_),
         oper_type(oper_type_),
-        is_log(is_log_) {}
+        is_log(is_log_),
+        file_size({0}),
+        data_exist({false}),
+        already_upload_bytes({0}),
+        current_upload_bytes({0}),
+        int32_error_code({0}) {}
   /// 线程安全的数据成员
   lockfree_string_closure<std::string> file_md5;
   lockfree_string_closure<std::string> upload_file_id;
@@ -123,8 +128,9 @@ struct sliceuploader_thread_data {
   std::atomic<bool> data_exist;  /// 保存文件是否可秒传
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
-  std::atomic<bool>
-      is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
+  std::atomic<int32_t> int32_error_code;  /// 错误码
+  // std::atomic<bool>
+  //    is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
   /// 以下为确认文件上传完成后解析到的字段
   lockfree_string_closure<std::string> commit_id;
   lockfree_string_closure<std::string> commit_name;
@@ -558,56 +564,76 @@ GenerateCompleteCallback(
   if (nullptr != thread_data) {
     thread_data->speed_count.RegSubscription(
         [thread_data_weak, data_callback](uint64_t smooth_speed) {
-          /// TODO : 补充每秒一次的回调信息字段
+          /// 每秒一次的回调信息字段
           Json::Value info;
           info["speed"] = int64_t(smooth_speed);
           auto thread_data = thread_data_weak.lock();
           if (nullptr != thread_data) {
-            /// 仅供示例，没有必要的例子无需放进去
             info["md5"] = thread_data->file_md5.load();
             info["upload_id"] = thread_data->upload_file_id.load();
             info["X-Request-ID"] = thread_data->x_request_id;
             info["file_size"] = thread_data->file_size.load();
-            /// 已传输数据量，此流程需进一步完备
-
+            info["transferred_size"] =
+                thread_data->already_upload_bytes.load() +
+                thread_data->current_upload_bytes.load();
             auto mc_data = thread_data->master_control_data.lock();
+            int32_t current_stage = -1;
+            int32_t ec = thread_data->int32_error_code.load();
             if (nullptr != mc_data) {
-              auto current_stage_int = int32_t(mc_data->current_stage);
-              info["stage"] = current_stage_int;
-              if (current_stage_int >= 1) {
-                info["fileUploadUrl"] = thread_data->file_upload_url.load();
-                info["fileDataExists"] = thread_data->is_data_exist.load();
-              }
-              if (current_stage_int >= 2) {
-                info["fileUploadUrl"] = thread_data->file_upload_url.load();
-              }
-              if (current_stage_int >= 4) {
-                info["id"] = thread_data->commit_id.load();
-                info["name"] = thread_data->commit_name.load();
-                info["rev"] = thread_data->commit_rev.load();
-              }
+              current_stage = int32_t(mc_data->current_stage.load());
+            }
+            info["stage"] = current_stage;
+            if (current_stage >= 3) {
+              info["data_exist"] = thread_data->data_exist.load();
+              info["file_upload_url"] = thread_data->file_upload_url.load();
+            }
+            /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
+            if (current_stage >= 5 && ec == 0) {
+              info["commit_id"] = thread_data->commit_id.load();
+              info["commit_name"] = thread_data->commit_name.load();
+              info["commit_size"] = thread_data->commit_size.load();
+              info["commit_md5"] = thread_data->commit_md5.load();
+              info["commit_create_date"] =
+                  thread_data->commit_create_date.load();
+              info["commit_rev"] = thread_data->commit_rev.load();
+              info["commit_user_id"] = thread_data->commit_user_id.load();
+              info["commit_is_safe"] = thread_data->commit_is_safe.load();
             }
           }
-
           data_callback(WriterHelper(info));
         },
         []() {});
   }
 
+  /// 提供流程完成（成功和失败均包括在内）时的回调
   return [thread_data_weak,
           data_callback](const httpbusiness::uploader::rx_uploader&) -> void {
     /// TODO: 在此处取出相应的信息，传递给回调
     Json::Value info;
+    info["is_complete"] = bool(true);
+    info["stage"] = int32_t(uploader_stage::UploadFinal);
     auto thread_data = thread_data_weak.lock();
     if (nullptr != thread_data) {
-      info["is_complete"] = bool(true);
-      info["stage"] = int32_t(uploader_stage::UploadFinal);
-      info["fileUploadUrl"] = thread_data->file_upload_url.load();
-      info["fileDataExists"] = thread_data->is_data_exist.load();
-      info["fileUploadUrl"] = thread_data->file_upload_url.load();
-      info["id"] = thread_data->commit_id.load();
-      info["name"] = thread_data->commit_name.load();
-      info["rev"] = thread_data->commit_rev.load();
+      info["md5"] = thread_data->file_md5.load();
+      info["upload_id"] = thread_data->upload_file_id.load();
+      info["file_size"] = thread_data->file_size.load();
+      info["transferred_size"] = thread_data->already_upload_bytes.load() +
+                                 thread_data->current_upload_bytes.load();
+      info["data_exist"] = thread_data->data_exist.load();
+      info["file_upload_url"] = thread_data->file_upload_url.load();
+      info["int32_error_code"] = thread_data->int32_error_code.load();
+    }
+    /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
+    int32_t ec = thread_data->int32_error_code.load();
+    if (ec == 0) {
+      info["commit_id"] = thread_data->commit_id.load();
+      info["commit_name"] = thread_data->commit_name.load();
+      info["commit_size"] = thread_data->commit_size.load();
+      info["commit_md5"] = thread_data->commit_md5.load();
+      info["commit_create_date"] = thread_data->commit_create_date.load();
+      info["commit_rev"] = thread_data->commit_rev.load();
+      info["commit_user_id"] = thread_data->commit_user_id.load();
+      info["commit_is_safe"] = thread_data->commit_is_safe.load();
     }
     data_callback(WriterHelper(info));
   };
@@ -683,7 +709,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         }
 
         /// 需已知文件长度，以进行分割
-		const auto file_length = thread_data->file_size.load();
+        const auto file_length = thread_data->file_size.load();
         const auto slicesize = thread_data->per_slice_size;
 
         auto materials =
@@ -788,10 +814,11 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       const auto oper_type = thread_data->oper_type;
       const auto is_log = thread_data->is_log;
       Cloud189::Apis::CreateSliceUploadFile::HttpRequestEncode(
-		  Cloud189::Apis::CreateSliceUploadFile::JsonStringHelper(
-		  file_path, parent_folder_id, file_md5, x_request_id, is_log,
-		  oper_type), create_slice_upload_request);
-	  /// 请求初始化完毕
+          Cloud189::Apis::CreateSliceUploadFile::JsonStringHelper(
+              file_path, parent_folder_id, file_md5, x_request_id, is_log,
+              oper_type),
+          create_slice_upload_request);
+      /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
       std::function<std::string(HttpResult&)> solve_create_slice_upload =
@@ -825,51 +852,54 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             break;
           }
           const auto is_success = GetBool(json_value["isSuccess"]);
-          const auto upload_status =  GetInt(
-              json_value["uploadStatus"]);
+          const auto upload_status = GetInt(json_value["uploadStatus"]);
           if (is_success) {
-            thread_data->upload_file_id.store(GetString(
-                    json_value["uploadFileId"]));
-            thread_data->file_upload_url.store(GetString(
-                    json_value["fileUploadUrl"]));
-            thread_data->file_commit_url.store(GetString(
-                    json_value["fileCommitUrl"]));
-            /// 此处对already_upload_bytes清0
-            thread_data->already_upload_bytes.store(0);
-            /// 此处对is_data_exist置false
-            thread_data->is_data_exist.store(false);
+            thread_data->upload_file_id.store(
+                GetString(json_value["uploadFileId"]));
+            thread_data->file_upload_url.store(
+                GetString(json_value["fileUploadUrl"]));
+            thread_data->file_commit_url.store(
+                GetString(json_value["fileCommitUrl"]));
           }
 
           if (is_success && (upload_status == 0)) {
             /// 成功且断点状态为新建
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::FileUplaod;
+            thread_data->already_upload_bytes = 0;
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success && (upload_status == 1)) {
             /// 成功且断点状态为上传中
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::CheckUpload;
+            thread_data->already_upload_bytes = 0;
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success && (upload_status == 2)) {
             /// 成功且断点状态为分片上传完，需要commit且校验分片
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->is_data_exist.store(true);
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
             break;
           }
-          if (is_success && (upload_status == 3)) {
-            /// 成功且断点状态为作废，需要重新创建
-            create_slice_upload_proof.result = stage_result::RetryTargetStage;
-            create_slice_upload_proof.next_stage = uploader_stage::CreateUpload;
-            break;
-          }
+          // if (is_success && (upload_status == 3)) {
+          //  /// 成功且断点状态为作废，需要重新创建
+          //  create_slice_upload_proof.result = stage_result::RetryTargetStage;
+          //  create_slice_upload_proof.next_stage =
+          //  uploader_stage::CreateUpload; break;
+          //}
           if (is_success && (upload_status == 4)) {
             /// 成功且断点状态为可秒传，需要commit且不校验分片
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->is_data_exist.store(true);
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success && (upload_status == -1)) {
@@ -883,7 +913,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
               json_value["int32ErrorCode"]);
-
+          thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
@@ -899,7 +929,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
         return create_slice_upload_proof;
       };
       /// 生成数据源成功，保存到result
-	  result = rx_assistant::rx_httpresult::create(create_slice_upload_request).map(solve_create_slice_upload)
+      result = rx_assistant::rx_httpresult::create(create_slice_upload_request)
+                   .map(solve_create_slice_upload)
                    .map(get_create_slice_upload_result);
     } while (false);
     return result;
@@ -980,41 +1011,45 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             thread_data->file_commit_url.store(
                 restful_common::jsoncpp_helper::GetString(
                     json_value["fileCommitUrl"]));
-            thread_data->already_upload_bytes.store(
-                restful_common::jsoncpp_helper::GetInt64(json_value["size"]));
-            /// 此处对is_data_exist置false
-            thread_data->is_data_exist.store(false);
           }
           if (is_success && (upload_status == 0)) {
             /// 成功且断点状态为新建
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::FileUplaod;
+            thread_data->already_upload_bytes = 0;
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success && (upload_status == 1)) {
             /// 成功且断点状态为上传中
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::CheckUpload;
+            thread_data->already_upload_bytes = 0;
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success && (upload_status == 2)) {
             /// 成功且断点状态为分片上传完，需要commit且校验分片
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->is_data_exist.store(true);
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
             break;
           }
-          if (is_success && (upload_status == 3)) {
-            /// 成功且断点状态为作废，需要重新创建
-            check_slice_upload_proof.result = stage_result::RetryTargetStage;
-            check_slice_upload_proof.next_stage = uploader_stage::CreateUpload;
-            break;
-          }
+          // if (is_success && (upload_status == 3)) {
+          //  /// 成功且断点状态为作废，需要重新创建
+          //  check_slice_upload_proof.result = stage_result::RetryTargetStage;
+          //  check_slice_upload_proof.next_stage =
+          //  uploader_stage::CreateUpload; break;
+          //}
           if (is_success && (upload_status == 4)) {
             /// 成功且断点状态为可秒传，需要commit且不校验分片
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->is_data_exist.store(true);
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
             break;
           }
           if (is_success && (upload_status == -1)) {
@@ -1028,6 +1063,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
               json_value["int32ErrorCode"]);
+          thread_data->int32_error_code.store(int32_error_code);
 
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
@@ -1124,8 +1160,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       thread_data->current_upload_bytes.store(0);
 
       /// 需已知文件长度，以进行分割
-	  const auto file_length = thread_data->file_size.load();
-	  const auto slicesize = thread_data->per_slice_size;
+      const auto file_length = thread_data->file_size.load();
+      const auto slicesize = thread_data->per_slice_size;
 
       auto materials =
           sliceupload_helper::MaterialHelper(file_length, slicesize);
@@ -1255,6 +1291,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
               json_value["int32ErrorCode"]);
+          thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
@@ -1300,7 +1337,7 @@ SliceUploader::SliceUploader(
       data(std::make_unique<details::sliceuploader_internal_data>(
           thread_data->local_filepath, GenerateOrders(thread_data),
           GenerateCompleteCallback(thread_data, data_callback))) {
-	thread_data->master_control_data = data->master_control->data;
+  thread_data->master_control_data = data->master_control->data;
 }
 
 void SliceUploader::AsyncStart() { data->master_control->AsyncStart(); }

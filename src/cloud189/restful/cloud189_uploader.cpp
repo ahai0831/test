@@ -91,20 +91,24 @@ struct uploader_thread_data {
         parent_folder_id(parent_folder_id_),
         x_request_id(x_request_id_),
         oper_type(oper_type_),
-        is_log(is_log_) {}
+        is_log(is_log_),
+        file_size({0}),
+        data_exist({false}),
+        already_upload_bytes({0}),
+        current_upload_bytes({0}),
+        int32_error_code({0}) {}
   /// 线程安全的数据成员
   lockfree_string_closure<std::string> file_md5;
   lockfree_string_closure<std::string> upload_file_id;
   lockfree_string_closure<std::string> file_upload_url;
   lockfree_string_closure<std::string> file_commit_url;
-  /// TODO: 原子量需要进行
+  /// TODO: 原子量需要进行初始化
   std::atomic<int64_t>
       file_size;  /// 保存文件大小，由于文件已被锁定，全流程不变
   std::atomic<bool> data_exist;  /// 保存文件是否可秒传
-  std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
-  std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
-                                              //  std::atomic<bool>
-  //     is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
+  std::atomic<int64_t> already_upload_bytes;  /// 获取续传状态中得到的已传数据量
+  std::atomic<int64_t> current_upload_bytes;  /// 上传文件数据中每次的已传数据量
+  std::atomic<int32_t> int32_error_code;  /// 错误码
   /// 以下为确认文件上传完成后解析到的字段
   lockfree_string_closure<std::string> commit_id;
   lockfree_string_closure<std::string> commit_name;
@@ -145,7 +149,6 @@ std::shared_ptr<details::uploader_thread_data> InitThreadData(
   const auto& last_md5 = GetString(json_value["md5"]);
   const auto& last_upload_id = GetString(json_value["uploadFileId"]);
   const auto& parent_folder_id = GetString(json_value["parentFolderId"]);
-  const auto& x_request_id = GetString(json_value["X-Request-ID"]);
   const auto oper_type = GetInt(json_value["opertype"]);
   const auto is_log = GetInt(json_value["isLog"]);
   auto& x_request_id = GetString(json_value["X-Request-ID"]);
@@ -166,7 +169,7 @@ GenerateCompleteCallback(
   if (nullptr != thread_data) {
     thread_data->speed_count.RegSubscription(
         [thread_data_weak, data_callback](uint64_t smooth_speed) {
-          /// TODO : 补充每秒一次的回调信息字段
+          /// 每秒一次的回调信息字段
           Json::Value info;
           info["speed"] = int64_t(smooth_speed);
           auto thread_data = thread_data_weak.lock();
@@ -177,9 +180,9 @@ GenerateCompleteCallback(
             info["transferred_size"] =
                 thread_data->already_upload_bytes.load() +
                 thread_data->current_upload_bytes.load();
-
             auto mc_data = thread_data->master_control_data.lock();
             int32_t current_stage = -1;
+            int32_t ec = thread_data->int32_error_code.load();
             if (nullptr != mc_data) {
               current_stage = int32_t(mc_data->current_stage.load());
             }
@@ -188,15 +191,19 @@ GenerateCompleteCallback(
               info["data_exist"] = thread_data->data_exist.load();
               info["file_upload_url"] = thread_data->file_upload_url.load();
             }
-            /// TODO:
             /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
-            if (current_stage >= 5) {
+            if (current_stage >= 5 && ec == 0) {
               info["commit_id"] = thread_data->commit_id.load();
               info["commit_name"] = thread_data->commit_name.load();
+              info["commit_size"] = thread_data->commit_size.load();
+              info["commit_md5"] = thread_data->commit_md5.load();
+              info["commit_create_date"] =
+                  thread_data->commit_create_date.load();
               info["commit_rev"] = thread_data->commit_rev.load();
+              info["commit_user_id"] = thread_data->commit_user_id.load();
+              info["commit_is_safe"] = thread_data->commit_is_safe.load();
             }
           }
-
           data_callback(WriterHelper(info));
         },
         []() {});
@@ -209,6 +216,7 @@ GenerateCompleteCallback(
     Json::Value info;
     info["is_complete"] = bool(true);
     info["stage"] = int32_t(uploader_stage::UploadFinal);
+
     auto thread_data = thread_data_weak.lock();
     if (nullptr != thread_data) {
       info["md5"] = thread_data->file_md5.load();
@@ -217,14 +225,19 @@ GenerateCompleteCallback(
       info["transferred_size"] = thread_data->already_upload_bytes.load() +
                                  thread_data->current_upload_bytes.load();
       info["data_exist"] = thread_data->data_exist.load();
-
       info["file_upload_url"] = thread_data->file_upload_url.load();
-
-      /// TODO: 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
-      if (true) {
+      info["int32_error_code"] = thread_data->int32_error_code.load();
+      /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
+      int32_t ec = thread_data->int32_error_code.load();
+      if (ec == 0) {
         info["commit_id"] = thread_data->commit_id.load();
         info["commit_name"] = thread_data->commit_name.load();
+        info["commit_size"] = thread_data->commit_size.load();
+        info["commit_md5"] = thread_data->commit_md5.load();
+        info["commit_create_date"] = thread_data->commit_create_date.load();
         info["commit_rev"] = thread_data->commit_rev.load();
+        info["commit_user_id"] = thread_data->commit_user_id.load();
+        info["commit_is_safe"] = thread_data->commit_is_safe.load();
       }
     }
 
@@ -381,6 +394,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           const auto http_statuc_code = GetInt(json_value["httpStatusCode"]);
           const auto int32_error_code = GetInt(json_value["int32ErrorCode"]);
+          thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == ErrorCode::nderr_sessionbreak ||
@@ -493,7 +507,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
               json_value["int32ErrorCode"]);
-
+          thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == ErrorCode::nderr_sessionbreak ||
@@ -616,9 +630,6 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             file_uplaod_proof.next_stage = uploader_stage::FileCommit;
             break;
           }
-          /// 总控根本不管上传数据这一步的waittingTime
-          //           file_uplaod_proof.suggest_waittime =
-          //               restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
         } while (false);
         // 除上述情况外的一切情况，提交失败应前往CheckUpload
         return file_uplaod_proof;
@@ -724,6 +735,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               json_value["httpStatusCode"]);
           const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
               json_value["int32ErrorCode"]);
+          thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == ErrorCode::nderr_sessionbreak ||
