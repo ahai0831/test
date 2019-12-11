@@ -25,6 +25,8 @@ namespace CreateSliceUploadFile {
 // [表明父文件夹Id]
 // md5, [string],
 // [表明上传文件的md5]
+// x_request_id,[string],
+// [表明x_request_id]
 // isLog, [int32_t],
 // [客户端日志上传标识,
 // 1–客户端行为日志文件上传至指定账户
@@ -35,8 +37,9 @@ namespace CreateSliceUploadFile {
 // 3-遇到相同文件名（只检查文件名），执行覆盖原文件]
 std::string JsonStringHelper(const std::string& localPath,
                              const std::string& parentFolderId,
-                             const std::string& md5, const int32_t isLog,
-                             const int32_t opertype);
+                             const std::string& md5,
+                             const std::string& x_request_id,
+                             const int32_t isLog, const int32_t opertype);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式

@@ -23,6 +23,8 @@ namespace UploadSliceData {
 // [表明源文件的本地全路径]
 // uploadFileId,[string],
 // [表明上传文件Id]
+// x_request_id,[string],
+// [表明x_request_id]
 // startOffset,[int64_t],
 // [表明续传文件的起始偏移，0为从头开始]
 // offsetLength,[int64_t],
@@ -35,9 +37,10 @@ namespace UploadSliceData {
 // [表明分片的MD5值]
 std::string JsonStringHelper(
     const std::string& fileUploadUrl, const std::string& localPath,
-    const std::string& uploadFileId, const int64_t startOffset,
-    const int64_t offsetLength, const int32_t resumePolicy,
-    const int64_t UploadSliceId, const std::string& MD5);
+    const std::string& uploadFileId, const std::string& x_request_id,
+    const int64_t startOffset, const int64_t offsetLength,
+    const int32_t resumePolicy, const int64_t UploadSliceId,
+    const std::string& MD5);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式

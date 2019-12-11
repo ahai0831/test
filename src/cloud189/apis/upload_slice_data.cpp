@@ -40,9 +40,10 @@ namespace UploadSliceData {
 // 用于构建一个json字符串，包含创建文件上传需要的参数
 std::string JsonStringHelper(
     const std::string& fileUploadUrl, const std::string& localPath,
-    const std::string& uploadFileId, const int64_t startOffset,
-    const int64_t offsetLength, const int32_t resumePolicy,
-    const int64_t UploadSliceId, const std::string& MD5) {
+    const std::string& uploadFileId, const std::string& x_request_id,
+    const int64_t startOffset, const int64_t offsetLength,
+    const int32_t resumePolicy, const int64_t UploadSliceId,
+    const std::string& MD5) {
   Json::Value json_value;
   do {
     if (fileUploadUrl.empty() || MD5.empty() || uploadFileId.empty()) {
@@ -51,6 +52,7 @@ std::string JsonStringHelper(
     json_value["fileUploadUrl"] = fileUploadUrl;
     json_value["localPath"] = localPath;
     json_value["uploadFileId"] = uploadFileId;
+    json_value["X-Request-ID"] = x_request_id;
     json_value["startOffset"] = startOffset;
     json_value["offsetLength"] = offsetLength;
     json_value["resumePolicy"] = resumePolicy;
@@ -74,6 +76,8 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
     std::string uploadFileId =
         restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
     int64_t startOffset =
         restful_common::jsoncpp_helper::GetInt64(json_str["startOffset"]);
     int64_t offsetLength =
@@ -107,7 +111,7 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::rand_helper::GetRandString().c_str());
 
     // set header
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
     request.headers.Set("ResumePolicy", std::to_string(GetResumePolicy()));
     request.headers.Set("Edrive-UploadFileId", uploadFileId.c_str());
     request.headers.Set(

@@ -43,6 +43,7 @@ namespace CommitSliceUploadFile {
 // 用于构建一个json字符串，包含创建文件上传需要的参数
 std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const std::string& uploadFileId,
+                             const std::string& x_request_id,
                              const int32_t isLog, const int32_t opertype,
                              const int32_t resumePolicy,
                              const std::string& sliceMD5) {
@@ -52,8 +53,8 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
       break;
     }
     json_str = assistant::tools::string::StringFormat(
-        R"({"fileCommitUrl":"%s","uploadFileId":"%s","isLog": %s,"opertype": %s,"resumePolicy": %s,"sliceMD5": "%s"})",
-        fileCommitUrl.c_str(), uploadFileId.c_str(),
+        R"({"fileCommitUrl":"%s","uploadFileId":"%s","X-Request-ID":"%s","isLog": %s,"opertype": %s,"resumePolicy": %s,"sliceMD5": "%s"})",
+        fileCommitUrl.c_str(), uploadFileId.c_str(), x_request_id.c_str(),
         std::to_string(isLog).c_str(), std::to_string(opertype).c_str(),
         std::to_string(resumePolicy).c_str(), sliceMD5.c_str());
   } while (false);
@@ -72,6 +73,8 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetString(json_str["fileCommitUrl"]);
     std::string uploadFileId =
         restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
     int32_t isLog = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
     int32_t opertype =
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
@@ -96,7 +99,7 @@ bool HttpRequestEncode(const std::string& params_json,
 
     // set header
     request.headers.Set("Content-Type", GetContentType());
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
 
     // set body
     request.url += assistant::tools::string::StringFormat(

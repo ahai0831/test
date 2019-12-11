@@ -77,6 +77,7 @@ struct uploader_thread_data {
   const std::string last_md5;
   const std::string last_upload_id;
   const std::string parent_folder_id;
+  const std::string x_request_id;
   const int32_t oper_type;
   const int32_t is_log;
   /// 禁用移动复制默认构造和=号操作符，必须通过显式指定所有必须字段进行初始化
@@ -84,11 +85,13 @@ struct uploader_thread_data {
                        const std::string& last_trans_md5,
                        const std::string& last_trans_upload_id,
                        const std::string& parent_folder_id_,
+                       const std::string& x_request_id_,
                        const int32_t& oper_type_, const int32_t& is_log_)
       : local_filepath(file_path),
         last_md5(last_trans_md5),
         last_upload_id(last_trans_upload_id),
         parent_folder_id(parent_folder_id_),
+        x_request_id(x_request_id_),
         oper_type(oper_type_),
         is_log(is_log_) {}
   /// 线程安全的数据成员
@@ -140,11 +143,12 @@ std::shared_ptr<details::uploader_thread_data> InitThreadData(
   const auto& last_md5 = GetString(json_value["md5"]);
   const auto& last_upload_id = GetString(json_value["uploadFileId"]);
   const auto& parent_folder_id = GetString(json_value["parentFolderId"]);
+  const auto& x_request_id = GetString(json_value["X-Request-ID"]);
   const auto oper_type = GetInt(json_value["opertype"]);
   const auto is_log = GetInt(json_value["isLog"]);
   return std::make_shared<details::uploader_thread_data>(
-      local_filepath, last_md5, last_upload_id, parent_folder_id, oper_type,
-      is_log);
+      local_filepath, last_md5, last_upload_id, parent_folder_id, x_request_id,
+      oper_type, is_log);
 }
 /// 生成总控使用的完成回调
 const httpbusiness::uploader::rx_uploader::CompleteCallback
@@ -270,11 +274,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       const std::string file_path = thread_data->local_filepath;
       const std::string file_md5 = thread_data->file_md5.load();
       const std::string parent_folder_id = thread_data->parent_folder_id;
+      const std::string x_request_id = thread_data->x_request_id;
       const int32_t oper_type = thread_data->oper_type;
       const int32_t is_log = thread_data->is_log;
       const std::string create_upload_json_str =
           Cloud189::Apis::CreateUploadFile::JsonStringHelper(
-              parent_folder_id, file_path, file_md5, oper_type, is_log);
+              parent_folder_id, file_path, file_md5, x_request_id, oper_type,
+              is_log);
       /// HttpRequestEncode
       Cloud189::Apis::CreateUploadFile::HttpRequestEncode(
           create_upload_json_str, create_upload_request);
@@ -382,8 +388,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       HttpRequest check_upload_request("");
       /// 线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
       const std::string upload_id = thread_data->upload_file_id.load();
+      const std::string x_request_id = thread_data->x_request_id;
       const std::string check_upload_json_str =
-          Cloud189::Apis::GetUploadFileStatus::JsonStringHelper(upload_id);
+          Cloud189::Apis::GetUploadFileStatus::JsonStringHelper(upload_id,
+                                                                x_request_id);
       /// HttpRequestEncode
       Cloud189::Apis::GetUploadFileStatus::HttpRequestEncode(
           check_upload_json_str, check_upload_request);
@@ -508,13 +516,14 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
       const std::string file_path = thread_data->local_filepath;
       const std::string upload_id = thread_data->upload_file_id.load();
+      const std::string x_request_id = thread_data->x_request_id;
       const int64_t start_offset = thread_data->already_upload_bytes;
       /// TODO:offset_length是否可以不传在encode中计算
       const int64_t offset_length = thread_data->already_upload_bytes;
       const std::string file_upload_url = thread_data->file_upload_url.load();
       std::string file_upload_json_str =
           Cloud189::Apis::UploadFileData::JsonStringHelper(
-              file_upload_url, file_path, upload_id, start_offset,
+              file_upload_url, file_path, upload_id, x_request_id, start_offset,
               offset_length);
       /// HttpRequestEncode
       Cloud189::Apis::UploadFileData::HttpRequestEncode(file_upload_json_str,
@@ -600,12 +609,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       HttpRequest file_commit_request("");
       /// 从线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
       const std::string upload_id = thread_data->upload_file_id.load();
+      const std::string x_request_id = thread_data->x_request_id;
       const int32_t oper_type = thread_data->oper_type;
       const int32_t is_log = thread_data->is_log;
       const std::string file_commit_url = thread_data->file_commit_url.load();
       std::string file_commit_json_str =
           Cloud189::Apis::ComfirmUploadFileComplete::JsonStringHelper(
-              file_commit_url, upload_id, oper_type, is_log);
+              file_commit_url, upload_id, x_request_id, oper_type, is_log);
       /// HttpRequestEncode
       Cloud189::Apis::ComfirmUploadFileComplete::HttpRequestEncode(
           file_commit_json_str, file_commit_request);
@@ -729,10 +739,15 @@ std::string uploader_info_helper(const std::string& local_path,
                                  const std::string& last_md5,
                                  const std::string& last_upload_id,
                                  const std::string& parent_folder_id,
+                                 const std::string& x_request_id,
                                  const int32_t oper_type,
                                  const int32_t is_log) {
   Json::Value json_value;
-
+  if (x_request_id.empty()) {
+    json_value["X-Request-ID"] = assistant::tools::uuid::generate();
+  } else {
+    json_value["X-Request-ID"] = x_request_id;
+  }
   json_value["localPath"] = local_path;
   json_value["last_md5"] = last_md5;
   json_value["uploadFileId"] = last_upload_id;

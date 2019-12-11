@@ -42,9 +42,11 @@ namespace Apis {
 namespace GetUploadFileStatus {
 
 // 用于构建一个json字符串，包含查询文件上传需要的参数
-std::string JsonStringHelper(const std::string uploadFileId) {
+std::string JsonStringHelper(const std::string uploadFileId,
+                             const std::string x_request_id) {
   return assistant::tools::string::StringFormat(
-      R"({"uploadFileId":"%s"})", uploadFileId.c_str());
+      R"({"uploadFileId":"%s","X-Request-ID":"%s"})", uploadFileId.c_str(),
+      x_request_id.c_str());
 }
 
 // 查询文件上传状态请求
@@ -62,19 +64,23 @@ bool HttpRequestEncode(const std::string& params_json,
     // add session key, signature and date.
     Cloud189::SessionHelper::AddCloud189Signature(request);
 
+    std::string uploadFileId =
+        restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
+
     // set url params
     request.url += assistant::tools::string::StringFormat(
         "?uploadFileId=%s"
         "&ResumePolicy=%d"
         "&clientType=%s&version=%s&channelId=%s&rand=%s",
-        restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"])
-            .c_str(),
-        GetResumePolicy(), GetClientType().c_str(),
+        uploadFileId.c_str(), GetResumePolicy(), GetClientType().c_str(),
         cloud_base::process_version::GetCurrentProcessVersion().c_str(),
         GetChannelId().c_str(),
         restful_common::rand_helper::GetRandString().c_str());
+
     // set header
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
 
     is_ok = true;
   } while (false);

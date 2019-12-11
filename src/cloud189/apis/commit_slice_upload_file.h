@@ -21,6 +21,8 @@ namespace CommitSliceUploadFile {
 // [确认文件上传完成URL]
 // uploadFileId,[string],
 // [表明上传文件Id]
+// x_request_id,[string],
+// [表明x_request_id]
 // isLog, [int32_t],
 // [客户端日志上传标识,
 // 1–客户端行为日志文件上传至指定账户
@@ -36,6 +38,7 @@ namespace CommitSliceUploadFile {
 // SessionSecret) 签名，再计算 Signature 的MD5]
 std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const std::string& uploadFileId,
+                             const std::string& x_request_id,
                              const int32_t isLog, const int32_t opertype,
                              const int32_t resumePolicy,
                              const std::string& sliceMD5);

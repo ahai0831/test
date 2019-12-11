@@ -43,6 +43,7 @@ namespace ComfirmUploadFileComplete {
 // 用于构建一个json字符串，包含创建文件上传需要的参数
 std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const std::string& uploadFileId,
+                             const std::string& x_request_id,
                              const int32_t opertype, const int32_t isLog) {
   std::string json_str = "";
   do {
@@ -50,9 +51,11 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
       break;
     }
     json_str = assistant::tools::string::StringFormat(
-        "{\"fileCommitUrl\" :\"%s\",\"uploadFileId\" : \"%s\",\"opertype\" : "
+        "{\"fileCommitUrl\" :\"%s\",\"uploadFileId\" : \"%s\",\"X-Request-ID\" "
+        ": \"%s\",\"opertype\" : "
         "%d,\"isLog\" : %d}",
-        fileCommitUrl.c_str(), uploadFileId.c_str(), opertype, isLog);
+        fileCommitUrl.c_str(), uploadFileId.c_str(), x_request_id.c_str(),
+        opertype, isLog);
   } while (false);
   return json_str;
 }
@@ -69,6 +72,8 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetString(json_str["fileCommitUrl"]);
     std::string uploadFileId =
         restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
     int32_t opertype =
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
     int32_t isLog = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
@@ -89,7 +94,7 @@ bool HttpRequestEncode(const std::string& params_json,
 
     // set header
     request.headers.Set("Content-Type", GetContentType());
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
 
     // set body
     request.body = assistant::tools::string::StringFormat(

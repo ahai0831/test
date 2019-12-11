@@ -19,7 +19,10 @@ namespace GetUploadFileStatus {
 // json字符串包含的字段应于这个函数声明完全一致
 // uploadFileId,[string],
 // [表明用于断点续传的临时文件Id]
-std::string JsonStringHelper(const std::string uploadFileId);
+// x_request_id,[string],
+// [表明x_request_id]
+std::string JsonStringHelper(const std::string uploadFileId,
+                             const std::string x_request_id);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式

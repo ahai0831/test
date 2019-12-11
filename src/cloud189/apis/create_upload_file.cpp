@@ -51,8 +51,9 @@ namespace CreateUploadFile {
 // 用于构建一个json字符串，包含创建文件上传需要的参数
 std::string JsonStringHelper(const std::string& parent_folder_id,
                              const std::string& local_path,
-                             const std::string& md5, const int32_t oper_type,
-                             const int32_t is_log) {
+                             const std::string& md5,
+                             const std::string& x_request_id,
+                             const int32_t oper_type, const int32_t is_log) {
   Json::Value json_value;
   do {
     if (parent_folder_id.empty() || local_path.empty() || md5.empty()) {
@@ -61,6 +62,7 @@ std::string JsonStringHelper(const std::string& parent_folder_id,
     json_value["parentFolderId"] = parent_folder_id;
     json_value["localPath"] = local_path;
     json_value["md5"] = md5;
+    json_value["X-Request-ID"] = x_request_id;
     json_value["opertype"] = oper_type;
     json_value["isLog"] = is_log;
   } while (false);
@@ -82,6 +84,8 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
     std::string md5 =
         restful_common::jsoncpp_helper::GetString(json_str["md5"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
     int32_t oper_type =
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
     int32_t is_log = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
@@ -118,7 +122,7 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::rand_helper::GetRandString().c_str());
     // set header
     request.headers.Set("Content-Type", GetContentType());
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
     // set body
     request.body = assistant::tools::string::StringFormat(
         "parentFolderId=%s"

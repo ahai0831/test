@@ -45,6 +45,8 @@ struct Uploader {
 /// [表明上传文件的id，如果为续传则必须传入且有效，如果为创建新的上传可为空]
 /// parent_folder_id,[std::string]
 /// [表明上传文件的父文件夹id]
+/// x_request_id,[std::string]
+/// [表明请求的x_request_id，如果传入为空则生成]
 /// oper_type,[int32_t]
 /// [表明上传后操作方式，
 /// 1-遇到相同文件名(只检查文件名)，执行重命名操作，
@@ -57,6 +59,7 @@ std::string uploader_info_helper(const std::string &local_path,
                                  const std::string &last_md5,
                                  const std::string &last_upload_id,
                                  const std::string &parent_folder_id,
+                                 const std::string &x_request_id,
                                  const int32_t oper_type, const int32_t is_log);
 
 }  // namespace Restful

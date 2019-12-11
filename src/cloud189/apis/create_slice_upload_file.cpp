@@ -48,8 +48,9 @@ namespace CreateSliceUploadFile {
 // 用于构建一个json字符串，包含创建分片文件上传需要的参数
 std::string JsonStringHelper(const std::string& localPath,
                              const std::string& parentFolderId,
-                             const std::string& md5, const int32_t isLog,
-                             const int32_t opertype) {
+                             const std::string& md5,
+                             const std::string& x_request_id,
+                             const int32_t isLog, const int32_t opertype) {
   Json::Value json_value;
   do {
     if (localPath.empty() || parentFolderId.empty() || md5.empty()) {
@@ -58,6 +59,7 @@ std::string JsonStringHelper(const std::string& localPath,
     json_value["localPath"] = localPath;
     json_value["parentFolderId"] = parentFolderId;
     json_value["md5"] = md5;
+    json_value["X-Request-ID"] = x_request_id;
     json_value["isLog"] = isLog;
     json_value["opertype"] = opertype;
   } while (false);
@@ -79,6 +81,8 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetString(json_str["parentFolderId"]);
     std::string md5 =
         restful_common::jsoncpp_helper::GetString(json_str["md5"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
     int32_t isLog = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
     int32_t opertype =
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
@@ -120,7 +124,7 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::rand_helper::GetRandString().c_str());
     // set header
     request.headers.Set("Content-Type", GetContentType());
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
     // set body
     request.body = assistant::tools::string::StringFormat(
         R"({"parentFolderId":"%s","filename":"%s","md5": "%s","size": %s,"sliceSize": %s,"isLog": %s,"opertype": %s})",

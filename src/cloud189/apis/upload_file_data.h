@@ -24,6 +24,8 @@ namespace UploadFileData {
 // [表明源文件的本地全路径]
 // uploadFileId,[string],
 // [表明断点续传文件Id]
+// x_request_id,[string],
+// [表明x_request_id]
 // startOffset,[int64_t],
 // [表明续传文件的起始偏移，0为从头开始]
 // offsetLength,[int64_t],
@@ -31,6 +33,7 @@ namespace UploadFileData {
 std::string JsonStringHelper(const std::string& fileUploadUrl,
                              const std::string& localPath,
                              const std::string& uploadFileId,
+                             const std::string& x_request_id,
                              const int64_t startOffset,
                              const int64_t offsetLength);
 
