@@ -61,7 +61,7 @@ std::string sliceuploader_info_helper(
     const std::string &local_path, const std::string &last_md5,
     const std::string &last_upload_id, const std::string &parent_folder_id,
     const std::string &x_request_id, const int64_t per_slice_size,
-    const int32_t resume_policy, const int32_t oper_type, const int32_t is_log);
+    const int32_t oper_type, const int32_t is_log);
 
 }  // namespace Restful
 

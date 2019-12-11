@@ -45,7 +45,6 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const std::string& uploadFileId,
                              const std::string& x_request_id,
                              const int32_t isLog, const int32_t opertype,
-                             const int32_t resumePolicy,
                              const std::string& sliceMD5) {
   std::string json_str = "";
   do {
@@ -53,10 +52,10 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
       break;
     }
     json_str = assistant::tools::string::StringFormat(
-        R"({"fileCommitUrl":"%s","uploadFileId":"%s","X-Request-ID":"%s","isLog": %s,"opertype": %s,"resumePolicy": %s,"sliceMD5": "%s"})",
+        R"({"fileCommitUrl":"%s","uploadFileId":"%s","X-Request-ID":"%s","isLog": %s,"opertype": %s,"sliceMD5": "%s"})",
         fileCommitUrl.c_str(), uploadFileId.c_str(), x_request_id.c_str(),
         std::to_string(isLog).c_str(), std::to_string(opertype).c_str(),
-        std::to_string(resumePolicy).c_str(), sliceMD5.c_str());
+        sliceMD5.c_str());
   } while (false);
   return json_str;
 }
@@ -78,8 +77,6 @@ bool HttpRequestEncode(const std::string& params_json,
     int32_t isLog = restful_common::jsoncpp_helper::GetInt(json_str["isLog"]);
     int32_t opertype =
         restful_common::jsoncpp_helper::GetInt(json_str["opertype"]);
-    int32_t resumePolicy =
-        restful_common::jsoncpp_helper::GetInt(json_str["resumePolicy"]);
     std::string sliceMD5 =
         restful_common::jsoncpp_helper::GetString(json_str["sliceMD5"]);
 
@@ -105,8 +102,8 @@ bool HttpRequestEncode(const std::string& params_json,
     request.url += assistant::tools::string::StringFormat(
         R"(&uploadFileId=%s&isLog=%s&opertype=%s&resumePolicy=%s&sliceMD5=%s)",
         uploadFileId.c_str(), std::to_string(isLog).c_str(),
-        std::to_string(opertype).c_str(), std::to_string(resumePolicy).c_str(),
-        sliceMD5.c_str());
+        std::to_string(opertype).c_str(),
+        std::to_string(GetResumePolicy()).c_str(), sliceMD5.c_str());
     // request.body = assistant::tools::string::StringFormat(
     //	R"(?uploadFileId=%s&isLog=%s&opertype=%s&resumePolicy=%s&sliceMD5=%s)",
     //	std::to_string(uploadFileId).c_str(), std::to_string(isLog).c_str(),

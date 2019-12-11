@@ -29,8 +29,6 @@ namespace UploadSliceData {
 // [表明续传文件的起始偏移，0为从头开始]
 // offsetLength,[int64_t],
 // [表明续传文件的偏移长度，-1为从起始位置到最后位置]
-// resumePolicy,[int32_t],
-// [表明是否支持断点续传控制，1-断点续传控制策略版本1，空-不支持]
 // UploadSliceId,[int64_t],
 // [表明分片Id]
 // MD5, [string],
@@ -39,8 +37,7 @@ std::string JsonStringHelper(
     const std::string& fileUploadUrl, const std::string& localPath,
     const std::string& uploadFileId, const std::string& x_request_id,
     const int64_t startOffset, const int64_t offsetLength,
-    const int32_t resumePolicy, const int64_t UploadSliceId,
-    const std::string& MD5);
+    const int64_t UploadSliceId, const std::string& MD5);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式

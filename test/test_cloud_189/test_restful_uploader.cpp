@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
 #include <pugixml.hpp>
 
@@ -63,13 +63,12 @@ TEST(cloud189_uploader, init) {
 }
 
 TEST(cloud189_slice_uploader, init) {
-  std::string file_path = "C:\\Users\\TY-PC\\Desktop\\slice134000.rar";
+  std::string file_path = "C:\\Users\\TY-PC\\Desktop\\slice150.rar";
   std::string parent_id = "-11";
   std::string md5 = "";  //可有可无，如果要续传则必须传入，否则重新上传
   std::string x_request_id = "";
   int32_t is_log = 0;
   int32_t oper_type = 1;
-  int32_t resume_policy = 1;
   std::string upload_file_id =
       "1384315735897436096";  // 可以无，如果有则优先选择续传，如果失效则重新上传
   int64_t slice_size_6mb = 6 * 1024 * 1024;
@@ -113,8 +112,8 @@ TEST(cloud189_slice_uploader, init) {
 
   std::string test_slice_uploader_info =
       Cloud189::Restful::sliceuploader_info_helper(
-          file_path, md5, upload_file_id, parent_id,x_request_id, slice_size_6mb,
-          resume_policy, oper_type, is_log);
+          file_path, md5, upload_file_id, parent_id, x_request_id,
+          slice_size_6mb, oper_type, is_log);
   Cloud189::Restful::SliceUploader sliceup(
       test_slice_uploader_info,
       [](const std::string& info) { printf("%s\n", info.c_str()); });

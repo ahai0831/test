@@ -103,6 +103,8 @@ struct uploader_thread_data {
       file_size;  /// 保存文件大小，由于文件已被锁定，全流程不变
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
+  std::atomic<bool>
+      is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
   /// 以下为确认文件上传完成后解析到的字段
   lockfree_string_closure<std::string> commit_id;
   lockfree_string_closure<std::string> commit_name;
@@ -146,6 +148,10 @@ std::shared_ptr<details::uploader_thread_data> InitThreadData(
   const auto& x_request_id = GetString(json_value["X-Request-ID"]);
   const auto oper_type = GetInt(json_value["opertype"]);
   const auto is_log = GetInt(json_value["isLog"]);
+  auto& x_request_id = GetString(json_value["X-Request-ID"]);
+  if (x_request_id.empty()) {
+    x_request_id = assistant::tools::uuid::generate();
+  }
   return std::make_shared<details::uploader_thread_data>(
       local_filepath, last_md5, last_upload_id, parent_folder_id, x_request_id,
       oper_type, is_log);
@@ -177,6 +183,19 @@ GenerateCompleteCallback(
             if (nullptr != mc_data) {
               /// TODO: 还需保证stage代表当前正在进行的阶段
               info["stage"] = int32_t(mc_data->current_stage);
+              auto current_stage_int = int32_t(mc_data->current_stage);
+              if (current_stage_int >= 1) {
+                info["fileUploadUrl"] = thread_data->file_upload_url.load();
+                info["fileDataExists"] = 1;
+              }
+              if (current_stage_int >= 2) {
+                info["fileUploadUrl"] = thread_data->file_upload_url.load();
+              }
+              if (current_stage_int >= 4) {
+                info["id"] = thread_data->commit_id.load();
+                info["name"] = thread_data->commit_name.load();
+                info["rev"] = thread_data->commit_rev.load();
+              }
             }
           }
 
@@ -190,9 +209,17 @@ GenerateCompleteCallback(
           data_callback](const httpbusiness::uploader::rx_uploader&) -> void {
     /// TODO: 在此处取出相应的信息，传递给回调
     Json::Value info;
-    info["is_complete"] = bool(true);
-    info["stage"] = int32_t(uploader_stage::UploadFinal);
-
+    auto thread_data = thread_data_weak.lock();
+    if (nullptr != thread_data) {
+      info["is_complete"] = bool(true);
+      info["stage"] = int32_t(uploader_stage::UploadFinal);
+      info["fileUploadUrl"] = thread_data->file_upload_url.load();
+      info["fileDataExists"] = thread_data->is_data_exist.load();
+      info["fileUploadUrl"] = thread_data->file_upload_url.load();
+      info["id"] = thread_data->commit_id.load();
+      info["name"] = thread_data->commit_name.load();
+      info["rev"] = thread_data->commit_rev.load();
+    }
     data_callback(WriterHelper(info));
   };
 }
@@ -332,11 +359,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             thread_data->file_commit_url.store(
                 restful_common::jsoncpp_helper::GetString(
                     json_value["fileCommitUrl"]));
+            thread_data->is_data_exist.store(false);
           }
           if (is_success && file_data_exists) {
             /// 成功且文件可秒传
             create_upload_proof.result = stage_result::Succeeded;
             create_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->is_data_exist.store(true);
             break;
           }
           if (is_success) {
@@ -445,11 +474,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
                     json_value["fileCommitUrl"]));
             thread_data->already_upload_bytes.store(
                 restful_common::jsoncpp_helper::GetInt64(json_value["size"]));
+            thread_data->is_data_exist.store(false);
           }
           if (is_success && file_data_exists) {
             /// 成功且文件可秒传
             check_upload_proof.result = stage_result::Succeeded;
             check_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->is_data_exist.store(true);
             break;
           }
           if (is_success) {
@@ -743,17 +774,13 @@ std::string uploader_info_helper(const std::string& local_path,
                                  const int32_t oper_type,
                                  const int32_t is_log) {
   Json::Value json_value;
-  if (x_request_id.empty()) {
-    json_value["X-Request-ID"] = assistant::tools::uuid::generate();
-  } else {
-    json_value["X-Request-ID"] = x_request_id;
-  }
   json_value["localPath"] = local_path;
   json_value["last_md5"] = last_md5;
   json_value["uploadFileId"] = last_upload_id;
   json_value["parentFolderId"] = parent_folder_id;
   json_value["opertype"] = oper_type;
   json_value["isLog"] = is_log;
+  json_value["X-Request-ID"] = x_request_id;
 
   return WriterHelper(json_value);
 }

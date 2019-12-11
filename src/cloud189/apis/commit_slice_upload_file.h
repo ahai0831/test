@@ -31,8 +31,6 @@ namespace CommitSliceUploadFile {
 // [表明上传后操作方式,
 // 1-遇到相同文件名(只检查文件名)，执行重命名操作。
 // 3-遇到相同文件名（只检查文件名），执行覆盖原文件]
-// resumePolicy,[int32_t],
-// [表明是否支持断点续传控制，1-断点续传控制策略版本1，空-不支持]
 // sliceMD5, [string],
 // [表明第1、2、3、4、5等片的MD5大写（换行）为MD5List，并用Signature=hmac_sha1(MD5List,
 // SessionSecret) 签名，再计算 Signature 的MD5]
@@ -40,7 +38,6 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
                              const std::string& uploadFileId,
                              const std::string& x_request_id,
                              const int32_t isLog, const int32_t opertype,
-                             const int32_t resumePolicy,
                              const std::string& sliceMD5);
 
 // jsoncpp parse 原地解析

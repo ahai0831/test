@@ -42,8 +42,7 @@ std::string JsonStringHelper(
     const std::string& fileUploadUrl, const std::string& localPath,
     const std::string& uploadFileId, const std::string& x_request_id,
     const int64_t startOffset, const int64_t offsetLength,
-    const int32_t resumePolicy, const int64_t UploadSliceId,
-    const std::string& MD5) {
+    const int64_t UploadSliceId, const std::string& MD5) {
   Json::Value json_value;
   do {
     if (fileUploadUrl.empty() || MD5.empty() || uploadFileId.empty()) {
@@ -55,7 +54,6 @@ std::string JsonStringHelper(
     json_value["X-Request-ID"] = x_request_id;
     json_value["startOffset"] = startOffset;
     json_value["offsetLength"] = offsetLength;
-    json_value["resumePolicy"] = resumePolicy;
     json_value["UploadSliceId"] = UploadSliceId;
     json_value["MD5"] = MD5;
   } while (false);
@@ -82,8 +80,6 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetInt64(json_str["startOffset"]);
     int64_t offsetLength =
         restful_common::jsoncpp_helper::GetInt64(json_str["offsetLength"]);
-    int32_t resumePolicy =
-        restful_common::jsoncpp_helper::GetInt(json_str["resumePolicy"]);
     int64_t UploadSliceId =
         restful_common::jsoncpp_helper::GetInt64(json_str["UploadSliceId"]);
     std::string MD5 =

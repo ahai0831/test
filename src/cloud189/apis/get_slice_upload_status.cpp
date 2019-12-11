@@ -117,8 +117,8 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
           upload_file.child("uploadStatus").text().as_int();
       result_json["sliceExist"] =
           upload_file.child("sliceExist").text().as_string();
-      result_json["waitingTime"] =
-          upload_file.child("waitingTime").text().as_int();
+      auto message = result_xml.child("message");
+      result_json["waitingTime"] = message.child("waitingTime").text().as_int();
       response_info = result_json.toStyledString();
     } else if (0 == curl_code && http_status_code / 100 != 2) {
       if (!response.body.empty() &&

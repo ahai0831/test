@@ -91,7 +91,6 @@ struct sliceuploader_thread_data {
   const std::string parent_folder_id;
   const std::string x_request_id;
   const int64_t per_slice_size;
-  const int32_t resume_policy;
   const int32_t oper_type;
   const int32_t is_log;
   /// 禁用移动复制默认构造和=号操作符，必须通过显式指定所有必须字段进行初始化
@@ -101,7 +100,6 @@ struct sliceuploader_thread_data {
                             const std::string& parent_folder_id_,
                             const std::string& x_request_id_,
                             const int64_t& per_slice_size_,
-                            const int32_t& resume_policy_,
                             const int32_t& oper_type_, const int32_t& is_log_)
       : local_filepath(file_path),
         last_md5(last_trans_md5),
@@ -109,7 +107,6 @@ struct sliceuploader_thread_data {
         parent_folder_id(parent_folder_id_),
         x_request_id(x_request_id_),
         per_slice_size(per_slice_size_),
-        resume_policy(resume_policy_),
         oper_type(oper_type_),
         is_log(is_log_) {}
   /// 线程安全的数据成员
@@ -125,6 +122,8 @@ struct sliceuploader_thread_data {
       file_size;  /// 保存文件大小，由于文件已被锁定，全流程不变
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
+  std::atomic<bool>
+      is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
   /// 以下为确认文件上传完成后解析到的字段
   lockfree_string_closure<std::string> commit_id;
   lockfree_string_closure<std::string> commit_name;
@@ -379,7 +378,6 @@ typedef struct sliceupload_worker_function_generator {
       const auto& file_path = thread_data->local_filepath;
       const auto& upload_id = thread_data->upload_file_id.load();
       const auto& x_request_id = thread_data->x_request_id;
-      const int32_t resume_policy = thread_data->resume_policy;
       std::string current_slice_md5;
       auto solve_slice_md5 = [&current_slice_md5](const std::string& temp) {
         current_slice_md5 = temp;
@@ -389,7 +387,7 @@ typedef struct sliceupload_worker_function_generator {
       const std::string per_sliceupload_str =
           Cloud189::Apis::UploadSliceData::JsonStringHelper(
               file_upload_url, file_path, upload_id, x_request_id, range_left,
-              range_right, resume_policy, slice_id, current_slice_md5);
+              range_right, slice_id, current_slice_md5);
       /// HttpRequestEncode
       Cloud189::Apis::UploadSliceData::HttpRequestEncode(per_sliceupload_str,
                                                          per_sliceupload_req);
@@ -526,16 +524,17 @@ InitThreadData(const std::string& upload_info) {
   /// 根据传入信息，初始化线程信息结构体
   Json::Value json_str;
   ReaderHelper(upload_info, json_str);
-  std::string local_filepath = GetString(json_str["localPath"]);
-  std::string last_md5 = GetString(json_str["md5"]);
-  std::string last_upload_id = GetString(json_str["uploadFileId"]);
-  std::string parent_folder_id = GetString(json_str["parentFolderId"]);
-  std::string x_request_id = GetString(json_str["X-Request-ID"]);
-  int64_t per_slice_size = GetInt64(json_str["perSliceSize"]);
-  int32_t resume_policy = GetInt(json_str["resumePolicy"]);
-  int32_t oper_type = GetInt(json_str["opertype"]);
-  int32_t is_log = GetInt(json_str["isLog"]);
-
+  const auto& local_filepath = GetString(json_str["localPath"]);
+  const auto& last_md5 = GetString(json_str["md5"]);
+  const auto& last_upload_id = GetString(json_str["uploadFileId"]);
+  const auto& parent_folder_id = GetString(json_str["parentFolderId"]);
+  const auto per_slice_size = GetInt64(json_str["perSliceSize"]);
+  const auto oper_type = GetInt(json_str["opertype"]);
+  const auto is_log = GetInt(json_str["isLog"]);
+  auto& x_request_id = GetString(json_str["X-Request-ID"]);
+  if (x_request_id.empty()) {
+    x_request_id = assistant::tools::uuid::generate();
+  }
   std::string slice_md5_list;
   std::string slice_md5;
   auto solve_slice_md5 = [&slice_md5](const std::string& temp) {
@@ -545,7 +544,7 @@ InitThreadData(const std::string& upload_info) {
   return std::make_shared<
       Cloud189::Restful::details::sliceuploader_thread_data>(
       local_filepath, last_md5, last_upload_id, parent_folder_id, x_request_id,
-      per_slice_size, resume_policy, oper_type, is_log);
+      per_slice_size, oper_type, is_log);
 }
 /// 生成总控使用的完成回调
 const httpbusiness::uploader::rx_uploader::CompleteCallback
@@ -566,6 +565,7 @@ GenerateCompleteCallback(
             /// 仅供示例，没有必要的例子无需放进去
             info["md5"] = thread_data->file_md5.load();
             info["upload_id"] = thread_data->upload_file_id.load();
+            info["X-Request-ID"] = thread_data->x_request_id;
             /// TODO: 需加上此字段
             // 			info["file_size"] =
             // thread_data->file_size.load();
@@ -573,8 +573,20 @@ GenerateCompleteCallback(
 
             auto mc_data = thread_data->master_control_data.lock();
             if (nullptr != mc_data) {
-              /// TODO: 还需保证stage代表当前正在进行的阶段
-              info["stage"] = int32_t(mc_data->current_stage);
+              auto current_stage_int = int32_t(mc_data->current_stage);
+              info["stage"] = current_stage_int;
+              if (current_stage_int >= 1) {
+                info["fileUploadUrl"] = thread_data->file_upload_url.load();
+                info["fileDataExists"] = thread_data->is_data_exist.load();
+              }
+              if (current_stage_int >= 2) {
+                info["fileUploadUrl"] = thread_data->file_upload_url.load();
+              }
+              if (current_stage_int >= 4) {
+                info["id"] = thread_data->commit_id.load();
+                info["name"] = thread_data->commit_name.load();
+                info["rev"] = thread_data->commit_rev.load();
+              }
             }
           }
 
@@ -587,9 +599,17 @@ GenerateCompleteCallback(
           data_callback](const httpbusiness::uploader::rx_uploader&) -> void {
     /// TODO: 在此处取出相应的信息，传递给回调
     Json::Value info;
-    info["is_complete"] = bool(true);
-    info["stage"] = int32_t(uploader_stage::UploadFinal);
-
+    auto thread_data = thread_data_weak.lock();
+    if (nullptr != thread_data) {
+      info["is_complete"] = bool(true);
+      info["stage"] = int32_t(uploader_stage::UploadFinal);
+      info["fileUploadUrl"] = thread_data->file_upload_url.load();
+      info["fileDataExists"] = thread_data->is_data_exist.load();
+      info["fileUploadUrl"] = thread_data->file_upload_url.load();
+      info["id"] = thread_data->commit_id.load();
+      info["name"] = thread_data->commit_name.load();
+      info["rev"] = thread_data->commit_rev.load();
+    }
     data_callback(WriterHelper(info));
   };
 }
@@ -832,6 +852,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
                     json_value["fileCommitUrl"]));
             /// 此处对already_upload_bytes清0
             thread_data->already_upload_bytes.store(0);
+            /// 此处对is_data_exist置false
+            thread_data->is_data_exist.store(false);
           }
 
           if (is_success && (upload_status == 0)) {
@@ -850,6 +872,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             /// 成功且断点状态为分片上传完，需要commit且校验分片
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->is_data_exist.store(true);
             break;
           }
           if (is_success && (upload_status == 3)) {
@@ -862,6 +885,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             /// 成功且断点状态为可秒传，需要commit且不校验分片
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->is_data_exist.store(true);
             break;
           }
           if (is_success && (upload_status == -1)) {
@@ -974,6 +998,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
                     json_value["fileCommitUrl"]));
             thread_data->already_upload_bytes.store(
                 restful_common::jsoncpp_helper::GetInt64(json_value["size"]));
+            /// 此处对is_data_exist置false
+            thread_data->is_data_exist.store(false);
           }
           if (is_success && (upload_status == 0)) {
             /// 成功且断点状态为新建
@@ -991,6 +1017,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             /// 成功且断点状态为分片上传完，需要commit且校验分片
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->is_data_exist.store(true);
             break;
           }
           if (is_success && (upload_status == 3)) {
@@ -1003,6 +1030,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             /// 成功且断点状态为可秒传，需要commit且不校验分片
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->is_data_exist.store(true);
             break;
           }
           if (is_success && (upload_status == -1)) {
@@ -1158,7 +1186,6 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       std::string x_request_id = thread_data->x_request_id;
       int32_t oper_type = thread_data->oper_type;
       int32_t is_log = thread_data->is_log;
-      int32_t resume_policy = thread_data->resume_policy;
       std::string file_commit_url = thread_data->file_commit_url.load();
       /// 获取Session
       std::string get_session_key;
@@ -1187,7 +1214,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       std::string slice_file_commit_json_str =
           Cloud189::Apis::CommitSliceUploadFile::JsonStringHelper(
               file_commit_url, upload_id, x_request_id, is_log, oper_type,
-              resume_policy, signature_md5);
+              signature_md5);
       /// HttpRequestEncode
       Cloud189::Apis::CommitSliceUploadFile::HttpRequestEncode(
           slice_file_commit_json_str, slice_file_commit_request);
@@ -1307,22 +1334,17 @@ std::string sliceuploader_info_helper(
     const std::string& local_path, const std::string& last_md5,
     const std::string& last_upload_id, const std::string& parent_folder_id,
     const std::string& x_request_id, const int64_t per_slice_size,
-    const int32_t resume_policy, const int32_t oper_type,
-    const int32_t is_log) {
+    const int32_t oper_type, const int32_t is_log) {
   Json::Value json_value;
-  if (x_request_id.empty()) {
-    json_value["X-Request-ID"] = assistant::tools::uuid::generate();
-  } else {
-    json_value["X-Request-ID"] = x_request_id;
-  }
   json_value["localPath"] = local_path;
   json_value["md5"] = last_md5;
   json_value["uploadFileId"] = last_upload_id;
   json_value["parentFolderId"] = parent_folder_id;
   json_value["perSliceSize"] = per_slice_size;
-  json_value["resumePolicy"] = resume_policy;
   json_value["opertype"] = oper_type;
   json_value["isLog"] = is_log;
+  json_value["X-Request-ID"] = x_request_id;
+
   return WriterHelper(json_value);
 }
 }  // namespace Restful
