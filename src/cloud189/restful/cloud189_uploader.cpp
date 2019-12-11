@@ -151,7 +151,7 @@ std::shared_ptr<details::uploader_thread_data> InitThreadData(
   const auto& parent_folder_id = GetString(json_value["parentFolderId"]);
   const auto oper_type = GetInt(json_value["opertype"]);
   const auto is_log = GetInt(json_value["isLog"]);
-  auto& x_request_id = GetString(json_value["X-Request-ID"]);
+  std::string x_request_id = GetString(json_value["X-Request-ID"]);
   if (x_request_id.empty()) {
     x_request_id = assistant::tools::uuid::generate();
   }
@@ -177,9 +177,14 @@ GenerateCompleteCallback(
             info["md5"] = thread_data->file_md5.load();
             info["upload_id"] = thread_data->upload_file_id.load();
             info["file_size"] = thread_data->file_size.load();
-            info["transferred_size"] =
-                thread_data->already_upload_bytes.load() +
-                thread_data->current_upload_bytes.load();
+            /// 已传输数据量
+            auto transferred_size = thread_data->already_upload_bytes.load() +
+                                    thread_data->current_upload_bytes.load();
+            if (transferred_size > thread_data->file_size.load()) {
+              transferred_size = thread_data->file_size.load();
+            }
+            info["transferred_size"] = transferred_size;
+
             auto mc_data = thread_data->master_control_data.lock();
             int32_t current_stage = -1;
             int32_t ec = thread_data->int32_error_code.load();
@@ -222,8 +227,13 @@ GenerateCompleteCallback(
       info["md5"] = thread_data->file_md5.load();
       info["upload_id"] = thread_data->upload_file_id.load();
       info["file_size"] = thread_data->file_size.load();
-      info["transferred_size"] = thread_data->already_upload_bytes.load() +
-                                 thread_data->current_upload_bytes.load();
+      /// 已传输数据量
+      auto transferred_size = thread_data->already_upload_bytes.load() +
+                              thread_data->current_upload_bytes.load();
+      if (transferred_size > thread_data->file_size.load()) {
+        transferred_size = thread_data->file_size.load();
+      }
+      info["transferred_size"] = transferred_size;
       info["data_exist"] = thread_data->data_exist.load();
       info["file_upload_url"] = thread_data->file_upload_url.load();
       info["int32_error_code"] = thread_data->int32_error_code.load();
@@ -373,7 +383,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             thread_data->file_commit_url.store(
                 GetString(json_value["fileCommitUrl"]));
           }
-          if (is_success && file_data_exists) {
+          if (is_success && file_data_exists == 1) {
             /// 成功且文件可秒传
             create_upload_proof.result = stage_result::Succeeded;
             create_upload_proof.next_stage = uploader_stage::FileCommit;
@@ -386,7 +396,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (is_success) {
             /// 成功且文件不可秒传
             create_upload_proof.result = stage_result::Succeeded;
-            create_upload_proof.next_stage = uploader_stage::CheckUpload;
+            create_upload_proof.next_stage = uploader_stage::FileUplaod;
             /// 创建续传流程中：若不可秒传，则将already_upload_bytes为0，current_upload_bytes也为0
             thread_data->already_upload_bytes = 0;
             thread_data->current_upload_bytes = 0;
@@ -483,7 +493,17 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             thread_data->file_commit_url.store(
                 GetString(json_value["fileCommitUrl"]));
           }
-          if (is_success && file_data_exists) {
+          /// 特殊处理：file_data_exists为0，但size和文件大小一样大，此时不是秒传，但
+          /// 仍可直接进行FileCommit。原因是本次上传之前的提交发生了服务器错误。
+          if (is_success && file_data_exists == 0 &&
+              already_upload_bytes == thread_data->file_size.load()) {
+            check_upload_proof.result = stage_result::Succeeded;
+            check_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
+            break;
+          }
+          if (is_success && file_data_exists == 1) {
             /// 成功且文件可秒传
             check_upload_proof.result = stage_result::Succeeded;
             check_upload_proof.next_stage = uploader_stage::FileCommit;

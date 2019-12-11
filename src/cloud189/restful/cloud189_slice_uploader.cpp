@@ -126,11 +126,11 @@ struct sliceuploader_thread_data {
   std::atomic<int64_t>
       file_size;  /// 保存文件大小，由于文件已被锁定，全流程不变
   std::atomic<bool> data_exist;  /// 保存文件是否可秒传
+  lockfree_string_closure<std::string>
+      slice_exist;  // 保存已完成的分片序号字符串
   std::atomic<int64_t> already_upload_bytes;  // 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  // 上传文件数据中每次的已传数据量
   std::atomic<int32_t> int32_error_code;  /// 错误码
-  // std::atomic<bool>
-  //    is_data_exist;  // 是否秒传,仅此值为ture时,代表文件可秒传,直接提交
   /// 以下为确认文件上传完成后解析到的字段
   lockfree_string_closure<std::string> commit_id;
   lockfree_string_closure<std::string> commit_name;
@@ -573,9 +573,15 @@ GenerateCompleteCallback(
             info["upload_id"] = thread_data->upload_file_id.load();
             info["X-Request-ID"] = thread_data->x_request_id;
             info["file_size"] = thread_data->file_size.load();
-            info["transferred_size"] =
-                thread_data->already_upload_bytes.load() +
-                thread_data->current_upload_bytes.load();
+            /// 已传输数据量
+            auto transferred_size = thread_data->already_upload_bytes.load() +
+                                    thread_data->current_upload_bytes.load();
+            if (transferred_size > thread_data->file_size.load()) {
+              transferred_size = thread_data->file_size.load();
+            }
+            info["transferred_size"] = transferred_size;
+
+            int32_t current_stage = -1;
             auto mc_data = thread_data->master_control_data.lock();
             int32_t current_stage = -1;
             int32_t ec = thread_data->int32_error_code.load();
@@ -617,8 +623,13 @@ GenerateCompleteCallback(
       info["md5"] = thread_data->file_md5.load();
       info["upload_id"] = thread_data->upload_file_id.load();
       info["file_size"] = thread_data->file_size.load();
-      info["transferred_size"] = thread_data->already_upload_bytes.load() +
-                                 thread_data->current_upload_bytes.load();
+      /// 已传输数据量
+      auto transferred_size = thread_data->already_upload_bytes.load() +
+                              thread_data->current_upload_bytes.load();
+      if (transferred_size > thread_data->file_size.load()) {
+        transferred_size = thread_data->file_size.load();
+      }
+      info["transferred_size"] = transferred_size;
       info["data_exist"] = thread_data->data_exist.load();
       info["file_upload_url"] = thread_data->file_upload_url.load();
       info["int32_error_code"] = thread_data->int32_error_code.load();
@@ -853,6 +864,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           const auto is_success = GetBool(json_value["isSuccess"]);
           const auto upload_status = GetInt(json_value["uploadStatus"]);
+          const bool data_exist = 4 == upload_status;
           if (is_success) {
             thread_data->upload_file_id.store(
                 GetString(json_value["uploadFileId"]));
@@ -862,58 +874,30 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
                 GetString(json_value["fileCommitUrl"]));
           }
 
-          if (is_success && (upload_status == 0)) {
-            /// 成功且断点状态为新建
+          if (is_success && data_exist) {
+            /// 成功且文件可秒传
+            create_slice_upload_proof.result = stage_result::Succeeded;
+            create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            /// 创建续传流程中：若可秒传，则将already_upload_bytes为文件大小，current_upload_bytes为0
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
+            break;
+          }
+          if (is_success) {
+            /// 成功且文件不可秒传
             create_slice_upload_proof.result = stage_result::Succeeded;
             create_slice_upload_proof.next_stage = uploader_stage::FileUplaod;
+            /// 创建续传流程中：若不可秒传，则将already_upload_bytes为0，current_upload_bytes也为0
+            thread_data->slice_exist.Clear();
             thread_data->already_upload_bytes = 0;
             thread_data->current_upload_bytes = 0;
-            break;
-          }
-          if (is_success && (upload_status == 1)) {
-            /// 成功且断点状态为上传中
-            create_slice_upload_proof.result = stage_result::Succeeded;
-            create_slice_upload_proof.next_stage = uploader_stage::CheckUpload;
-            thread_data->already_upload_bytes = 0;
-            thread_data->current_upload_bytes = 0;
-            break;
-          }
-          if (is_success && (upload_status == 2)) {
-            /// 成功且断点状态为分片上传完，需要commit且校验分片
-            create_slice_upload_proof.result = stage_result::Succeeded;
-            create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->data_exist.store(true);
-            thread_data->already_upload_bytes = thread_data->file_size.load();
-            thread_data->current_upload_bytes = 0;
-            break;
-          }
-          // if (is_success && (upload_status == 3)) {
-          //  /// 成功且断点状态为作废，需要重新创建
-          //  create_slice_upload_proof.result = stage_result::RetryTargetStage;
-          //  create_slice_upload_proof.next_stage =
-          //  uploader_stage::CreateUpload; break;
-          //}
-          if (is_success && (upload_status == 4)) {
-            /// 成功且断点状态为可秒传，需要commit且不校验分片
-            create_slice_upload_proof.result = stage_result::Succeeded;
-            create_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->data_exist.store(true);
-            thread_data->already_upload_bytes = thread_data->file_size.load();
-            thread_data->current_upload_bytes = 0;
-            break;
-          }
-          if (is_success && (upload_status == -1)) {
-            /// 成功且断点状态为已提交，可以直接结束
-            create_slice_upload_proof.result = stage_result::Succeeded;
-            create_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
           }
 
-          const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
-              json_value["httpStatusCode"]);
-          const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
-              json_value["int32ErrorCode"]);
-          thread_data->int32_error_code.store(int32_error_code);
+          const auto http_statuc_code = GetInt(json_value["httpStatusCode"]);
+          const auto int32_error_code = GetInt(json_value["int32ErrorCode"]);
+
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
@@ -952,19 +936,15 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       if (nullptr == thread_data) {
         break;
       }
-      HttpRequest check_slice_upload_request("");
-      /// 线程中提取创建续传所需的信息，利用相应的Encoder进行请求的处理
-      std::string upload_id = thread_data->upload_file_id.load();
-      std::string x_request_id = thread_data->x_request_id;
-      std::string json_str =
-          Cloud189::Apis::GetSliceUploadStatus::JsonStringHelper(upload_id,
-                                                                 x_request_id);
       /// HttpRequestEncode
+      HttpRequest check_slice_upload_request("");
+      const auto upload_id = thread_data->upload_file_id.load();
+      const auto& x_request_id = thread_data->x_request_id;
       Cloud189::Apis::GetSliceUploadStatus::HttpRequestEncode(
-          json_str, check_slice_upload_request);
-      /// 使用rx_assistant::rx_httpresult::create 创建数据源，下同
-      auto obs =
-          rx_assistant::rx_httpresult::create(check_slice_upload_request);
+          Cloud189::Apis::GetSliceUploadStatus::JsonStringHelper(upload_id,
+                                                                 x_request_id),
+          check_slice_upload_request);
+      /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
       std::function<std::string(HttpResult&)> solve_check_slice_upload =
@@ -993,77 +973,92 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
             break;
           }
           Json::Value json_value;
-          if (!restful_common::jsoncpp_helper::ReaderHelper(
-                  check_slice_upload_result, json_value)) {
+          if (!ReaderHelper(check_slice_upload_result, json_value)) {
             break;
           }
-          const auto is_success =
-              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
-          const auto upload_status = restful_common::jsoncpp_helper::GetInt(
-              json_value["uploadStatus"]);
+          const auto is_success = GetBool(json_value["isSuccess"]);
+          const auto upload_status = GetInt(json_value["uploadStatus"]);
+          const auto slice_exist = GetString(json_value["sliceExist"]);
           if (is_success) {
-            thread_data->upload_file_id.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["uploadFileId"]));
             thread_data->file_upload_url.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["fileUploadUrl"]));
+                GetString(json_value["fileUploadUrl"]));
             thread_data->file_commit_url.store(
-                restful_common::jsoncpp_helper::GetString(
-                    json_value["fileCommitUrl"]));
+                GetString(json_value["fileCommitUrl"]));
           }
-          if (is_success && (upload_status == 0)) {
-            /// 成功且断点状态为新建
+
+          /// 若可秒传，则将already_upload_bytes为文件大小，current_upload_bytes为0。
+          /// 查询续传记录流程中：若不可秒传且无偏移记录，则将already_upload_bytes为0，current_upload_bytes也为0；
+          /// 若不可秒传但有已存在的分片，则将already_upload_bytes为已有分片的size之和，current_upload_bytes也为0；
+
+          /// 特殊处理，2，代表数据已经传完，需要去FileCommit，但不代表秒传
+          if (is_success && upload_status == 2) {
+            check_slice_upload_proof.result = stage_result::Succeeded;
+            check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
+            break;
+          }
+          /// 4，秒传；-1，已提交，所需做的处理和秒传一致
+          if (is_success && (upload_status == 4 || upload_status == -1)) {
+            /// 分片中，查询续传记录流程中：若可秒传，则令already_upload_bytes为文件大小，current_upload_bytes为0
+            check_slice_upload_proof.result = stage_result::Succeeded;
+            check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
+            thread_data->data_exist.store(true);
+            thread_data->already_upload_bytes = thread_data->file_size.load();
+            thread_data->current_upload_bytes = 0;
+            break;
+          }
+          if (is_success && upload_status == 1 && slice_exist.empty()) {
+            /// 分片中，查询续传记录流程中：不可秒传且无已存在的分片，则令already_upload_bytes为0，current_upload_bytes为0
             check_slice_upload_proof.result = stage_result::Succeeded;
             check_slice_upload_proof.next_stage = uploader_stage::FileUplaod;
             thread_data->already_upload_bytes = 0;
             thread_data->current_upload_bytes = 0;
-            break;
+            thread_data->slice_exist.Clear();
           }
-          if (is_success && (upload_status == 1)) {
-            /// 成功且断点状态为上传中
+          if (is_success && upload_status == 1 && !slice_exist.empty()) {
+            /// 分片中，查询续传记录流程中：不可秒传且存在已有分片，则令already_upload_bytes为已有分片的size之和，current_upload_bytes为0
             check_slice_upload_proof.result = stage_result::Succeeded;
-            check_slice_upload_proof.next_stage = uploader_stage::CheckUpload;
+            check_slice_upload_proof.next_stage = uploader_stage::FileUplaod;
+            /// 计算流程，获取到全部分片的序号；如果没有最后一片，直接*分片大小；如果有最后一片，还要减去文件尾差量偏移
+            /// TODO: 此流程待验证
+            int64_t end_offset = 0;
+            std::set<int32_t> slice_id_set;
+            std::vector<std::string> slice_id_vector;
+            assistant::tools::string::StringSplit(slice_exist, ",",
+                                                  slice_id_vector);
+            for (const auto& x : slice_id_vector) {
+              if (!x.empty()) {
+                slice_id_set.emplace(strtol(x.c_str(), nullptr, 0));
+              }
+            }
+            if (!slice_id_set.empty()) {
+              /// 文件非分片大小的倍数，需要处理
+              const auto file_size = thread_data->file_size.load();
+              const auto& slice_size = thread_data->per_slice_size;
+              if (file_size % slice_size != 0 &&
+                  *slice_id_set.crbegin() ==
+                      int32_t(1 + file_size / slice_size)) {
+                end_offset = slice_size - (file_size % slice_size);
+              }
+            }
+            thread_data->already_upload_bytes =
+                slice_id_set.size() * thread_data->per_slice_size - end_offset;
+            thread_data->current_upload_bytes = 0;
+            thread_data->slice_exist.store(slice_exist);
+          }
+          /// 额外处理，若分片作废
+          if (upload_status == 3) {
+            check_slice_upload_proof.result = stage_result::RetryTargetStage;
+            check_slice_upload_proof.next_stage = uploader_stage::CreateUpload;
             thread_data->already_upload_bytes = 0;
             thread_data->current_upload_bytes = 0;
-            break;
-          }
-          if (is_success && (upload_status == 2)) {
-            /// 成功且断点状态为分片上传完，需要commit且校验分片
-            check_slice_upload_proof.result = stage_result::Succeeded;
-            check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->data_exist.store(true);
-            thread_data->already_upload_bytes = thread_data->file_size.load();
-            thread_data->current_upload_bytes = 0;
-            break;
-          }
-          // if (is_success && (upload_status == 3)) {
-          //  /// 成功且断点状态为作废，需要重新创建
-          //  check_slice_upload_proof.result = stage_result::RetryTargetStage;
-          //  check_slice_upload_proof.next_stage =
-          //  uploader_stage::CreateUpload; break;
-          //}
-          if (is_success && (upload_status == 4)) {
-            /// 成功且断点状态为可秒传，需要commit且不校验分片
-            check_slice_upload_proof.result = stage_result::Succeeded;
-            check_slice_upload_proof.next_stage = uploader_stage::FileCommit;
-            thread_data->data_exist.store(true);
-            thread_data->already_upload_bytes = thread_data->file_size.load();
-            thread_data->current_upload_bytes = 0;
-            break;
-          }
-          if (is_success && (upload_status == -1)) {
-            /// 成功且断点状态为已提交，可以直接结束
-            check_slice_upload_proof.result = stage_result::Succeeded;
-            check_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
+            thread_data->slice_exist.Clear();
             break;
           }
 
-          const auto http_statuc_code = restful_common::jsoncpp_helper::GetInt(
-              json_value["httpStatusCode"]);
-          const auto int32_error_code = restful_common::jsoncpp_helper::GetInt(
-              json_value["int32ErrorCode"]);
-          thread_data->int32_error_code.store(int32_error_code);
+          const auto http_statuc_code = GetInt(json_value["httpStatusCode"]);
+          const auto int32_error_code = GetInt(json_value["int32ErrorCode"]);
 
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
@@ -1083,14 +1078,15 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           /// 除此以外，均应按照指数增幅进行重试，并记录suggest_waittime
           /// 默认的result即是stage_result::RetrySelf
           check_slice_upload_proof.suggest_waittime =
-              restful_common::jsoncpp_helper::GetInt(json_value["waitingTime"]);
+              GetInt(json_value["waitingTime"]);
         } while (false);
         return check_slice_upload_proof;
       };
 
       /// 生成数据源成功，保存到result
-      result =
-          obs.map(solve_check_slice_upload).map(get_check_slice_upload_result);
+      result = rx_assistant::rx_httpresult::create(check_slice_upload_request)
+                   .map(solve_check_slice_upload)
+                   .map(get_check_slice_upload_result);
     } while (false);
     return result;
   };
@@ -1122,6 +1118,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
                 }
 
                 /// 比较应有分片数是否符合（和slice_md5_map的size比较即可）
+                /// TODO: 需要根据需上传的分片数进行处理
                 const auto should_slice_number =
                     thread_data->slice_md5_map.size();
                 const auto actual_slice_number =
@@ -1165,6 +1162,37 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 
       auto materials =
           sliceupload_helper::MaterialHelper(file_length, slicesize);
+      /// 每次开始传输前，初始化记录各分片上传结果的Map
+      thread_data->slice_result_map.Clear();
+      /// 需要处理需处理的物料
+      const auto slice_exist = thread_data->slice_exist.load();
+      if (!slice_exist.empty()) {
+        decltype(materials) should_resolve;
+        /// 生成已有分片序号
+        std::set<int32_t> slice_id_set;
+        std::vector<std::string> slice_id_vector;
+        assistant::tools::string::StringSplit(slice_exist, ",",
+                                              slice_id_vector);
+        for (const auto& x : slice_id_vector) {
+          if (!x.empty()) {
+            slice_id_set.emplace(strtol(x.c_str(), nullptr, 0));
+          }
+        }
+        for (const auto& material : materials) {
+          const auto& slice_id = std::get<2>(material);
+          auto iter = slice_id_set.find(slice_id);
+          if (slice_id_set.end() != iter) {
+            /// 此分片无需上传，标定其结果为已完成
+            thread_data->slice_result_map.Set(slice_id, 0);
+          } else {
+            /// 此分片需上传
+            should_resolve.emplace_back(material);
+          }
+        }
+        /// 处理完毕，保存到原materials中
+        materials.swap(should_resolve);
+      }
+
       auto sliceupload_unique =
           sliceupload_helper::Create(thread_data_weak, materials);
       if (nullptr == sliceupload_unique) {
