@@ -600,7 +600,7 @@ GenerateDataCallback(
             /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
             int32_t ec = thread_data->int32_error_code.load();
             if (current_stage >= 5 && ec == 0) {
-              info["commit_id"] = thread_data->commit_id.load();
+              info["commit_file_id"] = thread_data->commit_id.load();
               info["commit_name"] = thread_data->commit_name.load();
               info["commit_size"] = thread_data->commit_size.load();
               info["commit_md5"] = thread_data->commit_md5.load();
@@ -608,7 +608,7 @@ GenerateDataCallback(
                   thread_data->commit_create_date.load();
               info["commit_rev"] = thread_data->commit_rev.load();
               info["commit_user_id"] = thread_data->commit_user_id.load();
-              info["commit_is_safe"] = thread_data->commit_is_safe.load();
+              //info["commit_is_safe"] = thread_data->commit_is_safe.load();
             }
           }
           data_callback(WriterHelper(info));
@@ -628,6 +628,7 @@ GenerateDataCallback(
       info["md5"] = thread_data->file_md5.load();
       info["upload_id"] = thread_data->upload_file_id.load();
       info["file_size"] = thread_data->file_size.load();
+	  info["X-Request-ID"] = thread_data->x_request_id;
       /// 已传输数据量
       auto transferred_size = thread_data->already_upload_bytes.load() +
                               thread_data->current_upload_bytes.load();
@@ -642,14 +643,14 @@ GenerateDataCallback(
     /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
     int32_t ec = thread_data->int32_error_code.load();
     if (ec == 0) {
-      info["commit_id"] = thread_data->commit_id.load();
+      info["commit_file_id"] = thread_data->commit_id.load();
       info["commit_name"] = thread_data->commit_name.load();
       info["commit_size"] = thread_data->commit_size.load();
       info["commit_md5"] = thread_data->commit_md5.load();
       info["commit_create_date"] = thread_data->commit_create_date.load();
       info["commit_rev"] = thread_data->commit_rev.load();
       info["commit_user_id"] = thread_data->commit_user_id.load();
-      info["commit_is_safe"] = thread_data->commit_is_safe.load();
+      //info["commit_is_safe"] = thread_data->commit_is_safe.load();
     }
     data_callback(WriterHelper(info));
   };
