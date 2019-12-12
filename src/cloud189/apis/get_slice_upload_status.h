@@ -18,9 +18,12 @@ namespace Apis {
 namespace GetSliceUploadStatus {
 
 // json字符串包含的字段应于这个函数声明完全一致
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // [表明上传文件Id]
-std::string JsonStringHelper(const int64_t uploadFileId);
+// x_request_id,[string],
+// [表明x_request_id]
+std::string JsonStringHelper(const std::string& uploadFileId,
+                             const std::string& x_request_id);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
@@ -28,7 +31,7 @@ std::string JsonStringHelper(const int64_t uploadFileId);
 // 请求方式：GET
 //
 // 需要放到url中的参数：
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // version, [string],
 // [json字符串不用传, 参数放到url中, 表明客户端版本，调用ProcessVersion方法获取]
 // rand, [string],

@@ -44,6 +44,8 @@ enum stage_result {
   GiveupRetry,
   RetrySelf,
   RetryTargetStage,
+  UserCanceled,  /// 在用户手动点击“暂停”或取消，或“退出登录”等需要迫使流程立即失败的场景
+  /// 避免GiveupRetry承担过多的语义，并且被调用者误用
 };
 struct uploader_proof {
   uploader_stage stage;  /// 当前上传流程所处状态
@@ -79,7 +81,7 @@ struct proof_obs_packages {
 }  // namespace proof
 
 struct rx_uploader {
- private:
+ public:
   /// 存在抛到外部线程延时操作的行为，通过将内部数据包裹到弱指针中，保证线程安全性
   struct rx_uploader_data {
     /// 这个变量表明当前处于哪个阶段
@@ -165,17 +167,19 @@ struct rx_uploader {
             proof::FileCommit, proof::Unfinished, proof::UploadInitial, 0, 0};
         const auto wait_internal_base = 1000.0F;
         const auto pow_base = 1.5F;
-        if (nullptr == data) {
+        if (nullptr == data || proof::UserCanceled == currernt_proof.result) {
           result = rxcpp::observable<>::just(error_proof);
           break;
         }
+
         auto &orders = data->orders;
         switch (currernt_proof.stage) {
           case proof::UploadInitial:
             /// 处理UploadInitial的场景，无条件启动MD5计算的流程即可
             do {
-              /// TODO: 需要注意，避免会发射多个数据项，应加上first()
-              result = orders.calculate_md5(do_calculate_md5_proof);
+              /// 需要注意，避免会发射多个数据项，应加上first()，下同
+              result = orders.calculate_md5(do_calculate_md5_proof).first();
+              data->current_stage = do_calculate_md5_proof.stage;
             } while (false);
             break;
           case proof::CalculateMd5:
@@ -187,13 +191,16 @@ struct rx_uploader {
             do {
               if (proof::Succeeded != currernt_proof.result) {
                 result = rxcpp::observable<>::just(error_proof);
+                data->current_stage = error_proof.stage;
                 break;
               }
               if (proof::CheckUpload == currernt_proof.next_stage) {
-                result = orders.check_upload(do_check_upload_proof);
+                result = orders.check_upload(do_check_upload_proof).first();
+                data->current_stage = do_check_upload_proof.stage;
                 break;
               }
-              result = orders.create_upload(do_create_upload_proof);
+              result = orders.create_upload(do_create_upload_proof).first();
+              data->current_stage = do_create_upload_proof.stage;
             } while (false);
             break;
           case proof::CreateUpload:
@@ -203,11 +210,13 @@ struct rx_uploader {
             do {
               if (proof::Succeeded == currernt_proof.result &&
                   proof::FileCommit == currernt_proof.next_stage) {
-                result = orders.file_commit(do_file_commit_proof);
+                result = orders.file_commit(do_file_commit_proof).first();
+                data->current_stage = do_file_commit_proof.stage;
                 break;
               }
               if (proof::Succeeded == currernt_proof.result) {
-                result = orders.file_uplaod(do_file_upload_proof);
+                result = orders.file_uplaod(do_file_upload_proof).first();
+                data->current_stage = do_file_upload_proof.stage;
                 break;
               }
               data->create_upload_total_error_count++;
@@ -216,6 +225,7 @@ struct rx_uploader {
               if (proof::GiveupRetry == currernt_proof.result ||
                   current_error_count > data->error_count_limit) {
                 result = rxcpp::observable<>::just(error_proof);
+                data->current_stage = error_proof.stage;
                 break;
               }
               /// 对自身进行重试的情况，应该进行指数级等待间隔处理
@@ -224,7 +234,9 @@ struct rx_uploader {
                   pow(pow_base, current_error_count - 1) * wait_internal_base);
               result = GenerateDelayedObservable(wait_internal_milliseconds,
                                                  orders.create_upload,
-                                                 do_create_upload_proof);
+                                                 do_create_upload_proof)
+                           .first();
+              data->current_stage = do_create_upload_proof.stage;
             } while (false);
             break;
           case proof::CheckUpload:
@@ -236,11 +248,13 @@ struct rx_uploader {
             do {
               if (proof::Succeeded == currernt_proof.result &&
                   proof::FileCommit == currernt_proof.next_stage) {
-                result = orders.file_commit(do_file_commit_proof);
+                result = orders.file_commit(do_file_commit_proof).first();
+                data->current_stage = do_file_commit_proof.stage;
                 break;
               }
               if (proof::Succeeded == currernt_proof.result) {
-                result = orders.file_uplaod(do_file_upload_proof);
+                result = orders.file_uplaod(do_file_upload_proof).first();
+                data->current_stage = do_file_upload_proof.stage;
                 break;
               }
               data->check_upload_total_error_count++;
@@ -249,11 +263,13 @@ struct rx_uploader {
               if (proof::GiveupRetry == currernt_proof.result ||
                   current_error_count > data->error_count_limit) {
                 result = rxcpp::observable<>::just(error_proof);
+                data->current_stage = error_proof.stage;
                 break;
               }
               if (proof::RetryTargetStage == currernt_proof.result &&
                   proof::CreateUpload == currernt_proof.next_stage) {
-                result = orders.create_upload(do_create_upload_proof);
+                result = orders.create_upload(do_create_upload_proof).first();
+                data->current_stage = do_create_upload_proof.stage;
                 break;
               }
               /// 对自身进行重试的情况，应该进行指数级等待间隔处理
@@ -264,8 +280,11 @@ struct rx_uploader {
                   wait_internal_milliseconds > currernt_proof.suggest_waittime
                       ? wait_internal_milliseconds
                       : currernt_proof.suggest_waittime;
-              result = GenerateDelayedObservable(
-                  wait_internal, orders.check_upload, do_check_upload_proof);
+              result =
+                  GenerateDelayedObservable(wait_internal, orders.check_upload,
+                                            do_check_upload_proof)
+                      .first();
+              data->current_stage = do_check_upload_proof.stage;
             } while (false);
             break;
           case proof::FileUplaod:
@@ -285,10 +304,12 @@ struct rx_uploader {
                 }
               }
               if (proof::Succeeded == currernt_proof.result) {
-                result = orders.file_commit(do_file_commit_proof);
+                result = orders.file_commit(do_file_commit_proof).first();
+                data->current_stage = do_file_commit_proof.stage;
                 break;
               }
-              result = orders.check_upload(do_check_upload_proof);
+              result = orders.check_upload(do_check_upload_proof).first();
+              data->current_stage = do_check_upload_proof.stage;
             } while (false);
             break;
           case proof::FileCommit:
@@ -300,24 +321,25 @@ struct rx_uploader {
             do {
               if (proof::Succeeded == currernt_proof.result) {
                 result = rxcpp::observable<>::just(succeed_proof);
+                data->current_stage = succeed_proof.stage;
                 break;
               }
               if (proof::RetryTargetStage == currernt_proof.result &&
                   proof::CreateUpload == currernt_proof.next_stage) {
-                result = orders.create_upload(do_create_upload_proof);
+                result = orders.create_upload(do_create_upload_proof).first();
+                data->current_stage = do_create_upload_proof.stage;
                 break;
               }
-              result = orders.check_upload(do_check_upload_proof);
+              result = orders.check_upload(do_check_upload_proof).first();
+              data->current_stage = do_check_upload_proof.stage;
             } while (false);
             break;
           default:
             result = rxcpp::observable<>::just(error_proof);
+            data->current_stage = error_proof.stage;
             break;
         }
-        /// TODO: 应改为即将进行的stage
-        /// 当前语义是已经完成的stage
-        data->current_stage = currernt_proof.stage;
-
+        /// data->current_stage语义是正在进行的stage
       } while (false);
       return result;
     });
@@ -354,11 +376,13 @@ struct rx_uploader {
       : data(std::make_shared<rx_uploader_data>(proof_orders)),
         obs(GenerateIteratorObservable(GenerateFirstObservable(), data)
                 .tap([complete_callback, this](proof::uploader_proof proof) {
+                  if (nullptr != this->data) {
+                    data->current_stage = proof::UploadFinal;
+                  }
                   if (nullptr != complete_callback) {
                     complete_callback(*this);
                   }
                   if (nullptr != this->data) {
-                    data->current_stage = proof::UploadFinal;
                     data->wait.set_value();
                   }
                 })

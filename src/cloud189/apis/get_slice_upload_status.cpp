@@ -43,9 +43,11 @@ namespace Apis {
 namespace GetSliceUploadStatus {
 
 // 用于构建一个json字符串，包含查询文件分片上传需要的参数
-std::string JsonStringHelper(const int64_t uploadFileId) {
+std::string JsonStringHelper(const std::string& uploadFileId,
+                             const std::string& x_request_id) {
   return assistant::tools::string::StringFormat(
-      R"({"uploadFileId":"%s"})", std::to_string(uploadFileId).c_str());
+      R"({"uploadFileId":"%s","X-Request-ID":"%s"})", uploadFileId.c_str(),
+      x_request_id.c_str());
 }
 
 // 查询文件分片上传状态请求
@@ -53,24 +55,14 @@ bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request) {
   bool is_ok = false;
   do {
-    if (params_json.empty()) {
-      break;
-    }
     Json::Value json_str;
-    Json::CharReaderBuilder reader_builder;
-    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(
-        reader_builder.newCharReader());
-    if (nullptr == reader) {
-      break;
-    }
-    if (!reader->parse(params_json.c_str(),
-                       params_json.c_str() + params_json.size(), &json_str,
-                       nullptr)) {
+    if (!restful_common::jsoncpp_helper::ReaderHelper(params_json, json_str)) {
       break;
     }
     std::string uploadFileId =
         restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
 
     request.url = GetHost() + GetURI();
     request.method = GetMethod();
@@ -87,7 +79,7 @@ bool HttpRequestEncode(const std::string& params_json,
         GetChannelId().c_str(),
         restful_common::rand_helper::GetRandString().c_str());
     // set header
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
 
     is_ok = true;
   } while (false);
@@ -99,8 +91,6 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
                         std::string& response_info) {
   bool is_success = false;
   Json::Value result_json;
-  Json::StreamWriterBuilder wbuilder;
-  wbuilder.settings_["indentation"] = "";
   pugi::xml_document result_xml;
   auto http_status_code = response.status_code;
   auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
@@ -117,7 +107,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
       }
       auto upload_file = result_xml.child("uploadFile");
       result_json["uploadFileId"] =
-          upload_file.child("uploadFileId").text().as_llong();
+          upload_file.child("uploadFileId").text().as_string();
       result_json["size"] = upload_file.child("size").text().as_llong();
       result_json["fileUploadUrl"] =
           upload_file.child("fileUploadUrl").text().as_string();
@@ -127,8 +117,8 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
           upload_file.child("uploadStatus").text().as_int();
       result_json["sliceExist"] =
           upload_file.child("sliceExist").text().as_string();
-      result_json["waitingTime"] =
-          upload_file.child("waitingTime").text().as_int();
+      auto message = result_xml.child("message");
+      result_json["waitingTime"] = message.child("waitingTime").text().as_int();
       response_info = result_json.toStyledString();
     } else if (0 == curl_code && http_status_code / 100 != 2) {
       if (!response.body.empty() &&
@@ -158,7 +148,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   result_json["isSuccess"] = is_success;
   result_json["httpStatusCode"] = http_status_code;
   result_json["curlCode"] = curl_code;
-  response_info = Json::writeString(wbuilder, result_json);
+  response_info = restful_common::jsoncpp_helper::WriterHelper(result_json);
   return is_success;
 }
 

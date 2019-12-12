@@ -1,4 +1,5 @@
 ﻿
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -17,8 +18,12 @@ struct Uploader {
   /// uploader传参必须参数之一，为一个字符串，避免大量字段
   /// 在构造函数中解析json字符串
 
-  Uploader(const std::string &upload_info);
+  Uploader(const std::string &upload_info,
+           std::function<void(const std::string &)> data_callback);
   ~Uploader();
+  void AsyncStart();
+  void SyncWait();
+  void UserCancel();
 
  private:
   std::shared_ptr<details::uploader_thread_data> thread_data;
@@ -33,12 +38,29 @@ struct Uploader {
 };
 
 /// 为此Uploader提供一个Helper函数，用于生成合规的json字符串
+/// local_path,[std::string]
+/// [表明上传文件的本地全路径]
+/// last_md5,[std::string]
+/// [表明上传文件的md5，如果为续传则必须传入，如果为创建新的上传可为空]
+/// last_upload_id,[std::string]
+/// [表明上传文件的id，如果为续传则必须传入且有效，如果为创建新的上传可为空]
+/// parent_folder_id,[std::string]
+/// [表明上传文件的父文件夹id]
+/// x_request_id,[std::string]
+/// [表明请求的x_request_id，如果传入为空则生成]
+/// oper_type,[int32_t]
+/// [表明上传后操作方式，
+/// 1-遇到相同文件名(只检查文件名)，执行重命名操作，
+/// 3-遇到相同文件名（只检查文件名），执行覆盖原文件]
+/// is_log,[int32_t]
+/// [表明是否为客户端日志上传，
+/// 1–客户端日志文件上传至指定账户，
+/// 0-非客户端日志文件上传]
 std::string uploader_info_helper(const std::string &local_path,
-                                 const std::string &md5,
-                                 const int64_t last_upload_id,
-                                 const int64_t parent_folder_id,
-                                 const int64_t start_offset,
-                                 const int64_t offset_length,
+                                 const std::string &last_md5,
+                                 const std::string &last_upload_id,
+                                 const std::string &parent_folder_id,
+                                 const std::string &x_request_id,
                                  const int32_t oper_type, const int32_t is_log);
 
 }  // namespace Restful

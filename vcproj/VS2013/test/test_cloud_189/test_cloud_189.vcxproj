@@ -219,6 +219,7 @@
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_slice_uploader.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_uploader.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp" />
+    <ClCompile Include="..\..\..\..\test\test_cloud_189\proxy.cpp" />
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_cloud_189.cpp" />
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_restful_uploader.cpp" />
     <ClCompile Include="..\..\..\..\test\test_cloud_189\test_session_helper.cpp" />

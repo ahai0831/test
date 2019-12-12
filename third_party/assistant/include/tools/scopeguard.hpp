@@ -20,7 +20,7 @@ class scope_guard {
   scope_guard(scope_guard&&) = delete;
 
  public:
-  scope_guard(DestructorType destructor) : destructor_(destructor) {}
+  explicit scope_guard(DestructorType destructor) : destructor_(destructor) {}
   ~scope_guard() {
     if (nullptr != destructor_) {
       destructor_();

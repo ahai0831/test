@@ -21,22 +21,22 @@ namespace UploadSliceData {
 // [文件上传URL]
 // localPath, [string],
 // [表明源文件的本地全路径]
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // [表明上传文件Id]
+// x_request_id,[string],
+// [表明x_request_id]
 // startOffset,[int64_t],
 // [表明续传文件的起始偏移，0为从头开始]
 // offsetLength,[int64_t],
 // [表明续传文件的偏移长度，-1为从起始位置到最后位置]
-// resumePolicy,[int32_t],
-// [表明是否支持断点续传控制，1-断点续传控制策略版本1，空-不支持]
 // UploadSliceId,[int64_t],
 // [表明分片Id]
 // MD5, [string],
 // [表明分片的MD5值]
 std::string JsonStringHelper(
     const std::string& fileUploadUrl, const std::string& localPath,
-    const int64_t uploadFileId, const int64_t startOffset,
-    const int64_t offsetLength, const int32_t resumePolicy,
+    const std::string& uploadFileId, const std::string& x_request_id,
+    const int64_t startOffset, const int64_t offsetLength,
     const int64_t UploadSliceId, const std::string& MD5);
 
 // jsoncpp parse 原地解析
@@ -46,8 +46,8 @@ std::string JsonStringHelper(
 // header规定:Content—Type:空
 //
 // 需要放到header中的参数：
-// UploadFileId,[int64_t],
-// [从json字符串中作为int64_t解析，参数放到header中，表明文件Id]
+// UploadFileId,[string],
+// [从json字符串中作为string解析，参数放到header中，表明文件Id]
 // UploadFileRange, [string],
 // [从json字符串中解析startOffset和offsetLength,计算断点续传文件的上传范围，拼接字符串:起始偏移-最后位置/*，表明断点续传文件上传范围]
 // resumePolicy,[int32_t],

@@ -40,61 +40,46 @@ namespace UploadSliceData {
 // 用于构建一个json字符串，包含创建文件上传需要的参数
 std::string JsonStringHelper(
     const std::string& fileUploadUrl, const std::string& localPath,
-    const int64_t uploadFileId, const int64_t startOffset,
-    const int64_t offsetLength, const int32_t resumePolicy,
+    const std::string& uploadFileId, const std::string& x_request_id,
+    const int64_t startOffset, const int64_t offsetLength,
     const int64_t UploadSliceId, const std::string& MD5) {
-  std::string json_str = "";
+  Json::Value json_value;
   do {
-    if (fileUploadUrl.empty() || MD5.empty()) {
+    if (fileUploadUrl.empty() || MD5.empty() || uploadFileId.empty()) {
       break;
     }
-    Json::Value json_value;
     json_value["fileUploadUrl"] = fileUploadUrl;
     json_value["localPath"] = localPath;
     json_value["uploadFileId"] = uploadFileId;
+    json_value["X-Request-ID"] = x_request_id;
     json_value["startOffset"] = startOffset;
     json_value["offsetLength"] = offsetLength;
-    json_value["resumePolicy"] = resumePolicy;
     json_value["UploadSliceId"] = UploadSliceId;
     json_value["MD5"] = MD5;
-    Json::FastWriter json_fastwrite;
-    json_str = json_fastwrite.write(json_value);
   } while (false);
-  return json_str;
+  return restful_common::jsoncpp_helper::WriterHelper(json_value);
 }
 
 bool HttpRequestEncode(const std::string& params_json,
                        assistant::HttpRequest& request) {
   bool is_ok = false;
   do {
-    if (params_json.empty()) {
-      break;
-    }
     Json::Value json_str;
-    Json::CharReaderBuilder reader_builder;
-    Json::CharReaderBuilder::strictMode(&reader_builder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(
-        reader_builder.newCharReader());
-    if (nullptr == reader) {
-      break;
-    }
-    if (!reader->parse(params_json.c_str(),
-                       params_json.c_str() + params_json.size(), &json_str,
-                       nullptr)) {
+    if (!restful_common::jsoncpp_helper::ReaderHelper(params_json, json_str)) {
       break;
     }
     std::string fileUploadUrl =
         restful_common::jsoncpp_helper::GetString(json_str["fileUploadUrl"]);
     std::string localPath =
         restful_common::jsoncpp_helper::GetString(json_str["localPath"]);
-    int64_t uploadFileId =
-        restful_common::jsoncpp_helper::GetInt64(json_str["uploadFileId"]);
+    std::string uploadFileId =
+        restful_common::jsoncpp_helper::GetString(json_str["uploadFileId"]);
+    std::string x_request_id =
+        restful_common::jsoncpp_helper::GetString(json_str["X-Request-ID"]);
     int64_t startOffset =
         restful_common::jsoncpp_helper::GetInt64(json_str["startOffset"]);
     int64_t offsetLength =
         restful_common::jsoncpp_helper::GetInt64(json_str["offsetLength"]);
-    int32_t resumePolicy =
-        restful_common::jsoncpp_helper::GetInt(json_str["resumePolicy"]);
     int64_t UploadSliceId =
         restful_common::jsoncpp_helper::GetInt64(json_str["UploadSliceId"]);
     std::string MD5 =
@@ -122,15 +107,13 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::rand_helper::GetRandString().c_str());
 
     // set header
-    request.headers.Set("X-Request-ID", assistant::uuid::generate());
+    request.headers.Set("X-Request-ID", x_request_id);
     request.headers.Set("ResumePolicy", std::to_string(GetResumePolicy()));
+    request.headers.Set("Edrive-UploadFileId", uploadFileId.c_str());
     request.headers.Set(
-        "Edrive-UploadFileId",
-        assistant::tools::string::StringFormat("%" PRId64, uploadFileId));
-    request.headers.Set("Edrive-UploadFileRange",
-                        assistant::tools::string::StringFormat(
-                            "%" PRId64 "-%" PRId64 "/*", startOffset,
-                            startOffset + offsetLength));
+        "Edrive-UploadFileRange",
+        assistant::tools::string::StringFormat("%" PRId64 "-%" PRId64 "/*",
+                                               startOffset, offsetLength));
     request.headers.Set("Edrive-UploadSliceId",
                         std::to_string(UploadSliceId).c_str());
     request.headers.Set("Edrive-MD5", MD5.c_str());
@@ -140,7 +123,8 @@ bool HttpRequestEncode(const std::string& params_json,
     request.extends.Set("upload_filepath", localPath.c_str());
     request.extends.Set("upload_filesize", std::to_string(file_size));
     request.extends.Set("upload_offset", std::to_string(startOffset));
-    request.extends.Set("upload_length", std::to_string(offsetLength + 1));
+    request.extends.Set("upload_length",
+                        std::to_string(offsetLength - startOffset + 1));
     is_ok = true;
   } while (false);
 
@@ -152,8 +136,6 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
                         std::string& response_info) {
   bool is_success = false;
   Json::Value result_json;
-  Json::StreamWriterBuilder wbuilder;
-  wbuilder.settings_["indentation"] = "";
   pugi::xml_document result_xml;
   auto http_status_code = response.status_code;
   auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
@@ -193,7 +175,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   result_json["isSuccess"] = is_success;
   result_json["httpStatusCode"] = http_status_code;
   result_json["curlCode"] = curl_code;
-  response_info = Json::writeString(wbuilder, result_json);
+  response_info = restful_common::jsoncpp_helper::WriterHelper(result_json);
   return is_success;
 }
 

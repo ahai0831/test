@@ -309,6 +309,12 @@ struct safemap_closure {
     std::lock_guard<decltype(mutex)> lock(mutex);
     return map.size();
   }
+  void Clear() {
+    std::lock_guard<decltype(mutex)> lock(mutex);
+    /// 显式地清理并释放内存；令临时变量就地析构
+    auto i = decltype(map)();
+    map.swap(i);
+  }
   ~safemap_closure() {
     std::lock_guard<decltype(mutex)> lock(mutex);
     /// 显式地清理并释放内存；令临时变量就地析构

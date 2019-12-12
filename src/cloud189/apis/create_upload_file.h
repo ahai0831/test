@@ -24,12 +24,14 @@ namespace CreateUploadFile {
 
 // 只做json字符串拼接，用StringFormat
 // json字符串包含的字段与这个函数声明完全一致
-// parent_folder_id,[int64_t],
+// parent_folder_id,[string],
 // [表明上传文件的父文件夹id]
 // local_path, [string],
 // [表明源文件的本地全路径]
 // md5, [string],
 // [表明上传文件的md5]
+// x_request_id,[string],
+// [表明x_request_id]
 // oper_type, [int32_t],
 // [表明上传后操作方式,
 // 1-遇到相同文件名(只检查文件名)，执行重命名操作。
@@ -42,10 +44,11 @@ namespace CreateUploadFile {
 // 对于自动备份，需要把oper_type设置为3，is_log设置为0
 // 对于日志上传，需要把oper_type设置为1，is_log设置为1，parent_folder_id传-11
 // 对于文件上传，需要把oper_type设置为1，is_log设置为0
-std::string JsonStringHelper(const int64_t parent_folder_id,
+std::string JsonStringHelper(const std::string& parent_folder_id,
                              const std::string& local_path,
-                             const std::string& md5, const int32_t oper_type,
-                             const int32_t is_log);
+                             const std::string& md5,
+                             const std::string& x_request_id,
+                             const int32_t oper_type, const int32_t is_log);
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
 // 请求方式：POST

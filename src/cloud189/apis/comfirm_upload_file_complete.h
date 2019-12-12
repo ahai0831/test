@@ -20,6 +20,8 @@ namespace ComfirmUploadFileComplete {
 // [确认文件上传完成URL]
 // uploadFileId,[string],
 // [表明断点续传文件Id]
+// x_request_id,[string],
+// [表明x_request_id]
 // opertype, [int32_t],
 // [表明上传后操作方式,
 // 1-遇到相同文件名(只检查文件名)，执行重命名操作。
@@ -29,8 +31,9 @@ namespace ComfirmUploadFileComplete {
 // 1–客户端日志文件上传至指定账户
 // 0-非客户端日志文件上传]
 std::string JsonStringHelper(const std::string& fileCommitUrl,
-                             const int64_t uploadFileId, const int32_t opertype,
-                             const int32_t isLog);
+                             const std::string& uploadFileId,
+                             const std::string& x_request_id,
+                             const int32_t opertype, const int32_t isLog);
 
 // jsoncpp parse 原地解析
 // jsoncpp reader 严格模式
@@ -59,7 +62,7 @@ std::string JsonStringHelper(const std::string& fileCommitUrl,
 //
 // 需要放到body中的参数：
 //
-// uploadFileId,[int64_t],
+// uploadFileId,[string],
 // [从json字符串中作为int64_t解析，参数放到body中，表明上传文件Id]
 // opertype, [int32_t],
 // [上传后操作方式
