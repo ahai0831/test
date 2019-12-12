@@ -23,6 +23,7 @@ struct SliceUploader {
   ~SliceUploader();
   void AsyncStart();
   void SyncWait();
+  void UserCancel();
 
  private:
   std::shared_ptr<details::sliceuploader_thread_data> thread_data;

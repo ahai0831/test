@@ -44,6 +44,8 @@ enum stage_result {
   GiveupRetry,
   RetrySelf,
   RetryTargetStage,
+  UserCanceled,  /// 在用户手动点击“暂停”或取消，或“退出登录”等需要迫使流程立即失败的场景
+  /// 避免GiveupRetry承担过多的语义，并且被调用者误用
 };
 struct uploader_proof {
   uploader_stage stage;  /// 当前上传流程所处状态
@@ -165,10 +167,11 @@ struct rx_uploader {
             proof::FileCommit, proof::Unfinished, proof::UploadInitial, 0, 0};
         const auto wait_internal_base = 1000.0F;
         const auto pow_base = 1.5F;
-        if (nullptr == data) {
+        if (nullptr == data || proof::UserCanceled == currernt_proof.result) {
           result = rxcpp::observable<>::just(error_proof);
           break;
         }
+
         auto &orders = data->orders;
         switch (currernt_proof.stage) {
           case proof::UploadInitial:

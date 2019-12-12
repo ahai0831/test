@@ -119,7 +119,8 @@ struct sliceuploader_thread_data {
         data_exist({false}),
         already_upload_bytes({0}),
         current_upload_bytes({0}),
-        int32_error_code({0}) {}
+        int32_error_code({0}),
+        frozen({false}) {}
   /// 线程安全的数据成员
   lockfree_string_closure<std::string> file_md5;
   lockfree_string_closure<std::string> upload_file_id;
@@ -155,6 +156,9 @@ struct sliceuploader_thread_data {
   httpbusiness::speed_counter_with_stop speed_count;
   std::weak_ptr<httpbusiness::uploader::rx_uploader::rx_uploader_data>
       master_control_data;
+
+  /// 保存停止标志位
+  std::atomic<bool> frozen;
 
  private:
   sliceuploader_thread_data() = delete;
@@ -608,7 +612,7 @@ GenerateDataCallback(
                   thread_data->commit_create_date.load();
               info["commit_rev"] = thread_data->commit_rev.load();
               info["commit_user_id"] = thread_data->commit_user_id.load();
-              //info["commit_is_safe"] = thread_data->commit_is_safe.load();
+              // info["commit_is_safe"] = thread_data->commit_is_safe.load();
             }
           }
           data_callback(WriterHelper(info));
@@ -628,7 +632,7 @@ GenerateDataCallback(
       info["md5"] = thread_data->file_md5.load();
       info["upload_id"] = thread_data->upload_file_id.load();
       info["file_size"] = thread_data->file_size.load();
-	  info["X-Request-ID"] = thread_data->x_request_id;
+      info["X-Request-ID"] = thread_data->x_request_id;
       /// 已传输数据量
       auto transferred_size = thread_data->already_upload_bytes.load() +
                               thread_data->current_upload_bytes.load();
@@ -650,7 +654,7 @@ GenerateDataCallback(
       info["commit_create_date"] = thread_data->commit_create_date.load();
       info["commit_rev"] = thread_data->commit_rev.load();
       info["commit_user_id"] = thread_data->commit_user_id.load();
-      //info["commit_is_safe"] = thread_data->commit_is_safe.load();
+      // info["commit_is_safe"] = thread_data->commit_is_safe.load();
     }
     data_callback(WriterHelper(info));
   };
@@ -765,6 +769,14 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
                 if (nullptr == thread_data) {
                   break;
                 }
+                /// 增加对用户手动取消的处理
+                if (thread_data->frozen.load()) {
+                  calculate_md5_result_proof.result =
+                      stage_result::UserCanceled;
+                  thread_data->int32_error_code =
+                      Cloud189::ErrorCode::nderr_usercanceled;
+                  break;
+                }
                 if (thread_data->file_md5.empty()) {
                   break;
                 }
@@ -861,6 +873,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           auto thread_data = thread_data_weak.lock();
           if (nullptr == thread_data) {
+            break;
+          }
+          /// 增加对用户手动取消的处理
+          if (thread_data->frozen.load()) {
+            create_slice_upload_proof.result = stage_result::UserCanceled;
+            thread_data->int32_error_code =
+                Cloud189::ErrorCode::nderr_usercanceled;
             break;
           }
           Json::Value json_value;
@@ -976,6 +995,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           }
           auto thread_data = thread_data_weak.lock();
           if (nullptr == thread_data) {
+            break;
+          }
+          /// 增加对用户手动取消的处理
+          if (thread_data->frozen.load()) {
+            check_slice_upload_proof.result = stage_result::UserCanceled;
+            thread_data->int32_error_code =
+                Cloud189::ErrorCode::nderr_usercanceled;
             break;
           }
           Json::Value json_value;
@@ -1120,6 +1146,13 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               do {
                 auto thread_data = thread_data_weak.lock();
                 if (nullptr == thread_data) {
+                  break;
+                }
+                /// 增加对用户手动取消的处理
+                if (thread_data->frozen.load()) {
+                  proof.result = stage_result::UserCanceled;
+                  thread_data->int32_error_code =
+                      Cloud189::ErrorCode::nderr_usercanceled;
                   break;
                 }
 
@@ -1303,6 +1336,14 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           const auto is_success =
               restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
 
+          /// 增加对用户手动取消的处理
+          /// 在提交这一步对frozen标志位的检查应延后，避免流程成功但告知结束回调失败
+          if (!is_success && thread_data->frozen.load()) {
+            slice_file_commit_proof.result = stage_result::UserCanceled;
+            thread_data->int32_error_code =
+                Cloud189::ErrorCode::nderr_usercanceled;
+            break;
+          }
           /// 确认文件上传完成后解析到的字段
           if (is_success) {
             thread_data->commit_id.store(GetString(json_value["id"]));
@@ -1389,6 +1430,15 @@ void SliceUploader::SyncWait() {
   if (data->Valid()) {
     data->master_control->SyncWait();
   }
+}
+
+/// 在用户手动点击“暂停”或取消，或“退出登录”等需要迫使流程立即失败的场景
+/// 非阻塞调用，函数返回不代表立即“取消成功”
+/// 将迫使流程尽可能早结束，可能存在延迟
+/// 在流程即将完成时，未必能“取消成功”，仍有可能“成功完成”
+void SliceUploader::UserCancel() {
+  thread_data->frozen.store(true);
+  /// TODO: 仍需完善，迫使正在进行的费时操作（如MD5计算、数据传输等）中断
 }
 
 SliceUploader::~SliceUploader() = default;

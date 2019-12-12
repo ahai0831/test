@@ -23,6 +23,7 @@ struct Uploader {
   ~Uploader();
   void AsyncStart();
   void SyncWait();
+  void UserCancel();
 
  private:
   std::shared_ptr<details::uploader_thread_data> thread_data;
