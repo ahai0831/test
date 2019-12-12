@@ -48,6 +48,11 @@ struct uploader_internal_data {
 
  public:
   std::unique_ptr<httpbusiness::uploader::rx_uploader> const master_control;
+  /// 以file_protect为标志，如果此指针已为空，则什么都不用做
+  bool Valid() { return nullptr != file_protect; }
+  /// 保存此回调，以供调用
+  const httpbusiness::uploader::rx_uploader::CompleteCallback
+      null_file_callback;
 
   explicit uploader_internal_data(
       const std::string& file_path,
@@ -62,6 +67,7 @@ struct uploader_internal_data {
             file_protect = nullptr;
           }
         }),
+        null_file_callback(data_callback),
         master_control(std::make_unique<httpbusiness::uploader::rx_uploader>(
             proof_orders, data_callback)) {}
   ~uploader_internal_data() = default;
@@ -134,12 +140,17 @@ struct uploader_thread_data {
 
 }  // namespace details
 
+}  // namespace Restful
+}  // namespace Cloud189
+
+using Cloud189::Restful::details::uploader_thread_data;
+
 /// 将构造函数完全进行模块化分解，避免单个函数承担过多功能
 /// 在此将Uploader所需的函数模块抽取出来
 namespace {
 
 /// 根据传入的字符串，对线程数据进行初始化
-std::shared_ptr<details::uploader_thread_data> InitThreadData(
+std::shared_ptr<uploader_thread_data> InitThreadData(
     const std::string& upload_info) {
   /// 根据传入信息，初始化线程信息结构体
   Json::Value json_value;
@@ -155,14 +166,14 @@ std::shared_ptr<details::uploader_thread_data> InitThreadData(
   if (x_request_id.empty()) {
     x_request_id = assistant::tools::uuid::generate();
   }
-  return std::make_shared<details::uploader_thread_data>(
+  return std::make_shared<uploader_thread_data>(
       local_filepath, last_md5, last_upload_id, parent_folder_id, x_request_id,
       oper_type, is_log);
 }
 /// 生成总控使用的完成回调
 const httpbusiness::uploader::rx_uploader::CompleteCallback
-GenerateCompleteCallback(
-    const std::weak_ptr<details::uploader_thread_data>& thread_data_weak,
+GenerateDataCallback(
+    const std::weak_ptr<uploader_thread_data>& thread_data_weak,
     const std::function<void(const std::string&)>& data_callback) {
   /// 为计速器提供每秒一次的回调
   auto thread_data = thread_data_weak.lock();
@@ -256,7 +267,7 @@ GenerateCompleteCallback(
 }
 /// 根据弱指针，初始化各RX指令
 httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
-    const std::weak_ptr<details::uploader_thread_data>& thread_data_weak) {
+    const std::weak_ptr<uploader_thread_data>& thread_data_weak) {
   //////////////////////////////////////////////////////////////////////////
   /// 计算MD5指令
   /// 输入proof，根据线程信息中的路径信息，异步地进行MD5计算并返回proof
@@ -407,9 +418,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
-              (int32_error_code == ErrorCode::nderr_sessionbreak ||
-               int32_error_code == ErrorCode::nderr_session_expired ||
-               int32_error_code == ErrorCode::nderr_no_diskspace)) {
+              (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
+               int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
+               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace)) {
             create_upload_proof.result = stage_result::GiveupRetry;
             create_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
@@ -530,9 +541,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
-              (int32_error_code == ErrorCode::nderr_sessionbreak ||
-               int32_error_code == ErrorCode::nderr_session_expired ||
-               int32_error_code == ErrorCode::nderr_no_diskspace)) {
+              (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
+               int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
+               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace)) {
             check_upload_proof.result = stage_result::GiveupRetry;
             check_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
@@ -758,13 +769,16 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           thread_data->int32_error_code.store(int32_error_code);
           /// 最坏的失败，无需重试，比如特定的4xx的错误码，情形如：登录信息失效、空间不足等
           if (4 == (http_statuc_code / 100) &&
-              (int32_error_code == ErrorCode::nderr_sessionbreak ||
-               int32_error_code == ErrorCode::nderr_session_expired ||
-               int32_error_code == ErrorCode::nderr_no_diskspace ||
-               int32_error_code == ErrorCode::nderr_userdayflowoverlimited ||
-               int32_error_code == ErrorCode::nderr_no_diskspace ||
-               int32_error_code == ErrorCode::nderr_over_filesize_error ||
-               int32_error_code == ErrorCode::nderr_invalid_parent_folder)) {
+              (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
+               int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
+               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_userdayflowoverlimited ||
+               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_over_filesize_error ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_invalid_parent_folder)) {
             file_commit_proof.result = stage_result::GiveupRetry;
             file_commit_proof.next_stage = uploader_stage::UploadFinal;
             break;
@@ -789,18 +803,33 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 
 }  // namespace
 
+namespace Cloud189 {
+namespace Restful {
 Uploader::Uploader(const std::string& upload_info,
                    std::function<void(const std::string&)> data_callback)
     : thread_data(InitThreadData(upload_info)),
       data(std::make_unique<details::uploader_internal_data>(
           thread_data->local_filepath, GenerateOrders(thread_data),
-          GenerateCompleteCallback(thread_data, data_callback))) {
+          GenerateDataCallback(thread_data, data_callback))) {
   thread_data->master_control_data = data->master_control->data;
+  if (!data->Valid()) {
+    thread_data->int32_error_code =
+        Cloud189::ErrorCode::nderr_file_access_error;
+    data->null_file_callback(*data->master_control);
+  }
 }
 
-void Uploader::AsyncStart() { data->master_control->AsyncStart(); }
+void Uploader::AsyncStart() {
+  if (data->Valid()) {
+    data->master_control->AsyncStart();
+  }
+}
 
-void Uploader::SyncWait() { data->master_control->SyncWait(); }
+void Uploader::SyncWait() {
+  if (data->Valid()) {
+    data->master_control->SyncWait();
+  }
+}
 
 Uploader::~Uploader() = default;
 

@@ -59,6 +59,11 @@ struct sliceuploader_internal_data {
 
  public:
   std::unique_ptr<httpbusiness::uploader::rx_uploader> const master_control;
+  /// 以file_protect为标志，如果此指针已为空，则什么都不用做
+  bool Valid() { return nullptr != file_protect; }
+  /// 保存此回调，以供调用
+  const httpbusiness::uploader::rx_uploader::CompleteCallback
+      null_file_callback;
 
   explicit sliceuploader_internal_data(
       const std::string& file_path,
@@ -76,6 +81,7 @@ struct sliceuploader_internal_data {
             file_protect = nullptr;
           }
         }),
+        null_file_callback(data_callback),
         master_control(std::make_unique<httpbusiness::uploader::rx_uploader>(
             proof_orders, data_callback)) {}
   ~sliceuploader_internal_data() = default;
@@ -555,7 +561,7 @@ InitThreadData(const std::string& upload_info) {
 }
 /// 生成总控使用的完成回调
 const httpbusiness::uploader::rx_uploader::CompleteCallback
-GenerateCompleteCallback(
+GenerateDataCallback(
     const std::weak_ptr<Cloud189::Restful::details::sliceuploader_thread_data>&
         thread_data_weak,
     const std::function<void(const std::string&)>& data_callback) {
@@ -1363,13 +1369,26 @@ SliceUploader::SliceUploader(
     : thread_data(InitThreadData(upload_info)),
       data(std::make_unique<details::sliceuploader_internal_data>(
           thread_data->local_filepath, GenerateOrders(thread_data),
-          GenerateCompleteCallback(thread_data, data_callback))) {
+          GenerateDataCallback(thread_data, data_callback))) {
   thread_data->master_control_data = data->master_control->data;
+  if (!data->Valid()) {
+    thread_data->int32_error_code =
+        Cloud189::ErrorCode::nderr_file_access_error;
+    data->null_file_callback(*data->master_control);
+  }
 }
 
-void SliceUploader::AsyncStart() { data->master_control->AsyncStart(); }
+void SliceUploader::AsyncStart() {
+  if (data->Valid()) {
+    data->master_control->AsyncStart();
+  }
+}
 
-void SliceUploader::SyncWait() { data->master_control->SyncWait(); }
+void SliceUploader::SyncWait() {
+  if (data->Valid()) {
+    data->master_control->SyncWait();
+  }
+}
 
 SliceUploader::~SliceUploader() = default;
 
