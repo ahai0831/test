@@ -629,6 +629,9 @@ GenerateDataCallback(
     info["stage"] = int32_t(uploader_stage::UploadFinal);
     auto thread_data = thread_data_weak.lock();
     if (nullptr != thread_data) {
+      /// 需保证计速器回调不再发送
+      thread_data->speed_count.Stop();
+
       info["md5"] = thread_data->file_md5.load();
       info["upload_id"] = thread_data->upload_file_id.load();
       info["file_size"] = thread_data->file_size.load();
