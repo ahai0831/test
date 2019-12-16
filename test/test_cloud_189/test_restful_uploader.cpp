@@ -10,7 +10,9 @@
 #include "tools/string_convert.hpp"
 
 TEST(cloud189_uploader, init) {
-  std::string file_path = "C:\\Users\\TY-PC\\Desktop\\pp1010.rar";
+  std::string file_path = "C:\\Users\\TY-PC\\Desktop\\你好.txt";
+  std::wstring temp = assistant::tools::string::ansiToWstring(file_path);
+  file_path = assistant::tools::string::wstringToUtf8(temp);
   std::string parent_id = "-11";
   std::string md5 = "";  //可有可无，如果要续传则必须传入，否则重新上传
   std::string x_request_id = "";
@@ -23,7 +25,7 @@ TEST(cloud189_uploader, init) {
   std::string url =
       "https://api.cloud.189.cn/"
       "getSessionForPC.action?appId=8025431004&accessToken="
-      "786aa0751f66415489a468f06ae3ef84&clientType=TELEPC&version=6.1.1.0&"
+      "30b3c47b020e4c38bc3817c0c825409c&clientType=TELEPC&version=6.1.1.0&"
       "clientSn=dc628a0f8a816f712579376e922eb2ff&channelId=web_cloud.189.cn&"
       "rand=10141_953109843";
   auto assistant_ptr = std::make_shared<assistant::Assistant_v3>();
