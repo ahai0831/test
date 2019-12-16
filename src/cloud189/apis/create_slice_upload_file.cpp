@@ -115,22 +115,29 @@ bool HttpRequestEncode(const std::string& params_json,
     request.url += assistant::tools::string::StringFormat(
         "?parentFolderId=%s&filename=%s&md5=%s&size=%s&sliceSize=%s&isLog=%s&"
         "opertype=%s&clientType=%s&version=%s&channelId=%s&rand=%s",
-        parentFolderId.c_str(), file_name_temp.c_str(), md5.c_str(),
-        std::to_string(size).c_str(), std::to_string(sliceSize).c_str(),
-        std::to_string(isLog).c_str(), std::to_string(opertype).c_str(),
-        GetClientType().c_str(),
+        parentFolderId.c_str(),
+        cloud_base::url_encode::http_post_form::url_encode(file_name_temp)
+            .c_str(),
+        md5.c_str(), std::to_string(size).c_str(),
+        std::to_string(sliceSize).c_str(), std::to_string(isLog).c_str(),
+        std::to_string(opertype).c_str(), GetClientType().c_str(),
         cloud_base::process_version::GetCurrentProcessVersion().c_str(),
         GetChannelId().c_str(),
         restful_common::rand_helper::GetRandString().c_str());
     // set header
     request.headers.Set("Content-Type", GetContentType());
     request.headers.Set("X-Request-ID", x_request_id);
-    // set body
-    request.body = assistant::tools::string::StringFormat(
-        R"({"parentFolderId":"%s","filename":"%s","md5": "%s","size": %s,"sliceSize": %s,"isLog": %s,"opertype": %s})",
-        parentFolderId.c_str(), file_name_temp.c_str(), md5.c_str(),
-        std::to_string(size).c_str(), std::to_string(sliceSize).c_str(),
-        std::to_string(isLog).c_str(), std::to_string(opertype).c_str());
+    //// set body
+    //// 此处为post方法，但相关字段已放在url中，body中暂时不放
+    // request.body = assistant::tools::string::StringFormat(
+    //    R"({"parentFolderId":"%s","filename":"%s","md5": "%s","size":
+    //    %s,"sliceSize": %s,"isLog": %s,"opertype": %s})",
+    //    parentFolderId.c_str(),
+    //    cloud_base::url_encode::http_post_form::url_encode(file_name_temp)
+    //        .c_str(),
+    //    md5.c_str(), std::to_string(size).c_str(),
+    //    std::to_string(sliceSize).c_str(), std::to_string(isLog).c_str(),
+    //    std::to_string(opertype).c_str());
     is_ok = true;
   } while (false);
 
