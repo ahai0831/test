@@ -87,7 +87,7 @@ bool HttpRequestEncode(const std::string& params_json,
 
     uint64_t file_size;
     if (!cloud_base::filesystem_helper::GetFileSize(
-            assistant::tools::ansiToWstring(localPath), file_size)) {
+            assistant::tools::utf8ToWstring(localPath), file_size)) {
       break;
     }
 
