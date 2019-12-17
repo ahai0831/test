@@ -28,6 +28,7 @@
 
 using assistant::HttpRequest;
 using assistant::tools::lockfree_string_closure;
+using assistant::tools::safeset_closure;
 using httpbusiness::uploader::proof::stage_result;
 using httpbusiness::uploader::proof::uploader_proof;
 using httpbusiness::uploader::proof::uploader_stage;
@@ -159,6 +160,9 @@ struct sliceuploader_thread_data {
 
   /// 保存停止标志位
   std::atomic<bool> frozen;
+  /// 保存当前请求的UUID，以供停止请求
+  lockfree_string_closure<std::string> current_request_uuid;
+  safeset_closure<std::string> sliceupload_uuids;
 
  private:
   sliceuploader_thread_data() = delete;
@@ -262,8 +266,17 @@ typedef struct slicemd5_worker_function_generator {
       const auto& range_left = std::get<0>(material);
       const auto& range_right = std::get<1>(material);
       const auto& slice_id = std::get<2>(material);
-      auto obs =
-          rx_assistant::rx_md5::create(file_path, range_left, range_right);
+      /// 用于及时停止MD5计算过程 2019.12.16
+      std::function<bool(void)> md5_check_stop =
+          rx_assistant::rx_md5::details::DefaultCheckStopCallback;
+      if (nullptr != thread_data) {
+        const auto& frozen = thread_data->frozen;
+        md5_check_stop = [thread_data, &frozen]() -> bool {
+          return !frozen.load();
+        };
+      }
+      auto obs = rx_assistant::rx_md5::create(file_path, range_left,
+                                              range_right, md5_check_stop);
       auto publish_obs =
           obs.map([slice_id](std::string& md5) -> SliceMd5::Report {
                return std::make_tuple(slice_id, md5);
@@ -284,6 +297,13 @@ typedef struct slicemd5_worker_function_generator {
 
     /// 进行报告
     callbacks.send_report(report);
+
+    /// 需要检查主控是否已经“frozen”，如有需尽快停止整个multi_worker流程
+    /// 2019.12.16
+    auto thread_data = thread_data_weak.lock();
+    if (nullptr == thread_data || thread_data->frozen.load()) {
+      callbacks.serious_error();
+    }
 
     /// 尝试下一轮生产
     SliceMd5::MaterialType material_after = nullptr;
@@ -408,6 +428,10 @@ typedef struct sliceupload_worker_function_generator {
       /// HttpRequestEncode
       Cloud189::Apis::UploadSliceData::HttpRequestEncode(per_sliceupload_str,
                                                          per_sliceupload_req);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      per_sliceupload_req.extends.Set("uuid", unused_uuid);
+      thread_data->sliceupload_uuids.Put(unused_uuid);
       /// HttpRequestEncode 完毕
 
       /// 保存thread_data，避免在传输线程中反复lock
@@ -423,7 +447,7 @@ typedef struct sliceupload_worker_function_generator {
       std::function<bool(const rx_assistant::HttpResult&,
                          assistant::HttpRequest&, int32_t&)>
           sliceupload_solve_callback =
-              [thread_data_weak_temp](
+              [thread_data_weak_temp, unused_uuid](
                   const rx_assistant::HttpResult& file_upload_http_result,
                   assistant::HttpRequest&, int32_t&) -> bool {
         /// 无需循环+成功：（非常重要，需要考虑一些，看似“失败”，但最终提交会成功的情况）
@@ -437,6 +461,9 @@ typedef struct sliceupload_worker_function_generator {
           if (nullptr == thread_data) {
             break;
           }
+          /// 当前分片的请求已经完成，需要移除
+          thread_data->sliceupload_uuids.Delete(unused_uuid);
+
           std::string decode_result;
           Cloud189::Apis::UploadSliceData::HttpResponseDecode(
               file_upload_http_result.res, file_upload_http_result.req,
@@ -469,6 +496,7 @@ typedef struct sliceupload_worker_function_generator {
       };
 
       /// 根据最后一次响应判定当前分片的结果
+      /// TODO: 这个地方是tiany实现的，简直辣眼睛，需要优化掉！
       std::function<sliceupload_helper::Report(rx_assistant::HttpResult&)>
           result_2_report = [thread_data](rx_assistant::HttpResult& http_result)
           -> sliceupload_helper::Report {
@@ -514,6 +542,12 @@ typedef struct sliceupload_worker_function_generator {
     /// 进行报告
     callbacks.send_report(report);
 
+    /// 需要检查主控是否已经“frozen”，如有需尽快停止整个multi_worker流程
+    /// 2019.12.16
+    auto thread_data = thread_data_weak.lock();
+    if (nullptr == thread_data || thread_data->frozen.load()) {
+      callbacks.serious_error();
+    }
     /// 尝试下一轮生产
     SliceUpload::MaterialType material_after = nullptr;
     if (!callbacks.check_stop()) {
@@ -812,7 +846,16 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               return calculate_md5_result_proof;
             });
 
-    return rx_assistant::rx_md5::create(file_path)
+    /// 用于及时停止MD5计算过程 2019.12.16
+    std::function<bool(void)> md5_check_stop =
+        rx_assistant::rx_md5::details::DefaultCheckStopCallback;
+    if (nullptr != thread_data) {
+      const auto& frozen = thread_data->frozen;
+      md5_check_stop = [thread_data, &frozen]() -> bool {
+        return !frozen.load();
+      };
+    }
+    return rx_assistant::rx_md5::create(file_path, md5_check_stop)
         .map(md5_result_callback)
         .flat_map(generate_slicemd5)
         .tap(slicemd5_tap)
@@ -850,6 +893,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               file_path, parent_folder_id, file_md5, x_request_id, is_log,
               oper_type),
           create_slice_upload_request);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      create_slice_upload_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
       /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
@@ -878,6 +925,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (nullptr == thread_data) {
             break;
           }
+
+          /// 请求到此已完成，无需再记录UUID
+          thread_data->current_request_uuid.Clear();
           /// 增加对用户手动取消的处理
           if (thread_data->frozen.load()) {
             create_slice_upload_proof.result = stage_result::UserCanceled;
@@ -972,6 +1022,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           Cloud189::Apis::GetSliceUploadStatus::JsonStringHelper(upload_id,
                                                                  x_request_id),
           check_slice_upload_request);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      check_slice_upload_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
       /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
@@ -1000,6 +1054,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (nullptr == thread_data) {
             break;
           }
+
+          /// 请求到此已完成，无需再记录UUID
+          thread_data->current_request_uuid.Clear();
           /// 增加对用户手动取消的处理
           if (thread_data->frozen.load()) {
             check_slice_upload_proof.result = stage_result::UserCanceled;
@@ -1271,6 +1328,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       int32_t oper_type = thread_data->oper_type;
       int32_t is_log = thread_data->is_log;
       std::string file_commit_url = thread_data->file_commit_url.load();
+      /// TODO: 此处逻辑太重了，应放到相应的Encoder中去处理，才合理
       /// 获取Session
       std::string get_session_key;
       std::string get_session_secret;
@@ -1302,6 +1360,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       /// HttpRequestEncode
       Cloud189::Apis::CommitSliceUploadFile::HttpRequestEncode(
           slice_file_commit_json_str, slice_file_commit_request);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      slice_file_commit_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
       /// 使用rx_assistant::rx_httpresult::create 创建数据源
       auto obs = rx_assistant::rx_httpresult::create(slice_file_commit_request);
 
@@ -1331,6 +1393,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (nullptr == thread_data) {
             break;
           }
+          /// 请求到此已完成，无需再记录UUID
+          thread_data->current_request_uuid.Clear();
+
           Json::Value json_value;
           if (!restful_common::jsoncpp_helper::ReaderHelper(file_commit_result,
                                                             json_value)) {
@@ -1441,7 +1506,50 @@ void SliceUploader::SyncWait() {
 /// 在流程即将完成时，未必能“取消成功”，仍有可能“成功完成”
 void SliceUploader::UserCancel() {
   thread_data->frozen.store(true);
-  /// TODO: 仍需完善，迫使正在进行的费时操作（如MD5计算、数据传输等）中断
+  /// 获取当前所处阶段
+  const auto current_stage = data->master_control->data->current_stage.load();
+  switch (current_stage) {
+    case 0:
+      /// 计算MD5，无需其他处理
+      break;
+    case 1:
+    case 2:
+    case 4:
+      /// 处理普通的网络请求
+      do {
+        /// 使正在进行的费时操作（如网络请求、数据传输等）中断
+        const auto current_request_uuid =
+            thread_data->current_request_uuid.load();
+        if (current_request_uuid.empty()) {
+          break;
+        }
+        assistant::HttpRequest stop_req(
+            assistant::HttpRequest::Opts::SPCECIALOPERATORS_STOPCONNECT);
+        stop_req.extends.Set("uuids", current_request_uuid);
+        rx_assistant::rx_httpresult::create(stop_req).publish().connect();
+      } while (false);
+      break;
+    case 3:
+      /// 处理分片上传
+      do {
+        /// 生成根据UUID批量停止连接的Req
+        std::string uuids;
+        auto GenerateUuidstr = [&uuids](const std::string& uuid) -> void {
+          uuids += uuid + ";";
+        };
+        thread_data->sliceupload_uuids.ForeachDelegate(GenerateUuidstr);
+        if (uuids.empty()) {
+          break;
+        }
+        assistant::HttpRequest stop_req(
+            assistant::HttpRequest::Opts::SPCECIALOPERATORS_STOPCONNECT);
+        stop_req.extends.Set("uuids", uuids);
+        rx_assistant::rx_httpresult::create(stop_req).publish().connect();
+      } while (false);
+      break;
+    default:
+      break;
+  }
 }
 
 SliceUploader::~SliceUploader() = default;

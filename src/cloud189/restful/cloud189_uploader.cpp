@@ -134,6 +134,8 @@ struct uploader_thread_data {
 
   /// 保存停止标志位
   std::atomic<bool> frozen;
+  /// 保存当前请求的UUID，以供停止请求
+  lockfree_string_closure<std::string> current_request_uuid;
 
  private:
   uploader_thread_data() = delete;
@@ -335,7 +337,17 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       } while (false);
       return calculate_md5_result_proof;
     };
-    return rx_assistant::rx_md5::create(file_path).map(md5_result_callback);
+    /// 用于及时停止MD5计算过程 2019.12.16
+    std::function<bool(void)> md5_check_stop =
+        rx_assistant::rx_md5::details::DefaultCheckStopCallback;
+    if (nullptr != thread_data) {
+      const auto& frozen = thread_data->frozen;
+      md5_check_stop = [thread_data, &frozen]() -> bool {
+        return !frozen.load();
+      };
+    }
+    return rx_assistant::rx_md5::create(file_path, md5_check_stop)
+        .map(md5_result_callback);
   };
   /// calculate_md5 end.
   //////////////////////////////////////////////////////////////////////////
@@ -368,6 +380,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
               parent_folder_id, file_path, file_md5, x_request_id, oper_type,
               is_log),
           create_upload_request);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      create_upload_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
       /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
@@ -396,6 +412,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (nullptr == thread_data) {
             break;
           }
+          /// 请求到此已完成，无需再记录UUID
+          thread_data->current_request_uuid.Clear();
+
           /// 增加对用户手动取消的处理
           if (thread_data->frozen.load()) {
             create_upload_proof.result = stage_result::UserCanceled;
@@ -486,6 +505,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           Cloud189::Apis::GetUploadFileStatus::JsonStringHelper(upload_id,
                                                                 x_request_id),
           check_upload_request);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      check_upload_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
       /// 请求初始化完毕
 
       /// 提供根据HttpResponse解析得到结果的json字符串
@@ -514,6 +537,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (nullptr == thread_data) {
             break;
           }
+          /// 请求到此已完成，无需再记录UUID
+          thread_data->current_request_uuid.Clear();
+
           /// 增加对用户手动取消的处理
           if (thread_data->frozen.load()) {
             check_upload_proof.result = stage_result::UserCanceled;
@@ -638,6 +664,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       /// HttpRequestEncode
       Cloud189::Apis::UploadFileData::HttpRequestEncode(file_upload_json_str,
                                                         file_upload_request);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      file_upload_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
       /// 保存thread_data，避免在传输线程中反复lock
       /// 为需要使用的变量定义引用
       auto& current_upload_bytes = thread_data->current_upload_bytes;
@@ -674,6 +704,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (nullptr == thread_data) {
             break;
           }
+          /// 请求到此已完成，无需再记录UUID
+          thread_data->current_request_uuid.Clear();
+
           /// 增加对用户手动取消的处理
           if (thread_data->frozen.load()) {
             file_uplaod_proof.result = stage_result::UserCanceled;
@@ -736,6 +769,10 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       /// HttpRequestEncode
       Cloud189::Apis::ComfirmUploadFileComplete::HttpRequestEncode(
           file_commit_json_str, file_commit_request);
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      file_commit_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
       /// 使用rx_assistant::rx_httpresult::create 创建数据源
       auto obs = rx_assistant::rx_httpresult::create(file_commit_request);
 
@@ -762,6 +799,9 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (nullptr == thread_data) {
             break;
           }
+          /// 请求到此已完成，无需再记录UUID
+          thread_data->current_request_uuid.Clear();
+
           Json::Value json_value;
           if (!restful_common::jsoncpp_helper::ReaderHelper(file_commit_result,
                                                             json_value)) {
@@ -881,7 +921,16 @@ void Uploader::SyncWait() {
 /// 在流程即将完成时，未必能“取消成功”，仍有可能“成功完成”
 void Uploader::UserCancel() {
   thread_data->frozen.store(true);
-  /// TODO: 仍需完善，迫使正在进行的费时操作（如MD5计算、数据传输等）中断
+  /// MD5计算已做处理，无需另行处理
+
+  /// 使正在进行的费时操作（如网络请求、数据传输等）中断
+  const auto current_request_uuid = thread_data->current_request_uuid.load();
+  if (!current_request_uuid.empty()) {
+    assistant::HttpRequest stop_req(
+        assistant::HttpRequest::Opts::SPCECIALOPERATORS_STOPCONNECT);
+    stop_req.extends.Set("uuids", current_request_uuid);
+    rx_assistant::rx_httpresult::create(stop_req).publish().connect();
+  }
 }
 
 Uploader::~Uploader() = default;

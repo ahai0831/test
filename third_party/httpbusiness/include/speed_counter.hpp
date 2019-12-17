@@ -161,7 +161,7 @@ struct speed_counter_with_stop {
     /// TODO: 由于speed_counter用法，基本都会在构造函数中直接被订阅
     /// 所以无需在此处进行connect()
     /// TODO: 需要搞清楚为什么VLD会因此行代码检测出内存泄露
-    //     stop_observable.connect();
+    stop_observable.connect();
 
     rxcpp::observable<int> interval_with_stop =
         stop_observable
