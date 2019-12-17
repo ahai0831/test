@@ -144,205 +144,306 @@ struct rx_uploader {
   static rxcpp::observable<proof::uploader_proof> GenerateNextObservable(
       rxcpp::observable<proof::uploader_proof> previous_obs,
       std::weak_ptr<rx_uploader_data> data_weak) {
-    return previous_obs.flat_map([data_weak](
-                                     proof::uploader_proof currernt_proof)
-                                     -> rxcpp::observable<
-                                         proof::uploader_proof> {
-      auto data = data_weak.lock();
-      rxcpp::observable<proof::uploader_proof> result;
-      do {
-        const proof::uploader_proof error_proof = {
-            proof::UploadFinal, proof::GiveupRetry, proof::UploadInitial, 0, 0};
-        const proof::uploader_proof succeed_proof = {
-            proof::UploadFinal, proof::Succeeded, proof::UploadInitial, 0, 0};
-        const proof::uploader_proof do_calculate_md5_proof = {
-            proof::CalculateMd5, proof::Unfinished, proof::UploadInitial, 0, 0};
-        const proof::uploader_proof do_create_upload_proof = {
-            proof::CreateUpload, proof::Unfinished, proof::UploadInitial, 0, 0};
-        const proof::uploader_proof do_check_upload_proof = {
-            proof::CheckUpload, proof::Unfinished, proof::UploadInitial, 0, 0};
-        const proof::uploader_proof do_file_upload_proof = {
-            proof::FileUplaod, proof::Unfinished, proof::UploadInitial, 0, 0};
-        const proof::uploader_proof do_file_commit_proof = {
-            proof::FileCommit, proof::Unfinished, proof::UploadInitial, 0, 0};
-        const auto wait_internal_base = 1000.0F;
-        const auto pow_base = 1.5F;
-        if (nullptr == data || proof::UserCanceled == currernt_proof.result) {
-          result = rxcpp::observable<>::just(error_proof);
-          break;
-        }
+    return previous_obs.flat_map(
+        [data_weak](proof::uploader_proof currernt_proof)
+            -> rxcpp::observable<proof::uploader_proof> {
+          auto data = data_weak.lock();
+          rxcpp::observable<proof::uploader_proof> result =
+              rxcpp::observable<>::just(
+                  proof::uploader_proof{proof::UploadFinal, proof::GiveupRetry,
+                                        proof::UploadInitial, 0, 0});
+          do {
+            const auto wait_internal_base = 1000.0F;
+            const auto pow_base = 1.5F;
+            if (nullptr == data) {
+              break;
+            }
 
-        auto &orders = data->orders;
-        switch (currernt_proof.stage) {
-          case proof::UploadInitial:
-            /// 处理UploadInitial的场景，无条件启动MD5计算的流程即可
-            do {
-              /// 需要注意，避免会发射多个数据项，应加上first()，下同
-              result = orders.calculate_md5(do_calculate_md5_proof).first();
-              data->current_stage = do_calculate_md5_proof.stage;
-            } while (false);
-            break;
-          case proof::CalculateMd5:
-            /// TODO:
-            /// 确认：在文件无法读取、遇到硬件级异常的情况下，能够判断出MD5计算失败的结果
-            /// 处理计算MD5的场景，计算失败，流程直接失败
-            /// 计算成功,若结果中指定了应直接CheckUpload，则直接查询续传记录；
-            /// 计算成功的其他情况，一律直接CreateUpload，重新创建续传记录
-            do {
-              if (proof::Succeeded != currernt_proof.result) {
-                result = rxcpp::observable<>::just(error_proof);
-                data->current_stage = error_proof.stage;
+            /// 以此Lambda对result和current_stage进行统一赋值，避免潜在的疏忽导致bug
+            auto &current_stage = data->current_stage;
+            auto &orders = data->orders;
+            auto ResolveNextStage =
+                [&result, &current_stage, &orders](
+                    const proof::uploader_stage next_stage,
+                    const int32_t wait_internal_milliseconds,
+                    const bool giveup_retry) -> void {
+              switch (next_stage) {
+                case proof::CalculateMd5:
+                  do {
+                    const proof::uploader_proof do_calculate_md5_proof = {
+                        proof::CalculateMd5, proof::Unfinished,
+                        proof::UploadInitial, 0, 0};
+                    result =
+                        orders.calculate_md5(do_calculate_md5_proof).first();
+                    current_stage = do_calculate_md5_proof.stage;
+                  } while (false);
+                  break;
+                case proof::CreateUpload:
+                  do {
+                    const proof::uploader_proof do_create_upload_proof = {
+                        proof::CreateUpload, proof::Unfinished,
+                        proof::UploadInitial, 0, 0};
+                    if (wait_internal_milliseconds <= 0) {
+                      result =
+                          orders.create_upload(do_create_upload_proof).first();
+                      current_stage = do_create_upload_proof.stage;
+                    } else {
+                      result = GenerateDelayedObservable(
+                                   wait_internal_milliseconds,
+                                   orders.create_upload, do_create_upload_proof)
+                                   .first();
+                      current_stage = do_create_upload_proof.stage;
+                    }
+                  } while (false);
+                  break;
+                case proof::CheckUpload:
+                  do {
+                    const proof::uploader_proof do_check_upload_proof = {
+                        proof::CheckUpload, proof::Unfinished,
+                        proof::UploadInitial, 0, 0};
+                    if (wait_internal_milliseconds <= 0) {
+                      result =
+                          orders.check_upload(do_check_upload_proof).first();
+                      current_stage = do_check_upload_proof.stage;
+
+                    } else {
+                      result = GenerateDelayedObservable(
+                                   wait_internal_milliseconds,
+                                   orders.check_upload, do_check_upload_proof)
+                                   .first();
+                      current_stage = do_check_upload_proof.stage;
+                    }
+
+                  } while (false);
+                  break;
+                case proof::FileUplaod:
+                  do {
+                    const proof::uploader_proof do_file_upload_proof = {
+                        proof::FileUplaod, proof::Unfinished,
+                        proof::UploadInitial, 0, 0};
+                    result = orders.file_uplaod(do_file_upload_proof).first();
+                    current_stage = do_file_upload_proof.stage;
+                  } while (false);
+                  break;
+                case proof::FileCommit:
+                  do {
+                    const proof::uploader_proof do_file_commit_proof = {
+                        proof::FileCommit, proof::Unfinished,
+                        proof::UploadInitial, 0, 0};
+                    result = orders.file_commit(do_file_commit_proof).first();
+                    current_stage = do_file_commit_proof.stage;
+                  } while (false);
+                  break;
+                case proof::UploadFinal:
+                default:
+                  do {
+                    const proof::uploader_proof error_proof = {
+                        proof::UploadFinal, proof::GiveupRetry,
+                        proof::UploadInitial, 0, 0};
+                    const proof::uploader_proof succeed_proof = {
+                        proof::UploadFinal, proof::Succeeded,
+                        proof::UploadInitial, 0, 0};
+                    if (giveup_retry) {
+                      result = rxcpp::observable<>::just(error_proof);
+                    } else {
+                      result = rxcpp::observable<>::just(succeed_proof);
+                    }
+                    current_stage.store(proof::UploadFinal);
+                  } while (false);
+                  break;
+              }
+            };
+
+            if (proof::UserCanceled == currernt_proof.result) {
+              /// 应走错误
+              ResolveNextStage(proof::UploadFinal, 0, true);
+            }
+            switch (currernt_proof.stage) {
+              case proof::UploadInitial:
+                /// 处理UploadInitial的场景，无条件启动MD5计算的流程即可
+                do {
+                  ResolveNextStage(proof::CalculateMd5, 0, false);
+                } while (false);
                 break;
-              }
-              if (proof::CheckUpload == currernt_proof.next_stage) {
-                result = orders.check_upload(do_check_upload_proof).first();
-                data->current_stage = do_check_upload_proof.stage;
+              case proof::CalculateMd5:
+                /// TODO:
+                /// 确认：在文件无法读取、遇到硬件级异常的情况下，能够判断出MD5计算失败的结果
+                /// 处理计算MD5的场景，计算失败，流程直接失败
+                /// 计算成功,若结果中指定了应直接CheckUpload，则直接查询续传记录；
+                /// 计算成功的其他情况，一律直接CreateUpload，重新创建续传记录
+                do {
+                  if (proof::Succeeded != currernt_proof.result) {
+                    ResolveNextStage(proof::UploadFinal, 0, true);
+                    break;
+                  }
+                  if (proof::CheckUpload == currernt_proof.next_stage) {
+                    ResolveNextStage(proof::CheckUpload, 0, false);
+                    break;
+                  }
+                  ResolveNextStage(proof::CreateUpload, 0, false);
+                } while (false);
                 break;
-              }
-              result = orders.create_upload(do_create_upload_proof).first();
-              data->current_stage = do_create_upload_proof.stage;
-            } while (false);
-            break;
-          case proof::CreateUpload:
-            /// 成功：可秒传，直接FileCommit；否则，去FileUplaod
-            /// 失败：不可重试的错误，或者重试次数达到上限，流程直接失败
-            /// 失败：可重试的错误，且重试次数未达到上限，重试CreateUpload自身
-            do {
-              if (proof::Succeeded == currernt_proof.result &&
-                  proof::FileCommit == currernt_proof.next_stage) {
-                result = orders.file_commit(do_file_commit_proof).first();
-                data->current_stage = do_file_commit_proof.stage;
+              case proof::CreateUpload:
+                /// 成功：可秒传，直接FileCommit；否则，去FileUplaod
+                /// 失败：不可重试的错误，或者重试次数达到上限，流程直接失败
+                /// 失败：可重试的错误，且重试次数未达到上限，重试CreateUpload自身
+                do {
+                  if (proof::Succeeded == currernt_proof.result &&
+                      proof::FileCommit == currernt_proof.next_stage) {
+                    ResolveNextStage(proof::FileCommit, 0, false);
+                    break;
+                  }
+                  if (proof::Succeeded == currernt_proof.result) {
+                    ResolveNextStage(proof::FileUplaod, 0, false);
+                    break;
+                  }
+                  data->create_upload_total_error_count++;
+                  const auto current_error_count =
+                      data->create_upload_current_error_count++;
+                  if (proof::GiveupRetry == currernt_proof.result ||
+                      current_error_count > data->error_count_limit) {
+                    ResolveNextStage(proof::UploadFinal, 0, true);
+                    break;
+                  }
+                  /// 对自身进行重试的情况，应该进行指数级等待间隔处理
+                  /// 计算规则：wait_internal_base*POW(1.5,current_error_count)
+                  const auto wait_internal_milliseconds = static_cast<uint32_t>(
+                      pow(pow_base, current_error_count - 1) *
+                      wait_internal_base);
+                  ResolveNextStage(proof::CreateUpload,
+                                   wait_internal_milliseconds, false);
+                } while (false);
                 break;
-              }
-              if (proof::Succeeded == currernt_proof.result) {
-                result = orders.file_uplaod(do_file_upload_proof).first();
-                data->current_stage = do_file_upload_proof.stage;
+              case proof::CheckUpload:
+                /// 成功：可秒传，直接FileCommit；否则，去FileUplaod
+                /// 失败：不可重试的错误，或者重试次数达到上限，流程直接失败
+                /// 失败：可重试的错误，但应重试CreateUpload
+                /// 失败：可重试的错误，且重试次数未达到上限，重试CheckUpload自身
+                /// 失败：重试CheckUpload自身时，应将suggest_waittime和计算的等待间隔取较大值
+                do {
+                  if (proof::Succeeded == currernt_proof.result &&
+                      proof::FileCommit == currernt_proof.next_stage) {
+                    ResolveNextStage(proof::FileCommit, 0, false);
+                    break;
+                  }
+                  if (proof::Succeeded == currernt_proof.result) {
+                    ResolveNextStage(proof::FileUplaod, 0, false);
+                    break;
+                  }
+                  data->check_upload_total_error_count++;
+                  const auto current_error_count =
+                      data->check_upload_current_error_count++;
+                  if (proof::GiveupRetry == currernt_proof.result ||
+                      current_error_count > data->error_count_limit) {
+                    ResolveNextStage(proof::UploadFinal, 0, true);
+                    break;
+                  }
+                  if (proof::RetryTargetStage == currernt_proof.result &&
+                      proof::CreateUpload == currernt_proof.next_stage) {
+                    /// 由于其他流程导致的应CreateUpload的错误，也应增加错误计数器
+                    /// 进行相应的错误数检查，并进行相应处理
+                    data->create_upload_total_error_count++;
+                    const auto current_error_count =
+                        data->create_upload_current_error_count++;
+                    if (current_error_count <= data->error_count_limit) {
+                      ResolveNextStage(proof::CreateUpload, 0, false);
+                    }
+                    /// 重构后，result有一默认值，与error_proof等价
+                    /// 如果遇到出错计数器达到上限的情形，这里只需break跳出
+                    break;
+                  }
+                  /// 对自身进行重试的情况，应该进行指数级等待间隔处理
+                  /// 应将计算的间隔，与currernt_proof.suggest_waittime比较，取较大值
+                  const auto wait_internal_milliseconds = static_cast<uint32_t>(
+                      pow(pow_base, current_error_count - 1) *
+                      wait_internal_base);
+                  const auto wait_internal =
+                      wait_internal_milliseconds >
+                              currernt_proof.suggest_waittime
+                          ? wait_internal_milliseconds
+                          : currernt_proof.suggest_waittime;
+                  ResolveNextStage(proof::CheckUpload, wait_internal, false);
+                } while (false);
                 break;
-              }
-              data->create_upload_total_error_count++;
-              const auto current_error_count =
-                  data->create_upload_current_error_count++;
-              if (proof::GiveupRetry == currernt_proof.result ||
-                  current_error_count > data->error_count_limit) {
-                result = rxcpp::observable<>::just(error_proof);
-                data->current_stage = error_proof.stage;
+              case proof::FileUplaod:
+                /// 成功：传输成功，下一步去FileCommit
+                /// 失败：数据传输失败的场景比较特殊，不应直接结束，而应去尝试检查续传记录状态CheckUpload
+                /// 无论成功失败，都应返回传输成功的字节数，注意，包含了本次传输之前的有效字节数
+                do {
+                  if (currernt_proof.transfered_length > 0) {
+                    const auto previous_max_transfered_length =
+                        data->max_transfered_length.load();
+                    if (previous_max_transfered_length <
+                        currernt_proof.transfered_length) {
+                      data->max_transfered_length =
+                          currernt_proof.transfered_length;
+                      data->check_upload_current_error_count = 0;
+                      data->create_upload_current_error_count = 0;
+                    }
+                  }
+                  if (proof::Succeeded == currernt_proof.result) {
+                    ResolveNextStage(proof::FileCommit, 0, false);
+                    break;
+                  }
+                  /// 此处可能触发无限check_upload的问题，需优化：
+                  /// 由于出错导致需要CheckUpload，应给此计数器+1，且同样应进行次数检测
+                  data->check_upload_total_error_count++;
+                  const auto current_error_count =
+                      data->check_upload_current_error_count++;
+                  if (current_error_count <= data->error_count_limit) {
+                    ResolveNextStage(proof::CheckUpload, 1000, false);
+                  }
+
+                  /// 由于进行重构后，result有一默认值，与error_proof等价
+                  /// 如果遇到出错计数器达到上限的情形，这里什么也不用做
+                } while (false);
                 break;
-              }
-              /// 对自身进行重试的情况，应该进行指数级等待间隔处理
-              /// 计算规则：wait_internal_base*POW(1.5,current_error_count)
-              const auto wait_internal_milliseconds = static_cast<uint32_t>(
-                  pow(pow_base, current_error_count - 1) * wait_internal_base);
-              result = GenerateDelayedObservable(wait_internal_milliseconds,
-                                                 orders.create_upload,
-                                                 do_create_upload_proof)
-                           .first();
-              data->current_stage = do_create_upload_proof.stage;
-            } while (false);
-            break;
-          case proof::CheckUpload:
-            /// 成功：可秒传，直接FileCommit；否则，去FileUplaod
-            /// 失败：不可重试的错误，或者重试次数达到上限，流程直接失败
-            /// 失败：可重试的错误，但应重试CreateUpload
-            /// 失败：可重试的错误，且重试次数未达到上限，重试CheckUpload自身
-            /// 失败：重试CheckUpload自身时，应将suggest_waittime和计算的等待间隔取较大值
-            do {
-              if (proof::Succeeded == currernt_proof.result &&
-                  proof::FileCommit == currernt_proof.next_stage) {
-                result = orders.file_commit(do_file_commit_proof).first();
-                data->current_stage = do_file_commit_proof.stage;
+              case proof::FileCommit:
+                /// 成功；代表传输成功，下一步直接UploadFinal
+                /// 失败：数据提交失败，场景比较特殊。对特定的不可重试的错误，应直接流程失败；
+                /// 失败：对特定的失败，已知是续传记录废弃，应根据RetryTargetStage，直接CreateUpload
+                /// 除上述情况外的一切情况，提交失败应前往CheckUpload
+                /// 和FileUplaod一样，没有自身的错误计数器，所以不应重试自身
+                do {
+                  if (proof::Succeeded == currernt_proof.result) {
+                    /// 应走成功
+                    ResolveNextStage(proof::UploadFinal, 0, false);
+                    break;
+                  }
+                  if (proof::RetryTargetStage == currernt_proof.result &&
+                      proof::CreateUpload == currernt_proof.next_stage) {
+                    /// 由于其他流程导致的应CreateUpload的错误，也应增加错误计数器
+                    /// 进行相应的错误数检查，并进行相应处理
+                    data->create_upload_total_error_count++;
+                    const auto current_error_count =
+                        data->create_upload_current_error_count++;
+                    if (current_error_count <= data->error_count_limit) {
+                      ResolveNextStage(proof::CreateUpload, 0, false);
+                    }
+                    /// 重构后，result有一默认值，与error_proof等价
+                    /// 如果遇到出错计数器达到上限的情形，这里只需break跳出
+                    break;
+                  }
+                  /// 解决此处潜在的无限重试问题
+                  data->check_upload_total_error_count++;
+                  const auto current_error_count =
+                      data->check_upload_current_error_count++;
+                  if (current_error_count <= data->error_count_limit) {
+                    ResolveNextStage(proof::CheckUpload, 1000, false);
+                  }
+                  /// 重构后，result有一默认值，与error_proof等价
+                  /// 如果遇到出错计数器达到上限的情形，这里什么也不用做
+
+                } while (false);
                 break;
-              }
-              if (proof::Succeeded == currernt_proof.result) {
-                result = orders.file_uplaod(do_file_upload_proof).first();
-                data->current_stage = do_file_upload_proof.stage;
+              default:
+                ResolveNextStage(proof::UploadFinal, 0, true);
                 break;
-              }
-              data->check_upload_total_error_count++;
-              const auto current_error_count =
-                  data->check_upload_current_error_count++;
-              if (proof::GiveupRetry == currernt_proof.result ||
-                  current_error_count > data->error_count_limit) {
-                result = rxcpp::observable<>::just(error_proof);
-                data->current_stage = error_proof.stage;
-                break;
-              }
-              if (proof::RetryTargetStage == currernt_proof.result &&
-                  proof::CreateUpload == currernt_proof.next_stage) {
-                result = orders.create_upload(do_create_upload_proof).first();
-                data->current_stage = do_create_upload_proof.stage;
-                break;
-              }
-              /// 对自身进行重试的情况，应该进行指数级等待间隔处理
-              /// 应将计算的间隔，与currernt_proof.suggest_waittime比较，取较大值
-              const auto wait_internal_milliseconds = static_cast<uint32_t>(
-                  pow(pow_base, current_error_count - 1) * wait_internal_base);
-              const auto wait_internal =
-                  wait_internal_milliseconds > currernt_proof.suggest_waittime
-                      ? wait_internal_milliseconds
-                      : currernt_proof.suggest_waittime;
-              result =
-                  GenerateDelayedObservable(wait_internal, orders.check_upload,
-                                            do_check_upload_proof)
-                      .first();
-              data->current_stage = do_check_upload_proof.stage;
-            } while (false);
-            break;
-          case proof::FileUplaod:
-            /// 成功：传输成功，下一步去FileCommit
-            /// 失败：数据传输失败的场景比较特殊，不应直接结束，而应去尝试检查续传记录状态CheckUpload
-            /// 无论成功失败，都应返回传输成功的字节数，注意，包含了本次传输之前的有效字节数
-            do {
-              if (currernt_proof.transfered_length > 0) {
-                const auto previous_max_transfered_length =
-                    data->max_transfered_length.load();
-                if (previous_max_transfered_length <
-                    currernt_proof.transfered_length) {
-                  data->max_transfered_length =
-                      currernt_proof.transfered_length;
-                  data->check_upload_current_error_count = 0;
-                  data->create_upload_current_error_count = 0;
-                }
-              }
-              if (proof::Succeeded == currernt_proof.result) {
-                result = orders.file_commit(do_file_commit_proof).first();
-                data->current_stage = do_file_commit_proof.stage;
-                break;
-              }
-              result = orders.check_upload(do_check_upload_proof).first();
-              data->current_stage = do_check_upload_proof.stage;
-            } while (false);
-            break;
-          case proof::FileCommit:
-            /// 成功；代表传输成功，下一步直接UploadFinal
-            /// 失败：数据提交失败，场景比较特殊。对特定的不可重试的错误，应直接流程失败；
-            /// 失败：对特定的失败，已知是续传记录废弃，应根据RetryTargetStage，直接CreateUpload
-            /// 除上述情况外的一切情况，提交失败应前往CheckUpload
-            /// 和FileUplaod一样，没有自身的错误计数器，所以不应重试自身
-            do {
-              if (proof::Succeeded == currernt_proof.result) {
-                result = rxcpp::observable<>::just(succeed_proof);
-                data->current_stage = succeed_proof.stage;
-                break;
-              }
-              if (proof::RetryTargetStage == currernt_proof.result &&
-                  proof::CreateUpload == currernt_proof.next_stage) {
-                result = orders.create_upload(do_create_upload_proof).first();
-                data->current_stage = do_create_upload_proof.stage;
-                break;
-              }
-              result = orders.check_upload(do_check_upload_proof).first();
-              data->current_stage = do_check_upload_proof.stage;
-            } while (false);
-            break;
-          default:
-            result = rxcpp::observable<>::just(error_proof);
-            data->current_stage = error_proof.stage;
-            break;
-        }
-        /// data->current_stage语义是正在进行的stage
-      } while (false);
-      return result;
-    });
+            }
+            /// data->current_stage语义是正在进行的stage
+          } while (false);
+          return result;
+        });
   }
 
   static rxcpp::observable<proof::uploader_proof> GenerateIteratorObservable(

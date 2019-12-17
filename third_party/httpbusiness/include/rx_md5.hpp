@@ -225,7 +225,17 @@ inline static rxcpp::observable<std::string> create(
   return create(file_path, -1, -1, details::DefaultMd5ProcessCallback,
                 details::DefaultCheckStopCallback);
 }
-
+inline static rxcpp::observable<std::string> create(
+    const std::string &file_path, const int64_t range_left,
+    const int64_t range_right, md5::CheckStopCallback check_stop) {
+  return create(file_path, range_left, range_right,
+                details::DefaultMd5ProcessCallback, check_stop);
+}
+inline static rxcpp::observable<std::string> create(
+    const std::string &file_path, md5::CheckStopCallback check_stop) {
+  return create(file_path, -1, -1, details::DefaultMd5ProcessCallback,
+                check_stop);
+}
 }  // namespace rx_md5
 
 }  // namespace rx_assistant
