@@ -103,7 +103,9 @@ struct uploader_thread_data {
         already_upload_bytes({0}),
         current_upload_bytes({0}),
         int32_error_code({0}),
-        frozen({false}) {}
+        frozen({false}),
+        speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
+  }
   /// 线程安全的数据成员
   lockfree_string_closure<std::string> file_md5;
   lockfree_string_closure<std::string> upload_file_id;
@@ -128,7 +130,7 @@ struct uploader_thread_data {
   lockfree_string_closure<std::string> commit_is_safe;
 
   /// 保存计速器，以进行平滑速度计算，以及1S一次的数据推送
-  httpbusiness::speed_counter_with_stop speed_count;
+  std::unique_ptr<httpbusiness::speed_counter_with_stop> speed_count;
   std::weak_ptr<httpbusiness::uploader::rx_uploader::rx_uploader_data>
       master_control_data;
 
@@ -184,7 +186,7 @@ GenerateDataCallback(
   /// 为计速器提供每秒一次的回调
   auto thread_data = thread_data_weak.lock();
   if (nullptr != thread_data) {
-    thread_data->speed_count.RegSubscription(
+    thread_data->speed_count->RegSubscription(
         [thread_data_weak, data_callback](uint64_t smooth_speed) {
           /// 每秒一次的回调信息字段
           Json::Value info;
@@ -243,7 +245,10 @@ GenerateDataCallback(
     auto thread_data = thread_data_weak.lock();
     if (nullptr != thread_data) {
       /// 需保证计速器回调不再发送
-      thread_data->speed_count.Stop();
+      thread_data->speed_count->Stop();
+      /// 为MT的CRT的线程模型不一致问题进行变通处理，
+      /// 在此处强行迫使相应的订阅尽早提前取消
+      thread_data->speed_count = nullptr;
 
       info["md5"] = thread_data->file_md5.load();
       info["upload_id"] = thread_data->upload_file_id.load();
@@ -671,7 +676,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       /// 保存thread_data，避免在传输线程中反复lock
       /// 为需要使用的变量定义引用
       auto& current_upload_bytes = thread_data->current_upload_bytes;
-      auto& Add = thread_data->speed_count.Add;
+      auto& Add = thread_data->speed_count->Add;
       file_upload_request.retval_func = [thread_data, &current_upload_bytes,
                                          Add](uint64_t value) {
         current_upload_bytes += value;
