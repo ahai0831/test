@@ -257,6 +257,7 @@ struct rx_uploader {
             if (proof::UserCanceled == currernt_proof.result) {
               /// 应走错误
               ResolveNextStage(proof::UploadFinal, 0, true);
+              break;
             }
             switch (currernt_proof.stage) {
               case proof::UploadInitial:
