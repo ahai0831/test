@@ -985,7 +985,18 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
                int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
-               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace)) {
+               int32_error_code == Cloud189::ErrorCode::nderr_sessiontimeout ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_usersessionboisnull ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_not_enough_quota ||
+               int32_error_code == Cloud189::ErrorCode::nderr_limit_exceeded ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_parent_not_folder ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_invalid_parent_folder ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_userdayflowoverlimited)) {
             create_slice_upload_proof.result = stage_result::GiveupRetry;
             create_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
@@ -1161,7 +1172,18 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
                int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
-               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace)) {
+               int32_error_code == Cloud189::ErrorCode::nderr_sessiontimeout ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_usersessionboisnull ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_not_enough_quota ||
+               int32_error_code == Cloud189::ErrorCode::nderr_limit_exceeded ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_parent_not_folder ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_invalid_parent_folder ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_userdayflowoverlimited)) {
             check_slice_upload_proof.result = stage_result::GiveupRetry;
             check_slice_upload_proof.next_stage = uploader_stage::UploadFinal;
             break;
@@ -1444,14 +1466,18 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
           if (4 == (http_statuc_code / 100) &&
               (int32_error_code == Cloud189::ErrorCode::nderr_sessionbreak ||
                int32_error_code == Cloud189::ErrorCode::nderr_session_expired ||
-               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace ||
+               int32_error_code == Cloud189::ErrorCode::nderr_sessiontimeout ||
                int32_error_code ==
-                   Cloud189::ErrorCode::nderr_userdayflowoverlimited ||
-               int32_error_code == Cloud189::ErrorCode::nderr_no_diskspace ||
+                   Cloud189::ErrorCode::nderr_usersessionboisnull ||
                int32_error_code ==
-                   Cloud189::ErrorCode::nderr_over_filesize_error ||
+                   Cloud189::ErrorCode::nderr_not_enough_quota ||
+               int32_error_code == Cloud189::ErrorCode::nderr_limit_exceeded ||
                int32_error_code ==
-                   Cloud189::ErrorCode::nderr_invalid_parent_folder)) {
+                   Cloud189::ErrorCode::nderr_parent_not_folder ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_invalid_parent_folder ||
+               int32_error_code ==
+                   Cloud189::ErrorCode::nderr_userdayflowoverlimited)) {
             slice_file_commit_proof.result = stage_result::GiveupRetry;
             slice_file_commit_proof.next_stage = uploader_stage::UploadFinal;
             break;
