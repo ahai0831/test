@@ -23,6 +23,8 @@ struct default_worker {
     return r;
   }
 };
+
+/// 【弃用标记】标记此类已弃用，在新代码中勿引用此模块
 struct speed_counter {
  public:
   typedef uint64_t UintType;
@@ -170,6 +172,11 @@ struct speed_counter_with_stop {
                                .map([StopMagicNumber](int) -> int {
                                  return StopMagicNumber;
                                }))
+            /// Be carefurl!
+            /// 由于rxcpp潜在地，会概率性抛出rxcpp:empty_exception，必须优雅地在此处理
+            .on_error_resume_next([StopMagicNumber](std::exception_ptr ep) {
+              return rxcpp::observable<>::just(StopMagicNumber - 3);
+            })
             .take_while([StopMagicNumber](int v) -> bool {
               return StopMagicNumber == v;
             });
@@ -240,6 +247,7 @@ struct speed_counter_with_stop {
   speed_counter_with_stop& operator=(const speed_counter_with_stop&) = delete;
 };
 
+/// 【弃用标记】标记此类已弃用，在新代码中勿引用此模块
 struct progress_notifier {
  public:
   typedef uint64_t UintType;

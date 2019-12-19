@@ -16,8 +16,16 @@ namespace rx_assistant {
 
 struct default_asssitant_v3 {
   static std::weak_ptr<assistant::Assistant_v3> get_assistant() {
+    /// 受部分陈旧架构的影响，它们的线程模型不标准，会导致相应的资源分配异常，导致主线程无法退出
+    /// 在此处进行兼容处理，会产生设计内的“内存泄露”（可被相应的工具检测到）
+    /// 暂时进行临时性处理（类似Googletest方案）
+    /// TODO: 增加对依赖的线程模型的底层检测能力，进行适当的兼容
+    /// TODO:
+    /// 在项目组织架构中，应保证此源文件仅被引用一次，其他模块通过使用DLL来使用能力
     static std::shared_ptr<assistant::Assistant_v3> r =
-        std::make_shared<assistant::Assistant_v3>();
+        std::shared_ptr<assistant::Assistant_v3>(
+            new (std::nothrow) assistant::Assistant_v3(),
+            [](assistant::Assistant_v3*) { /* Do nothing.*/ });
     return r;
   }
 };
