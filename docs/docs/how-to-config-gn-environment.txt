@@ -1,0 +1,36 @@
+魔改GN的配置步骤：
+
+1. 装好Git和Python工具。具体表现是，在终端或命令行中，输入
+git --version
+python --version
+输出正常。
+
+2. 从官方下载预编译好的GN和Ninja解释器的可执行文件。
+重点：不用谷歌的那一套轮子。
+重点：不要自行编译。
+GN下载链接：
+https://gn.googlesource.com/gn/
+https://chrome-infra-packages.appspot.com/dl/gn/gn/mac-amd64/+/latest
+https://chrome-infra-packages.appspot.com/dl/gn/gn/windows-amd64/+/latest
+Ninja下载链接：
+https://github.com/ninja-build/ninja/releases
+https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-mac.zip
+https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip
+
+解压到任意目录，添加到系统PATH变量中；
+配置成功的标志是
+gn --version
+ninja --version
+输出正常。
+
+
+3. GN规则链
+https://github.com/timniederhausen/gn-build
+直接取master源码包
+
+4. GN用法
+将上述规则链解压到//gn-build/中。
+//.gn文件中，指定好
+buildconfig = "//gn-build/config/BUILDCONFIG.gn"
+根目录中以build.gn，指定各target
+各个bulid.gn的写法非常简单，且网上资料很多，无需赘述。
