@@ -16,7 +16,7 @@
 #include "cloud189/apis/create_upload_file.h"
 #include "cloud189/apis/get_upload_status.h"
 #include "cloud189/apis/upload_file_data.h"
-#include "cloud189/error_code/nderror.h"
+#include "cloud189/error_code/error_code.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
 using assistant::HttpRequest;

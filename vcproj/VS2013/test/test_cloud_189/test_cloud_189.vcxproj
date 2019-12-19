@@ -215,7 +215,7 @@
     <ClCompile Include="..\..\..\..\src\cloud189\apis\get_upload_status.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_file_data.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\apis\upload_slice_data.cpp" />
-    <ClCompile Include="..\..\..\..\src\cloud189\error_code\nderror.cpp" />
+    <ClCompile Include="..\..\..\..\src\cloud189\error_code\error_code.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_slice_uploader.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_uploader.cpp" />
     <ClCompile Include="..\..\..\..\src\cloud189\session_helper\session_helper.cpp" />
