@@ -63,9 +63,6 @@
     <ClCompile Include="..\..\..\..\src\cloud189\restful\cloud189_uploader.cpp">
       <Filter>Source Files\src\cloud189\restful</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\src\cloud189\error_code\nderror.cpp">
-      <Filter>Source Files\src\cloud189\error_code</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\src\cloud189\apis\commit_slice_upload_file.cpp">
       <Filter>Source Files\src\cloud189\apis</Filter>
     </ClCompile>
@@ -83,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\test\test_cloud_189\proxy.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\cloud189\error_code\error_code.cpp">
+      <Filter>Source Files\src\cloud189\error_code</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

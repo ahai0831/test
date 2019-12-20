@@ -1,5 +1,5 @@
-#ifndef _NETDRIVE_ERROR_H_
-#define _NETDRIVE_ERROR_H_
+#ifndef _ERROR_CODE
+#define _ERROR_CODE
 
 #include <string>
 using std::string;
