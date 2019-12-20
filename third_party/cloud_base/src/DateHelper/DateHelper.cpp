@@ -29,11 +29,18 @@ std::string get_gmt_time_stamp() {
   auto gmt_t = std::chrono::high_resolution_clock::to_time_t(gmt_origin);
   auto gmt = gmtime(&gmt_t);
   char buff[64] = {0};
-  auto origin_lc_time = setlocale(LC_TIME, "C");
-  size_t len =
-      strftime(buff, sizeof(buff) - 1, "%a, %d %b %Y %H:%M:%S GMT", gmt);
-  setlocale(LC_TIME, origin_lc_time);
-  return std::string(buff);
+  char *wday[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+  char *mon[] = {"Jan",  "Feb", "Mar",  "Apr", "May", "June",
+                 "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
+  size_t len = strftime(buff, sizeof(buff) - 1, "%Y %H:%M:%S GMT", gmt);
+  auto wday_temp = (gmt->tm_wday >= 0 && gmt->tm_wday <= 6) ? gmt->tm_wday : 0;
+  auto mon_temp = (gmt->tm_mon >= 0 && gmt->tm_mon <= 11) ? gmt->tm_mon : 0;
+  std::string date;
+  date.append(std::string(wday[wday_temp]).append(", "));
+  date.append(std::to_string(gmt->tm_mday).append(" "));
+  date.append(std::string(mon[mon_temp]).append(" "));
+  date.append(std::string(buff));
+  return date;
 }
 
 /// 获取当前时间戳，格式为"%Y-%m-%d %H:%M:%S.xxx"
