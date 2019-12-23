@@ -172,11 +172,11 @@ struct speed_counter_with_stop {
                                .map([StopMagicNumber](int) -> int {
                                  return StopMagicNumber;
                                }))
-            /// Be carefurl!
-            /// 由于rxcpp潜在地，会概率性抛出rxcpp:empty_exception，必须优雅地在此处理
-            .on_error_resume_next([StopMagicNumber](std::exception_ptr ep) {
-              return rxcpp::observable<>::just(StopMagicNumber - 3);
-            })
+//             /// Be carefurl!
+//             /// 由于rxcpp潜在地，会概率性抛出rxcpp:empty_exception，必须优雅地在此处理
+//             .on_error_resume_next([StopMagicNumber](std::exception_ptr ep) {
+//               return rxcpp::observable<>::just(StopMagicNumber - 3);
+//             })
             .take_while([StopMagicNumber](int v) -> bool {
               return StopMagicNumber == v;
             });
@@ -193,9 +193,9 @@ struct speed_counter_with_stop {
             .ref_count();
 
     return speed_stream.take(1).merge(
-        speed_stream.take(2).average().map([](double ave_oe) -> UintType {
-          return static_cast<UintType>(ave_oe);
-        }),
+		speed_stream.take(2).pairwise().map([](const Tuple&v) -> UintType {
+		return static_cast<UintType>((std::get<0>(v)+std::get<0>(v)) / 2);
+	}),
         speed_stream.pairwise().pairwise().map(
             [](const std::tuple<const Tuple&, const Tuple&>& v) -> UintType {
               return static_cast<UintType>((std::get<0>(std::get<0>(v)) +

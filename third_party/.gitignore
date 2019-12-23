@@ -16,6 +16,7 @@
 !/assistant/include/**/
 !/concurrentqueue/include/
 !/httpbusiness/include/
+!/httpbusiness/include/compiler_fixit/
 !/rxcpp/include/
 !/rxcpp/include/**/
 !/scopeguard/include/
