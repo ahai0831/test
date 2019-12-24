@@ -105,6 +105,23 @@ class AutobackupMetadataHelper {
   std::string Delete(int32_t space_type, std::string cloud_path,
                      std::string local_path);
 
+  //////////////////////////////////////////////////////////////////////////
+  /// 以下为全局备份信息表的函数
+  //////////////////////////////////////////////////////////////////////////
+
+  // 插入
+  std::string InsertToBITable(std::string backup_time, int32_t backup_status,
+                              std::string extrends = "");
+  // 根据主键backup_time更新
+  std::string UpdateBITable(std::string backup_time, int32_t backup_status,
+                            std::string extrends = "");
+  // 查询表内的全部数据
+  std::string QueryFormBITable();
+  // 根据主键backup_time查询数据
+  std::string QueryFormBITable(std::string backup_time);
+  // 根据数据backup_time删除数据
+  std::string DeleteFormBITable(std::string backup_time);
+
   ~AutobackupMetadataHelper();
 
  protected:

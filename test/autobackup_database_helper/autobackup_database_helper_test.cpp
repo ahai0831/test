@@ -83,6 +83,56 @@ int main() {
     std::cout << "test1 : delete data fail: " << errmsg << std::endl;
   }
 
+  // 测试全局备份信息表的接口
+  std::cout << "======test BITable======" << std::endl;
+  // 插入数据
+  errmsg = test_ptr->InsertToBITable("2019-12-24 10:57:31.233", 1, "");
+  if (!errmsg.empty()) {
+    std::cout << "BITable: insert data fail: " << errmsg << std::endl;
+  }
+  // 根据主键查询数据
+  query_result = test_ptr->QueryFormBITable("2019-12-24 10:57:31.233");
+  if (query_result.empty()) {
+    std::cout << "BITable : query data fail. " << std::endl;
+  } else if (query_result == "-1") {
+    std::cout << "BITable : query data fail, no data." << std::endl;
+  } else {
+    Json::Value query_result_json;
+    Json::Reader json_reader;
+    json_reader.parse(query_result, query_result_json);
+    auto list = query_result_json.getMemberNames();
+    for (auto &iter : list) {
+      std::cout << iter << ": " << query_result_json[iter] << std::endl;
+    }
+  }
+  // 更新数据
+  errmsg = test_ptr->UpdateBITable("2019-12-24 10:57:31.233", 0, "");
+  if (!errmsg.empty()) {
+    std::cout << "BITable : update data fail: " << errmsg << std::endl;
+  }
+  // 查询数据
+  query_result = test_ptr->QueryFormBITable();
+  if (query_result.empty()) {
+    std::cout << "BITable: query data fail. " << std::endl;
+  } else if (query_result == "-1") {
+    std::cout << "BITable: query data fail, no data." << std::endl;
+  } else {
+    Json::Value query_result_json;
+    Json::Reader json_reader;
+    json_reader.parse(query_result, query_result_json);
+    auto list = query_result_json.getMemberNames();
+    for (auto &iter : list) {
+      std::cout << iter << ": " << query_result_json[iter] << std::endl;
+    }
+  }
+  // 根据主键删除数据
+  errmsg = test_ptr->DeleteFormBITable("2019-12-24 10:57:31.233");
+  if (!errmsg.empty()) {
+    std::cout << "BITable: delete data fail: " << errmsg << std::endl;
+  }
+
+  //////////////////////////////////////////////////////////////////////////
+
   // 测试备份完成三张表的接口，目前只有备份完成和正在上传的两张表的接口
   auto test_ptr_2 = AutobackupBackupHelper::Create(
       appdata_path, user_id, corp_id, space_type, cloud_path, local_path);
