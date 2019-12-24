@@ -252,6 +252,205 @@ std::string AutobackupMetadataHelper::Delete(int32_t space_type,
   return error_msg;
 }
 
+std::string AutobackupMetadataHelper::InsertToBITable(
+    std::string backup_time, int32_t backup_status,
+    std::string extrends /*= ""*/) {
+  char *errmsg = nullptr;
+  std::string error_msg;
+  do {
+    if (sqlite3_handle_ == nullptr || backup_time.empty()) {
+      break;
+    }
+    std::string sql_string = StringFormat(
+        "INSERT INTO backup_info_table"
+        "(backup_time,backup_status,extrends) "
+        "VALUES('%s',%s,'%s');",
+        backup_time.c_str(), std::to_string(backup_status).c_str(),
+        extrends.c_str());
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "BEGIN TRANSACTION", nullptr,
+                                  nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      break;
+    }
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, sql_string.c_str(), nullptr,
+                                  nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      sqlite3_exec(sqlite3_handle_, "ROLLBACK TRANSACTION", nullptr, nullptr,
+                   nullptr);
+      break;
+    }
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "COMMIT TRANSACTION",
+                                  nullptr, nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      break;
+    }
+  } while (false);
+
+  return error_msg;
+}
+
+std::string AutobackupMetadataHelper::UpdateBITable(
+    std::string backup_time, int32_t backup_status,
+    std::string extrends /*= ""*/) {
+  char *errmsg = nullptr;
+  std::string error_msg;
+  do {
+    if (sqlite3_handle_ == nullptr || backup_time.empty()) {
+      break;
+    }
+    std::string sql_string = StringFormat(
+        "UPDATE backup_info_table "
+        "SET backup_status=%s, extrends='%s' "
+        "WHERE backup_time='%s';",
+        std::to_string(backup_status).c_str(), extrends.c_str(),
+        backup_time.c_str());
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "BEGIN TRANSACTION", nullptr,
+                                  nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      break;
+    }
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, sql_string.c_str(), nullptr,
+                                  nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      sqlite3_exec(sqlite3_handle_, "ROLLBACK TRANSACTION", nullptr, nullptr,
+                   nullptr);
+      break;
+    }
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "COMMIT TRANSACTION",
+                                  nullptr, nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      break;
+    }
+  } while (false);
+
+  return error_msg;
+}
+
+std::string AutobackupMetadataHelper::QueryFormBITable() {
+  std::string result;
+  Json::Value result_json;
+  do {
+    if (sqlite3_handle_ == nullptr) {
+      break;
+    }
+    std::string sql_string = "SELECT * FROM backup_info_table;";
+    sqlite3_stmt *stmt;
+    if (SQLITE_OK != sqlite3_prepare_v2(sqlite3_handle_, sql_string.c_str(), -1,
+                                        &stmt, nullptr)) {
+      break;
+    }
+
+    int ret;
+    int result_count = 0;
+    bool while_flag = false;
+    Json::Value result_json_temp;
+    while (true) {
+      ret = sqlite3_step(stmt);
+      if (SQLITE_ROW == ret) {
+        result_json_temp["backup_time"] = (char *)sqlite3_column_text(stmt, 0);
+        result_json_temp["backup_status"] = sqlite3_column_int(stmt, 1);
+        result_json_temp["extrends"] = (char *)sqlite3_column_text(stmt, 2);
+        result_json[std::to_string(result_count)] = result_json_temp;
+        result_json_temp.clear();
+        result_count++;
+      } else if (SQLITE_DONE == ret) {
+        if (result_count == 0) {
+          result = "null";
+          while_flag = true;
+        }
+        break;
+      } else {
+        result = "-1";
+        while_flag = true;
+        break;
+      }
+    }
+    if (while_flag) {
+      break;
+    }
+    result = result_json.toStyledString();
+  } while (false);
+  return result;
+}
+
+std::string AutobackupMetadataHelper::QueryFormBITable(
+    std::string backup_time) {
+  std::string result;
+  Json::Value result_json;
+  do {
+    if (sqlite3_handle_ == nullptr || backup_time.empty()) {
+      break;
+    }
+    std::string sql_string = StringFormat(
+        "SELECT backup_status, extrends FROM "
+        "backup_info_table "
+        "WHERE backup_time='%s';",
+        backup_time.c_str());
+    sqlite3_stmt *stmt;
+    if (SQLITE_OK != sqlite3_prepare_v2(sqlite3_handle_, sql_string.c_str(), -1,
+                                        &stmt, nullptr)) {
+      break;
+    }
+
+    int ret;
+    ret = sqlite3_step(stmt);
+    if (SQLITE_ROW == ret) {
+      result_json["backup_status"] = sqlite3_column_int(stmt, 0);
+      result_json["extrends"] = (char *)sqlite3_column_text(stmt, 1);
+    } else if (SQLITE_DONE == ret) {
+      result = "-1";
+      break;
+    } else {
+      break;
+    }
+    result = result_json.toStyledString();
+  } while (false);
+  return result;
+}
+
+std::string AutobackupMetadataHelper::DeleteFormBITable(
+    std::string backup_time) {
+  char *errmsg = nullptr;
+  std::string error_msg;
+  do {
+    if (sqlite3_handle_ == nullptr || backup_time.empty()) {
+      break;
+    }
+    std::string sql_string = StringFormat(
+        "DELETE FROM backup_info_table "
+        "WHERE backup_time='%s';",
+        backup_time.c_str());
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "BEGIN TRANSACTION", nullptr,
+                                  nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      break;
+    }
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, sql_string.c_str(), nullptr,
+                                  nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      sqlite3_exec(sqlite3_handle_, "ROLLBACK TRANSACTION", nullptr, nullptr,
+                   nullptr);
+      break;
+    }
+    if (SQLITE_OK != sqlite3_exec(sqlite3_handle_, "COMMIT TRANSACTION",
+                                  nullptr, nullptr, &errmsg)) {
+      error_msg = errmsg;
+      sqlite3_free(errmsg);
+      break;
+    }
+  } while (false);
+
+  return error_msg;
+}
+
 AutobackupMetadataHelper::~AutobackupMetadataHelper() {
   if (nullptr != sqlite3_handle_) {
     sqlite3_close(sqlite3_handle_);
@@ -326,6 +525,42 @@ AutobackupMetadataHelper::AutobackupMetadataHelper(std::string appdata_path,
       sqlite3_close(sqlite3_handle_);
       sqlite3_handle_ = nullptr;
       break;
+    }
+    // 检查backup_info_table表是否存在
+    sqlite3_finalize(stmt);
+    query_string =
+        "SELECT * FROM sqlite_master WHERE type='table' and "
+        "name='backup_info_table';";
+    ret = sqlite3_prepare_v2(sqlite3_handle_, query_string.c_str(), -1, &stmt,
+                             nullptr);
+    if (ret != SQLITE_OK) {
+      sqlite3_close(sqlite3_handle_);
+      sqlite3_handle_ = nullptr;
+      break;
+    }
+    // table no exist, create it.
+    if (sqlite3_step(stmt) == SQLITE_DONE) {
+      sqlite3_finalize(stmt);
+      query_string =
+          "CREATE TABLE backup_info_table"
+          "("
+          "backup_time DATETIME NOT NULL,"
+          "backup_status INTEGER NOT NULL,"
+          "extrends TEXT DEFAULT '',"
+          "PRIMARY KEY(backup_time)"
+          "); ";
+      ret = sqlite3_prepare_v2(sqlite3_handle_, query_string.c_str(), -1, &stmt,
+                               nullptr);
+      if (ret != SQLITE_OK) {
+        sqlite3_close(sqlite3_handle_);
+        sqlite3_handle_ = nullptr;
+        break;
+      }
+      if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_close(sqlite3_handle_);
+        sqlite3_handle_ = nullptr;
+        break;
+      }
     }
   } while (false);
 }
