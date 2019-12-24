@@ -449,9 +449,10 @@ typedef struct sliceupload_worker_function_generator {
       std::function<bool(const rx_assistant::HttpResult&,
                          assistant::HttpRequest&, int32_t&)>
           sliceupload_solve_callback =
-              [thread_data_weak_temp, unused_uuid](
+              [thread_data_weak_temp, unused_uuid, slice_id](
                   const rx_assistant::HttpResult& file_upload_http_result,
-                  assistant::HttpRequest&, int32_t&) -> bool {
+                  assistant::HttpRequest& next_req,
+                  int32_t& waiting_time) -> bool {
         /// 无需循环+成功：（非常重要，需要考虑一些，看似“失败”，但最终提交会成功的情况）
         /// 无需循环+失败：彻底失败：（循环次数达到上限，或其他严重情况）
         /// 在此情况下，无需循环，并发出严重错误信号。此时其他worker也不再重试。
@@ -466,6 +467,23 @@ typedef struct sliceupload_worker_function_generator {
           /// 当前分片的请求已经完成，需要移除
           thread_data->sliceupload_uuids.Delete(unused_uuid);
 
+          /// frozen为真的情况,不重试
+          if (thread_data->frozen.load()) {
+            break;
+          }
+
+          /// 重试次数超过上限的情况,不重试
+          int32_t current_result;
+          auto solve_slice_result = [&current_result](const int32_t& temp) {
+            current_result = temp;
+          };
+          thread_data->slice_result_map.FindDelegate(slice_id,
+                                                     solve_slice_result);
+          if ((current_result <= 0) || (current_result >= 10)) {
+            break;
+          }
+
+          /// 成功的情况,不重试
           std::string decode_result;
           Cloud189::Apis::UploadSliceData::HttpResponseDecode(
               file_upload_http_result.res, file_upload_http_result.req,
@@ -478,51 +496,66 @@ typedef struct sliceupload_worker_function_generator {
                                                             json_value)) {
             break;
           }
-          std::string header_slice_id;
-          if (!file_upload_http_result.req.headers.Get("Edrive-UploadSliceId",
-                                                       header_slice_id) ||
-              header_slice_id.empty()) {
+          const auto is_success = GetBool(json_value["isSuccess"]);
+          if (is_success) {
             break;
           }
-          const auto is_success =
-              restful_common::jsoncpp_helper::GetBool(json_value["isSuccess"]);
-          if (is_success) {
-            thread_data->slice_result_map.Set(stoi(header_slice_id), 0);
-            solve_flag = true;
-          }
+
+          /// 不成功且次数没有超过上限,重试
           if (!is_success) {
-            thread_data->slice_result_map.Set(stoi(header_slice_id), 1);
+            solve_flag = true;
+            auto retry_count = current_result++;
+            thread_data->slice_result_map.Set(slice_id, retry_count);
+            const auto pow_base = 1.5F;
+            const auto internal_base = 1000.0F;
+            waiting_time = static_cast<int32_t>(pow(pow_base, retry_count) *
+                                                internal_base);
+            HttpRequest next_req_(file_upload_http_result.req);
+            next_req = next_req_;
           }
         } while (false);
         return solve_flag;
       };
 
       /// 根据最后一次响应判定当前分片的结果
-      /// TODO: 这个地方是tiany实现的，简直辣眼睛，需要优化掉！
       std::function<sliceupload_helper::Report(rx_assistant::HttpResult&)>
-          result_2_report = [thread_data](rx_assistant::HttpResult& http_result)
+          result_2_report = [thread_data_weak_temp,
+                             slice_id](rx_assistant::HttpResult& http_result)
           -> sliceupload_helper::Report {
         /// 根据rx_assistant::HttpResult内的slice_id的信息，找到线程数据内对应的线程安全Map内的值
         /// 此值为0，返回true；此值不存在，或非0，返回false
-        std::string header_slice_id;
-        std::tuple<int32_t, bool> slice_result_tuple;
-        if (http_result.req.headers.Get("Edrive-UploadSliceId",
-                                        header_slice_id) &&
-            !header_slice_id.empty()) {
+        auto thread_data = thread_data_weak_temp.lock();
+        std::tuple<int32_t, bool> slice_result_tuple =
+            std::make_tuple(slice_id, bool(false));
+        do {
+          if (nullptr == thread_data) {
+            break;
+          }
+          /// Http Decode
+          std::string decode_result;
+          Cloud189::Apis::UploadSliceData::HttpResponseDecode(
+              http_result.res, http_result.req, decode_result);
+          if (decode_result.empty()) {
+            break;
+          }
+          Json::Value json_value;
+          if (!restful_common::jsoncpp_helper::ReaderHelper(decode_result,
+                                                            json_value)) {
+            break;
+          }
+          const auto is_success = GetBool(json_value["isSuccess"]);
+
           int32_t slice_result;
           auto solve_slice_result = [&slice_result](const int32_t& temp) {
             slice_result = temp;
           };
-          thread_data->slice_result_map.FindDelegate(stoi(header_slice_id),
+          thread_data->slice_result_map.FindDelegate(slice_id,
                                                      solve_slice_result);
-          if (slice_result) {
-            slice_result_tuple =
-                std::make_tuple(int32_t(stoi(header_slice_id)), bool(true));
-          } else {
-            slice_result_tuple =
-                std::make_tuple(int32_t(stoi(header_slice_id)), bool(false));
+
+          if (is_success && (!slice_result)) {
+            slice_result_tuple = std::make_tuple(slice_id, bool(true));
           }
-        }
+        } while (false);
         return slice_result_tuple;
       };
 
