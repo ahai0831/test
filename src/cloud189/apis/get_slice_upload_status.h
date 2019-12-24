@@ -10,7 +10,7 @@
 
 #include <cinttypes>
 
-#include <Assistant_v3.hpp>
+#include <http_primitives.h>
 
 // 天翼云的顶层命名空间（包括个人云和家庭云）
 namespace Cloud189 {
