@@ -6,6 +6,7 @@
 #endif
 #include <functional>
 #include <memory>
+#include <mutex>
 
 #include <Assistant_v3.hpp>
 
@@ -22,10 +23,13 @@ struct default_asssitant_v3 {
     /// TODO: 增加对依赖的线程模型的底层检测能力，进行适当的兼容
     /// TODO:
     /// 在项目组织架构中，应保证此源文件仅被引用一次，其他模块通过使用DLL来使用能力
-    static std::shared_ptr<assistant::Assistant_v3> r =
-        std::shared_ptr<assistant::Assistant_v3>(
-            new (std::nothrow) assistant::Assistant_v3(),
-            [](assistant::Assistant_v3*) { /* Do nothing.*/ });
+    static std::once_flag flag;
+    static std::shared_ptr<assistant::Assistant_v3> r;
+    std::call_once(flag, []() {
+      r = std::shared_ptr<assistant::Assistant_v3>(
+          new (std::nothrow) assistant::Assistant_v3(),
+          [](assistant::Assistant_v3*) { /* Do nothing.*/ });
+    });
     return r;
   }
 };
@@ -247,6 +251,8 @@ inline static ObsType create(
           request_ptr->solve_func.swap(subscriber_func);
           assistant_ptr->AsyncHttpRequest(*request_ptr);
           request_ptr->solve_func.swap(subscriber_func);
+        } else if (s.is_subscribed()) {
+          /// TODO：发射一个负面的响应，保证完备
         }
       });
 }
