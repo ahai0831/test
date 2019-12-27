@@ -1,0 +1,30 @@
+1. 先确保VS2013已经装好，保证Python和Git已经装好；
+装好的表现是：
+在VS2013的Command Prompt中，输入
+cl
+link
+lib
+相关工具均有回显；
+且命令行中，输入
+git --version
+python --version
+输出正常。
+
+2. 已提供了Win端下相关预编译的工具和工具链的配置支持，运行：
+gn_console.bat
+若无警告输出，代表配置均成功。
+
+3. 自行学习gn相关语法，请使用：
+gn help
+gn help <topic>
+相关官方资料：
+https://docs.google.com/presentation/d/15Zwb53JcncHfEwHpnG_PoIbbzQ3GQi_cpujYwbpcbZo/htmlpresent
+
+4. 生成VS工程（注意只需要执行一次，后续ninja会自动更新工程）：
+gn gen --ide=vs2013 out/msvs2013
+再次强调gn gen命令只需要调用一次，如需重复调用应先clear。
+启动VS工程（注意应在控制台中启动，不要从外部启动）
+start out/msvs2013/all.sln
+
+如需脱离VS的IDE进行构建（便于在VSCode等外部IDE中调用脚本进行构建）
+ninja -C out/msvs2013
