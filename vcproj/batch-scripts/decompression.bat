@@ -52,6 +52,7 @@ set PATH=%tools_7z_dir%;%PATH%
 if \"\"==\"%~2\" exit /b
 for %%i in ("%~1") do set zip_input_path=%%~fi
 for %%i in ("%~2") do set zip_output_path=%%~fi
+echo Extract %zip_input_path% to %zip_output_path%
 @REM 处理覆盖选项
 set overwrite_option=aos
 if \"force\"==\"%3\" set overwrite_option=aoa

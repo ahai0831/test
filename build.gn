@@ -1,0 +1,5 @@
+group("test") {
+  deps = [
+    "//test:HelloGN",
+  ]
+}
