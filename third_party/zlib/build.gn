@@ -1,0 +1,35 @@
+import("//third_party/third_template.gni")
+
+# Need to modify
+library_version = "zlib-1.2.11"
+
+third_fetch_code("fetch_code") {
+  csv_file = library_version + ".csv"
+
+  # Take care of the suffix name
+  package_file = library_version + ".tar.xz"
+}
+third_config("zlib_dirs") {
+  include_dirs = [ "." ]
+  defines = [
+    "HAVE_ZLIB_H",
+    "HAVE_ZLIB",
+    "HAVE_LIBZ",
+  ]
+}
+
+third_static_library("zlib") {
+  deps = [
+    ":fetch_code",
+  ]
+
+  # Need to modify
+  sources = [
+    "inflate.c",
+  ]
+  public = [
+    "zconf.h",
+    "zlib.h",
+  ]
+  public_configs = [ ":zlib_dirs" ]
+}

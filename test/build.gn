@@ -1,0 +1,8 @@
+executable("HelloGN") {
+  sources = [
+    "hello_gn/hello_gn.cpp",
+  ]
+  deps = [
+    "//third_party/zlib",
+  ]
+}

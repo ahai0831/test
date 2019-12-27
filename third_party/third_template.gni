@@ -1,0 +1,84 @@
+template("third_fetch_code") {
+  assert(defined(invoker.library_version),
+         "Need library_version in $target_name declaring the library version.")
+
+  assert(defined(invoker.csv_file),
+         "Need csv_file in $target_name listing the csv files.")
+
+  assert(defined(invoker.package_file),
+         "Need package_file in $target_name declaring the source package file.")
+
+  # To refer a script relative to the template file, must use an absolute path.
+  lines_1 = exec_script("//gn/py/package_get.py",
+                        [ rebase_path(invoker.csv_file, root_build_dir) ],
+                        "list lines",
+                        [ rebase_path(invoker.csv_file, root_build_dir) ])
+  foreach(i, lines_1) {
+    print(i)
+  }
+
+  lines_2 = exec_script("//gn/py/decompression.py",
+                        [
+                          rebase_path(invoker.package_file, root_build_dir),
+                          rebase_path(invoker.library_version + "/src/",
+                                      root_build_dir),
+                        ],
+                        "list lines",
+                        [ rebase_path(invoker.package_file, root_build_dir) ])
+  foreach(i, lines_2) {
+    print(i)
+  }
+
+  source_set(target_name) {
+    # Just fetch code for third_party, do nothing.
+  }
+}
+
+template("third_static_library") {
+  assert(defined(invoker.library_version),
+         "Need library_version in $target_name declaring the library version.")
+
+  assert(defined(invoker.sources),
+         "Need sources in $target_name declaring the source lists.")
+
+  static_library(target_name) {
+    # Solve relative path from sources in $target_name
+    not_to_forward_list = [ "sources" ]
+    sources = []
+    foreach(i, invoker.sources) {
+      sources += [ invoker.library_version + "/src/" + invoker.library_version +
+                   "/" + i ]
+    }
+
+    if (defined(invoker.public)) {
+      not_to_forward_list += [ "public" ]
+      public = []
+      foreach(i, invoker.public) {
+        public += [ invoker.library_version + "/src/" +
+                    invoker.library_version + "/" + i ]
+      }
+    }
+
+    forward_variables_from(invoker, "*", not_to_forward_list)
+  }
+}
+
+template("third_config") {
+  assert(defined(invoker.library_version),
+         "Need library_version in $target_name declaring the library version.")
+
+  assert(defined(invoker.include_dirs),
+         "Need include_dirs in $target_name declaring the include dirs.")
+  config(target_name) {
+    # Solve relative path from include_dirs in $target_name
+    not_to_forward_list = [ "include_dirs" ]
+    include_dirs = []
+    foreach(i, invoker.include_dirs) {
+      include_dirs += [ invoker.library_version + "/src/" +
+                        invoker.library_version + "/" + i ]
+    }
+
+    forward_variables_from(invoker, "*", not_to_forward_list)
+  }
+}
+
