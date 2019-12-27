@@ -1,0 +1,89 @@
+import("//third_party/third_template.gni")
+
+# Need to modify
+library_version = "openssl-1.1.1c"
+
+third_fetch_code("fetch_code") {
+  csv_file = library_version + ".csv"
+
+  # Take care of the suffix name
+  package_file = library_version + ".tar.gz"
+}
+
+source_set("openssl") {
+  deps = [
+    ":libcrypto",
+    ":libssl",
+  ]
+
+  public_configs = [ ":openssl_using" ]
+}
+
+third_config("openssl_using") {
+  include_dirs = [ "include" ]
+  defines = [ "USE_OPENSSL" ]
+
+  # Define some system libraries *.lib when finally link.
+  if (is_win) {
+    # Windows should be different.
+    libs = [
+      "ws2_32.lib",
+      "gdi32.lib",
+      "advapi32.lib",
+      "crypt32.lib",
+      "user32.lib",
+    ]
+  }
+}
+third_config("openssl_internal") {
+  include_dirs = [
+    ".",
+    "include",
+  ]
+  defines = [
+    "_WIN32_WINNT=0x0501",
+    "L_ENDIAN",
+    "OPENSSL_PIC",
+    "OPENSSL_SYS_WIN32",
+    "WIN32_LEAN_AND_MEAN",
+  ]
+}
+third_config("openssl_internal_crypto") {
+  include_dirs = [
+    "crypto",
+    "crypto\include",
+    "crypto\modes",
+    "crypto\ec\curve448",
+    "crypto\ec\curve448\arch_32",
+  ]
+  defines = [
+    "OPENSSLDIR=\"\"",
+    "ENGINESDIR=\"\"",
+  ]
+}
+
+third_static_library("libcrypto") {
+  deps = [
+    ":fetch_code",
+  ]
+
+  # Need to modify
+  sources = [
+    "crypto/cryptlib.c",
+  ]
+  configs = [
+    ":openssl_internal",
+    ":openssl_internal_crypto",
+  ]
+}
+third_static_library("libssl") {
+  deps = [
+    ":fetch_code",
+  ]
+
+  # Need to modify
+  sources = [
+    "ssl/ssl_lib.c",
+  ]
+  configs = [ ":openssl_internal" ]
+}

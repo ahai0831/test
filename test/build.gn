@@ -5,4 +5,7 @@ executable("HelloGN") {
   deps = [
     "//third_party/zlib",
   ]
+  if (is_win) {
+    deps += [ "//third_party/openssl" ]
+  }
 }
