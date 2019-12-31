@@ -31,8 +31,8 @@ if \"%ValidNum%\"==\"%num%\" (
         rd "%GnbuildDir%" /s /q >nul 2>&1
         rd "%GnbuildTmpDir%" /s /q >nul 2>&1
         "%Rar%" "%GnbuildZip%" "%TargetDir%" >nul 2>&1
-        move "%gn_tools_dir%gn-build-master" "%RootDir%"
-        rename "%RootDir%gn-build-master" build
+        move "%gn_tools_dir%gn-build-master" "%RootDir%" >nul 2>&1
+        rename "%RootDir%gn-build-master" build >nul 2>&1
     ) else (
         echo "%GnbuildZip%" not exists.
         goto final_error
