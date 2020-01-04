@@ -2,11 +2,6 @@
 #include <cstdio>
 #include <memory>
 
-#include <zlib.h>
-
-#include <openssl/crypto.h>
-#include <openssl/ssl.h>
-
 #include <Assistant_v3.hpp>
 
 int main(void) {

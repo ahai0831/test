@@ -59,6 +59,13 @@ template("third_static_library") {
       }
     }
 
+    # To inherit the config "//build/config/win:runtime_library",
+    # some compatibility should be done.
+    not_to_forward_list += [ "configs" ]
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+
     forward_variables_from(invoker, "*", not_to_forward_list)
   }
 }
@@ -81,4 +88,3 @@ template("third_config") {
     forward_variables_from(invoker, "*", not_to_forward_list)
   }
 }
-

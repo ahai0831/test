@@ -9,7 +9,6 @@ executable("HelloGN") {
     "//third_party/libcurl",
     "//third_party/libuv",
     "//third_party/pugixml",
-    "//third_party/zlib",
   ]
   if (is_win) {
     deps += [ "//third_party/openssl" ]
