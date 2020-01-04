@@ -10,10 +10,7 @@ third_fetch_code("fetch_code") {
 }
 
 third_config("libcurl_internal") {
-  include_dirs = [
-    "lib",
-    "include",
-  ]
+  include_dirs = [ "lib" ]
   defines = [
     "BUILDING_LIBCURL",
     "_WIN32_WINNT=0x0501",

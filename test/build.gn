@@ -3,17 +3,12 @@ executable("HelloGN") {
     "hello_gn/hello_gn.cpp",
   ]
   deps = [
-    "//third_party/assistant",
-    "//third_party/c-ares",
-    "//third_party/cloud_base",
     "//third_party/concurrentqueue",
     "//third_party/httpbusiness",
     "//third_party/jsoncpp",
     "//third_party/libcurl",
     "//third_party/libuv",
-    "//third_party/openssl",
     "//third_party/pugixml",
-    "//third_party/rxcpp",
     "//third_party/zlib",
   ]
   if (is_win) {

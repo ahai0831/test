@@ -10,18 +10,11 @@ third_fetch_code("fetch_code") {
 }
 
 third_config("zlib_internal") {
-  include_dirs = [ "." ]
-  defines = [
-    "_CRT_SECURE_NO_DEPRECATE",
-    "_CRT_NONSTDC_NO_DEPRECATE",
-  ]
+  include_dirs = []
 }
 
 third_config("zlib_using") {
-  include_dirs = [
-    ".",
-    "include",
-  ]
+  include_dirs = [ "." ]
   defines = [
     "HAVE_ZLIB_H",
     "HAVE_ZLIB",
