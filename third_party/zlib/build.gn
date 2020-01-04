@@ -27,10 +27,6 @@ third_config("zlib_using") {
     "HAVE_ZLIB",
     "HAVE_LIBZ",
   ]
-  if (is_win) {
-    # Windows should be different.
-    libs = [ "zlib.lib" ]
-  }
 }
 
 third_static_library("zlib") {

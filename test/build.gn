@@ -14,7 +14,6 @@ executable("HelloGN") {
     "//third_party/openssl",
     "//third_party/pugixml",
     "//third_party/rxcpp",
-    "//third_party/scopeguard",
     "//third_party/zlib",
   ]
   if (is_win) {

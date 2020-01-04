@@ -28,7 +28,6 @@ third_config("libuv_using") {
   if (is_win) {
     # Windows should be different.
     libs = [
-      "libuv.lib",
       "Iphlpapi.lib",
       "Psapi.lib",
       "Userenv.lib",

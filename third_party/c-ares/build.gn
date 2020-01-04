@@ -22,10 +22,6 @@ third_config("c-ares_internal") {
 third_config("c-ares_using") {
   include_dirs = [ "include" ]
   defines = [ "USE_ARES" ]
-  if (is_win) {
-    # Windows should be different.
-    libs = [ "libcares.lib" ]
-  }
 }
 
 third_static_library("c-ares") {
