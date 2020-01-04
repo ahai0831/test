@@ -1,0 +1,34 @@
+source_set("httpbusiness") {
+  sources = [
+    "include/rx_assistant.hpp",
+    "include/rx_downloader.hpp",
+    "include/rx_md5.hpp",
+    "include/rx_multiworker.hpp",
+    "include/rx_uploader.hpp",
+    "include/slicedownload_mastercontrol.hpp",
+    "include/speed_counter.hpp",
+  ]
+
+  public = [
+    "include/rx_assistant.hpp",
+    "include/rx_downloader.hpp",
+    "include/rx_md5.hpp",
+    "include/rx_multiworker.hpp",
+    "include/rx_uploader.hpp",
+    "include/slicedownload_mastercontrol.hpp",
+    "include/speed_counter.hpp",
+  ]
+
+  deps = [
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+    "//third_party/rxcpp",
+    "//third_party/scopeguard",
+  ]
+
+  all_dependent_configs = [ ":Default_config" ]
+}
+
+config("Default_config") {
+  include_dirs = [ "include" ]
+}

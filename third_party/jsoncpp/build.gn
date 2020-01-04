@@ -1,0 +1,19 @@
+source_set("jsoncpp") {
+  sources = [
+    "jsoncpp-1.8.4/include/json/reader.h",
+    "jsoncpp-1.8.4/include/json/value.h",
+    "jsoncpp-1.8.4/include/json/writer.h",
+  ]
+
+  public = [
+    "jsoncpp-1.8.4/include/json/reader.h",
+    "jsoncpp-1.8.4/include/json/value.h",
+    "jsoncpp-1.8.4/include/json/writer.h",
+  ]
+
+  all_dependent_configs = [ ":Default_config" ]
+}
+
+config("Default_config") {
+  include_dirs = [ "jsoncpp-1.8.4/include" ]
+}

@@ -1,6 +1,5 @@
 import("//third_party/third_template.gni")
 
-# Need to modify
 library_version = "zlib-1.2.11"
 
 third_fetch_code("fetch_code") {
@@ -23,9 +22,25 @@ third_static_library("zlib") {
     ":fetch_code",
   ]
 
-  # Need to modify
   sources = [
+    "adler32.c",
+    "compress.c",
+    "contrib/minizip/ioapi.c",
+    "contrib/minizip/unzip.c",
+    "contrib/minizip/zip.c",
+    "crc32.c",
+    "deflate.c",
+    "gzclose.c",
+    "gzlib.c",
+    "gzread.c",
+    "gzwrite.c",
+    "infback.c",
+    "inffast.c",
     "inflate.c",
+    "inftrees.c",
+    "trees.c",
+    "uncompr.c",
+    "zutil.c",
   ]
   public = [
     "zconf.h",
