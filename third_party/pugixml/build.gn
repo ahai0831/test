@@ -1,0 +1,17 @@
+source_set("pugixml") {
+  sources = [
+    "pugixml-1.10/include/pugiconfig.hpp",
+    "pugixml-1.10/include/pugixml.hpp",
+  ]
+
+  public = [
+    "pugixml-1.10/include/pugiconfig.hpp",
+    "pugixml-1.10/include/pugixml.hpp",
+  ]
+
+  all_dependent_configs = [ ":Default_config" ]
+}
+
+config("Default_config") {
+  include_dirs = [ "pugixml-1.10/include" ]
+}

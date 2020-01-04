@@ -1,0 +1,56 @@
+source_set("assistant") {
+  sources = [
+    "include/Assistant_v3.hpp",
+    "include/core/curl_easy.hpp",
+    "include/core/curl_global.hpp",
+    "include/core/curl_multi.hpp",
+    "include/core/curl_share.hpp",
+    "include/core/readwrite_callback.hpp",
+    "include/core/uv_async.hpp",
+    "include/core/uv_loop.hpp",
+    "include/core/uv_poll.hpp",
+    "include/core/uv_thread.hpp",
+    "include/core/uv_timer.hpp",
+    "include/http_primitives.h",
+    "include/tools/safecontainer.hpp",
+    "include/tools/safequeue.hpp",
+    "include/tools/scopeguard.hpp",
+    "include/tools/string_convert.hpp",
+    "include/tools/string_format.hpp",
+    "include/tools/uuid.hpp",
+  ]
+
+  public = [
+    "include/Assistant_v3.hpp",
+    "include/core/curl_easy.hpp",
+    "include/core/curl_global.hpp",
+    "include/core/curl_multi.hpp",
+    "include/core/curl_share.hpp",
+    "include/core/readwrite_callback.hpp",
+    "include/core/uv_async.hpp",
+    "include/core/uv_loop.hpp",
+    "include/core/uv_poll.hpp",
+    "include/core/uv_thread.hpp",
+    "include/core/uv_timer.hpp",
+    "include/http_primitives.h",
+    "include/tools/safecontainer.hpp",
+    "include/tools/safequeue.hpp",
+    "include/tools/scopeguard.hpp",
+    "include/tools/string_convert.hpp",
+    "include/tools/string_format.hpp",
+    "include/tools/uuid.hpp",
+  ]
+
+  deps = [
+    "//third_party/concurrentqueue",
+    "//third_party/libcurl",
+    "//third_party/libuv",
+    "//third_party/scopeguard",
+  ]
+
+  all_dependent_configs = [ ":Default_config" ]
+}
+
+config("Default_config") {
+  include_dirs = [ "include" ]
+}

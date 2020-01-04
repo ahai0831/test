@@ -1,0 +1,91 @@
+import("//third_party/third_template.gni")
+
+library_version = "c-ares-1.15.0"
+
+third_fetch_code("fetch_code") {
+  csv_file = library_version + ".csv"
+
+  # Take care of the suffix name
+  package_file = library_version + ".tar.gz"
+}
+
+third_config("c-ares_internal") {
+  include_dirs = []
+  defines = [
+    "_WIN32_WINNT=0x0600",
+    "CARES_BUILDING_LIBRARY",
+    "CARES_STATICLIB",
+  ]
+}
+
+third_config("c-ares_using") {
+  include_dirs = [ "." ]
+  defines = [ "USE_ARES" ]
+}
+
+third_static_library("c-ares") {
+  deps = [
+    ":fetch_code",
+  ]
+
+  # Need to modify
+  sources = [
+    "ares__close_sockets.c",
+    "ares__get_hostent.c",
+    "ares__read_line.c",
+    "ares__timeval.c",
+    "ares_android.c",
+    "ares_cancel.c",
+    "ares_create_query.c",
+    "ares_data.c",
+    "ares_destroy.c",
+    "ares_expand_name.c",
+    "ares_expand_string.c",
+    "ares_fds.c",
+    "ares_free_hostent.c",
+    "ares_free_string.c",
+    "ares_gethostbyaddr.c",
+    "ares_gethostbyname.c",
+    "ares_getnameinfo.c",
+    "ares_getsock.c",
+    "ares_init.c",
+    "ares_library_init.c",
+    "ares_llist.c",
+    "ares_mkquery.c",
+    "ares_nowarn.c",
+    "ares_options.c",
+    "ares_parse_a_reply.c",
+    "ares_parse_aaaa_reply.c",
+    "ares_parse_mx_reply.c",
+    "ares_parse_naptr_reply.c",
+    "ares_parse_ns_reply.c",
+    "ares_parse_ptr_reply.c",
+    "ares_parse_soa_reply.c",
+    "ares_parse_srv_reply.c",
+    "ares_parse_txt_reply.c",
+    "ares_platform.c",
+    "ares_process.c",
+    "ares_query.c",
+    "ares_search.c",
+    "ares_send.c",
+    "ares_strcasecmp.c",
+    "ares_strdup.c",
+    "ares_strerror.c",
+    "ares_strsplit.c",
+    "ares_timeout.c",
+    "ares_version.c",
+    "ares_writev.c",
+    "bitncmp.c",
+    "inet_net_pton.c",
+    "inet_ntop.c",
+    "windows_port.c",
+  ]
+  public = [
+    "ares.h",
+    "ares_build.h",
+    "ares_rules.h",
+    "ares_version.h",
+  ]
+  configs = [ ":c-ares_internal" ]
+  public_configs = [ ":c-ares_using" ]
+}
