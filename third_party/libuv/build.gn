@@ -21,12 +21,20 @@ third_config("libuv_internal") {
     "_WIN32_WINNT=0x0600",
     "_GNU_SOURCE",
   ]
-  libs = [
-    "Iphlpapi.lib",
-    "Psapi.lib",
-    "Userenv.lib",
-    "ws2_32.lib",
-  ]
+}
+
+third_config("libuv_using") {
+  include_dirs = [ "include" ]
+  if (is_win) {
+    # Windows should be different.
+    libs = [
+      "libuv.lib",
+      "Iphlpapi.lib",
+      "Psapi.lib",
+      "Userenv.lib",
+      "ws2_32.lib",
+    ]
+  }
 }
 
 third_static_library("libuv") {
@@ -85,5 +93,6 @@ third_static_library("libuv") {
     "src/win/winapi.h",
     "src/win/winsock.h",
   ]
-  public_configs = [ ":libuv_internal" ]
+  configs = [ ":libuv_internal" ]
+  public_configs = [ ":libuv_using" ]
 }

@@ -8,13 +8,29 @@ third_fetch_code("fetch_code") {
   # Take care of the suffix name
   package_file = library_version + ".tar.xz"
 }
-third_config("zlib_dirs") {
+
+third_config("zlib_internal") {
   include_dirs = [ "." ]
+  defines = [
+    "_CRT_SECURE_NO_DEPRECATE",
+    "_CRT_NONSTDC_NO_DEPRECATE",
+  ]
+}
+
+third_config("zlib_using") {
+  include_dirs = [
+    ".",
+    "include",
+  ]
   defines = [
     "HAVE_ZLIB_H",
     "HAVE_ZLIB",
     "HAVE_LIBZ",
   ]
+  if (is_win) {
+    # Windows should be different.
+    libs = [ "zlib.lib" ]
+  }
 }
 
 third_static_library("zlib") {
@@ -46,5 +62,6 @@ third_static_library("zlib") {
     "zconf.h",
     "zlib.h",
   ]
-  public_configs = [ ":zlib_dirs" ]
+  configs = [ ":zlib_internal" ]
+  public_configs = [ ":zlib_using" ]
 }

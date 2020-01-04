@@ -10,16 +10,22 @@ third_fetch_code("fetch_code") {
 }
 
 third_config("c-ares_internal") {
-  include_dirs = [
-    ".",
-    "include",
-  ]
+  include_dirs = [ "." ]
   defines = [
     "_WIN32_WINNT=0x0600",
     "CARES_BUILDING_LIBRARY",
     "CARES_STATICLIB",
     "_WINSOCK_DEPRECATED_NO_WARNINGS",
   ]
+}
+
+third_config("c-ares_using") {
+  include_dirs = [ "include" ]
+  defines = [ "USE_ARES" ]
+  if (is_win) {
+    # Windows should be different.
+    libs = [ "libcares.lib" ]
+  }
 }
 
 third_static_library("c-ares") {
@@ -85,5 +91,6 @@ third_static_library("c-ares") {
     "ares_rules.h",
     "ares_version.h",
   ]
+  configs = [ ":c-ares_internal" ]
   public_configs = [ ":c-ares_internal" ]
 }

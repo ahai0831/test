@@ -9,7 +9,7 @@ third_fetch_code("fetch_code") {
   package_file = library_version + ".tar.xz"
 }
 
-third_config("libcurl_dirs") {
+third_config("libcurl_internal") {
   include_dirs = [
     "lib",
     "include",
@@ -330,5 +330,6 @@ third_static_library("libcurl") {
     "lib\wildcard.h",
     "lib\x509asn1.h",
   ]
-  public_configs = [ ":libcurl_dirs" ]
+  configs = [ ":libcurl_internal" ]
+  public_configs = [ ":libcurl_using" ]
 }
