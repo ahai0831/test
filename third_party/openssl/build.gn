@@ -73,6 +73,15 @@ third_config("openssl_internal") {
     "OPENSSL_SYS_WIN32",
     "WIN32_LEAN_AND_MEAN",
   ]
+  if (is_win) {
+    if (!defined(cflags)) {
+      cflags = []
+    }
+    cflags += [ "/wd4090" ]
+    if (target_cpu == "x64") {
+      cflags += [ "/wd4133" ]
+    }
+  }
 }
 third_config("openssl_internal_crypto") {
   include_dirs = [

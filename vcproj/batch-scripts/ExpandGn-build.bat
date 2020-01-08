@@ -21,7 +21,7 @@ for /f "delims=" %%a in ('dir "%GnbuildDir%" /s /b /a-d-s-h 2^>nul ^| find /v /c
   set num=%%a
 )
 
-if \"%ValidNum%\"==\"%num%\" (
+if %num% GEQ %ValidNum% (
     @REM OK
 ) else (
     @REM Should expand "%GnbuildZip%"
@@ -31,8 +31,10 @@ if \"%ValidNum%\"==\"%num%\" (
         rd "%GnbuildDir%" /s /q >nul 2>&1
         rd "%GnbuildTmpDir%" /s /q >nul 2>&1
         "%Rar%" "%GnbuildZip%" "%TargetDir%" >nul 2>&1
-        move "%gn_tools_dir%gn-build-master" "%RootDir%" >nul 2>&1
-        rename "%RootDir%gn-build-master" build >nul 2>&1
+        @REM move "%gn_tools_dir%gn-build-master" "%RootDir%" >nul 2>&1
+        @REM rename "%RootDir%gn-build-master" build >nul 2>&1
+        rename "%gn_tools_dir%gn-build-master" build >nul 2>&1
+        move "%gn_tools_dir%build" "%RootDir%" >nul 2>&1
     ) else (
         echo "%GnbuildZip%" not exists.
         goto final_error
@@ -42,7 +44,7 @@ if \"%ValidNum%\"==\"%num%\" (
 for /f "delims=" %%a in ('dir "%GnbuildDir%" /s /b /a-d-s-h 2^>nul ^| find /v /c ""') do (
     set num=%%a
 )
-if not \"%ValidNum%\"==\"%num%\" (
+if not %num% GEQ %ValidNum% (
     echo Expand "%GnbuildZip%" failed.
     goto final_error
 ) else (
