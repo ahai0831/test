@@ -8,6 +8,36 @@
 namespace assistant {
 namespace core {
 namespace readwrite {
+
+namespace details {
+/// Take care: _Filename should be utf-8 in WIN32
+inline FILE *fopen(const char *_Filename, const char *_Mode) {
+#ifdef WIN32
+  FILE *file = nullptr;
+  do {
+    auto w_filepath = assistant::tools::string::utf8ToWstring(_Filename);
+    if (w_filepath.empty()) {
+      break;
+    }
+    auto w_mode = assistant::tools::string::utf8ToWstring(_Mode);
+    w_mode.append(L"S");
+    file = _wfopen(w_filepath.c_str(), w_mode.c_str());
+  } while (false);
+  return file;
+#else
+  return std::fopen(_Filename, _Mode);
+#endif
+}
+
+inline int fseek(FILE *_File, int64_t _Offset, int _Origin) {
+#ifdef WIN32
+  return _fseeki64(_File, _Offset, _Origin);
+#else
+  return fseeko(_File, _Offset, _Origin);
+#endif
+}
+}  // namespace details
+
 static size_t headerCallback(char *ptr, size_t size, size_t nmemb, void *data) {
   auto total_size = size * nmemb;
   auto &response = *static_cast<assistant::HttpResponse *>(data);
@@ -61,17 +91,22 @@ struct WriteByAppend : public assistant::HttpResponse::CallbackBase {
   WriteByAppend(const char *filepath, bool destroy)
       : count_size(false), file(nullptr) {
     /// 初始化file句柄
-    auto w_filepath = assistant::tools::string::utf8ToWstring(filepath);
-    if (!w_filepath.empty()) {
-      if (destroy) {
-        /// 即使存在旧文件也销毁；以二进制方式打开；
-        /// 指定为顺序访问而优化磁盘缓存
-        file = _wfopen(w_filepath.c_str(), L"wbS");
-      } else {
-        /// 附加到旧文件；以二进制方式打开；
-        /// 指定为顺序访问而优化磁盘缓存
-        file = _wfopen(w_filepath.c_str(), L"abS");
-      }
+    //     auto w_filepath = assistant::tools::string::utf8ToWstring(filepath);
+    //     if (!w_filepath.empty()) {
+    //       if (destroy) {
+    //         /// 即使存在旧文件也销毁；以二进制方式打开；
+    //         /// 指定为顺序访问而优化磁盘缓存
+    //         file = _wfopen(w_filepath.c_str(), L"wbS");
+    //       } else {
+    //         /// 附加到旧文件；以二进制方式打开；
+    //         /// 指定为顺序访问而优化磁盘缓存
+    //         file = _wfopen(w_filepath.c_str(), L"abS");
+    //       }
+    //     }
+    if (destroy) {
+      file = details::fopen(filepath, "wb");
+    } else {
+      file = details::fopen(filepath, "ab");
     }
     /// 要求目标文件必须已存在，若Valid为false，则必须Destroy一次
     /// 避免部分资源泄露
@@ -119,17 +154,19 @@ struct WriteByFile : public assistant::HttpResponse::CallbackBase {
         file(nullptr),
         done(0) {
     do {
-      auto w_filepath = assistant::tools::string::utf8ToWstring(filepath);
-      if (w_filepath.empty()) {
-        break;
-      }
+      //       auto w_filepath =
+      //       assistant::tools::string::utf8ToWstring(filepath); if
+      //       (w_filepath.empty()) {
+      //         break;
+      //       }
       /// 初始化file句柄
       /// 要求文件必须已经存在；以二进制方式打开；
       /// 指定为顺序访问而优化磁盘缓存
-      file = _wfopen(w_filepath.c_str(), L"r+bS");
+      //       file = _wfopen(w_filepath.c_str(), L"r+bS");
+      file = details::fopen(filepath, "r+b");
     } while (false);
     /// 要求可成功移动file文件句柄到begin指向的位置
-    if (!Valid() || 0 != _fseeki64(file, begin_offset, SEEK_SET)) {
+    if (!Valid() || 0 != details::fseek(file, begin_offset, SEEK_SET)) {
       Destroy();
     }
   }
@@ -172,6 +209,7 @@ struct WriteByFile : public assistant::HttpResponse::CallbackBase {
 };
 
 struct ReadwriteByMmap : public assistant::HttpResponse::CallbackBase {
+#ifdef WIN32
  public:
   bool count_size;
   /// x64下DWORD对应的类型是UL，应拆出两个DWORD，此处需要兼容
@@ -202,16 +240,16 @@ struct ReadwriteByMmap : public assistant::HttpResponse::CallbackBase {
 
  protected:
  public:
-  enum RW {
-    none = 0x0000,
-    need_read = 0x0001,
-    shared_read = 0x0002,
-    need_write = 0x0004,
-    shared_write = 0x0008,
-    /// 仅当文件已存在，才打开
-    open_exists = 0x0010,
-    /// 文件存在则打开，文件不存在则创建
-    open_always = 0x0020,
+  enum RW{
+      none = 0x0000,
+      need_read = 0x0001,
+      shared_read = 0x0002,
+      need_write = 0x0004,
+      shared_write = 0x0008,
+      /// 仅当文件已存在，才打开
+      open_exists = 0x0010,
+      /// 文件存在则打开，文件不存在则创建
+      open_always = 0x0020,
   };
   virtual ~ReadwriteByMmap() {
     if (Valid()) {
@@ -512,6 +550,38 @@ struct ReadwriteByMmap : public assistant::HttpResponse::CallbackBase {
   //   virtual uint64_t AccessDelegate(const uint64_t need_data_length,
   // 	  uint64_t(*callback)(void *, uint64_t, void *),
   // 	  void *callback_data) final
+#else
+  enum RW {
+    none = 0x0000,
+    need_read = 0x0001,
+    shared_read = 0x0002,
+    need_write = 0x0004,
+    shared_write = 0x0008,
+    /// 仅当文件已存在，才打开
+    open_exists = 0x0010,
+    /// 文件存在则打开，文件不存在则创建
+    open_always = 0x0020,
+  };
+  ReadwriteByMmap(const char *filepath, int64_t size, int64_t begin,
+                  int64_t len, RW rw) {}
+  virtual ~ReadwriteByMmap() {
+    if (Valid()) {
+      Destroy();
+    }
+  };
+  uint64_t Reform(uint64_t needed_length) { return 0; }
+  virtual bool Valid() const override final { return false; }
+  static size_t WriteCallback(void *ptr, size_t size, size_t nmemb,
+                              void *data) {
+    return 0;
+  }
+  static size_t ReadCallback(void *ptr, size_t size, size_t nmemb, void *data) {
+    return 0;
+  }
+  virtual void AccessDelegate(const uint64_t need_data_length,
+                              void (*callback)(void *, uint64_t, void *),
+                              void *callback_data) final {}
+#endif
  private:
   ReadwriteByMmap() = delete;
   ReadwriteByMmap(ReadwriteByMmap const &) = delete;

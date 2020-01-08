@@ -26,5 +26,9 @@ gn gen --ide=vs2013 out/msvs2013
 启动VS工程（注意应在控制台中启动，不要从外部启动）
 start out/msvs2013/all.sln
 
+为Windows生成32位二进制
+gn gen --ide=vs2013 out/msvs2013_win32 --args="target_cpu=\"x86\""
+start out/msvs2013_win32/all.sln
+
 如需脱离VS的IDE进行构建（便于在VSCode等外部IDE中调用脚本进行构建）
 ninja -C out/msvs2013
