@@ -36,6 +36,45 @@ inline int fseek(FILE *_File, int64_t _Offset, int _Origin) {
   return fseeko(_File, _Offset, _Origin);
 #endif
 }
+
+const static int ShFlag_DENYRW = 0x10; /* deny read/write mode */
+const static int ShFlag_DENYWR = 0x20; /* deny write mode */
+const static int ShFlag_DENYRD = 0x30; /* deny read mode */
+const static int ShFlag_DENYNO = 0x40; /* deny none mode */
+/// 在此提供尽可能与_wfsopen行为一致的跨平台实现：
+/// 传入的文件路径必须是utf-8编码，即使是在Win端;
+/// 目前仅对以下_Mode和_ShFlag组合进行了处理，调用前必须检查是否存在未定义的行为：
+/// 1. "r", _SH_DENYWR：具体行为:
+/// Opens for reading. If the file does not exist or cannot be found, the
+/// _fsopen call fails. _SH_DENYWR	Denies write access to the file.
+inline FILE *fsopen(const char *_Filename, const char *_Mode, int _ShFlag) {
+#ifdef _WIN32
+  FILE *file = nullptr;
+  do {
+    auto w_filepath = assistant::tools::string::utf8ToWstring(_Filename);
+    if (w_filepath.empty()) {
+      break;
+    }
+    auto w_mode = assistant::tools::string::utf8ToWstring(_Mode);
+    file = _wfsopen(w_filepath.c_str(), w_mode.c_str(), _ShFlag);
+  } while (false);
+  return file;
+#elif __APPLE__
+  FILE *file = nullptr;
+  do {
+    int fd = 0;
+    std::string mode = _Mode;
+    if (mode.compare("r") == 0) {
+      fd = open(_Filename, O_RDONLY | O_SHLOCK);
+    }
+    file = fdopen(fd, _Mode);
+  } while (false);
+  return file;
+#else
+  /// 暂时无适应于此平台的实现
+  return nullptr;
+#endif
+}
 }  // namespace details
 
 static size_t headerCallback(char *ptr, size_t size, size_t nmemb, void *data) {
@@ -551,16 +590,16 @@ struct ReadwriteByMmap : public assistant::HttpResponse::CallbackBase {
   // 	  uint64_t(*callback)(void *, uint64_t, void *),
   // 	  void *callback_data) final
 #else
-  enum RW {
-    none = 0x0000,
-    need_read = 0x0001,
-    shared_read = 0x0002,
-    need_write = 0x0004,
-    shared_write = 0x0008,
-    /// 仅当文件已存在，才打开
-    open_exists = 0x0010,
-    /// 文件存在则打开，文件不存在则创建
-    open_always = 0x0020,
+  enum RW{
+      none = 0x0000,
+      need_read = 0x0001,
+      shared_read = 0x0002,
+      need_write = 0x0004,
+      shared_write = 0x0008,
+      /// 仅当文件已存在，才打开
+      open_exists = 0x0010,
+      /// 文件存在则打开，文件不存在则创建
+      open_always = 0x0020,
   };
   ReadwriteByMmap(const char *filepath, int64_t size, int64_t begin,
                   int64_t len, RW rw) {}

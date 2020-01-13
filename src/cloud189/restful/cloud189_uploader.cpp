@@ -58,9 +58,9 @@ struct uploader_internal_data {
       const std::string& file_path,
       const httpbusiness::uploader::proof::proof_obs_packages& proof_orders,
       const httpbusiness::uploader::rx_uploader::CompleteCallback data_callback)
-      : file_protect(
-            _wfsopen(assistant::tools::string::utf8ToWstring(file_path).c_str(),
-                     L"r", _SH_DENYWR)),
+      : file_protect(assistant::core::readwrite::details::fsopen(
+            file_path.c_str(), "r",
+            assistant::core::readwrite::details::ShFlag_DENYWR)),
         guard_file_protect([this]() {
           if (nullptr != file_protect) {
             fclose(file_protect);
