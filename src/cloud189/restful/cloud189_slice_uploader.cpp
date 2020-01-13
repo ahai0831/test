@@ -73,9 +73,9 @@ struct sliceuploader_internal_data {
       :  /// TODO:
          /// 需要增加机制，一旦此句柄在构造后为空，则进行frozen，避免进行无用操作
          /// 进行frozen以后，显式地将失败信息传递一次
-        file_protect(
-            _wfsopen(assistant::tools::string::utf8ToWstring(file_path).c_str(),
-                     L"r", _SH_DENYWR)),
+        file_protect(assistant::core::readwrite::details::fsopen(
+            file_path.c_str(), "r",
+            assistant::core::readwrite::details::ShFlag_DENYWR)),
         guard_file_protect([this]() {
           if (nullptr != file_protect) {
             fclose(file_protect);
