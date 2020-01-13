@@ -11,6 +11,10 @@ third_fetch_code("fetch_code") {
 
 third_config("zlib_internal") {
   include_dirs = []
+  defines = []
+  if (is_mac) {
+    defines += [ "HAVE_HIDDEN" ]
+  }
 }
 
 third_config("zlib_using") {
@@ -26,13 +30,9 @@ third_static_library("zlib") {
   deps = [
     ":fetch_code",
   ]
-
   sources = [
     "adler32.c",
     "compress.c",
-    "contrib/minizip/ioapi.c",
-    "contrib/minizip/unzip.c",
-    "contrib/minizip/zip.c",
     "crc32.c",
     "deflate.c",
     "gzclose.c",
@@ -47,6 +47,13 @@ third_static_library("zlib") {
     "uncompr.c",
     "zutil.c",
   ]
+  if (is_win) {
+    sources += [
+      "contrib/minizip/ioapi.c",
+      "contrib/minizip/unzip.c",
+      "contrib/minizip/zip.c",
+    ]
+  }
   public = [
     "zconf.h",
     "zlib.h",
