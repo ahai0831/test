@@ -16,6 +16,18 @@
 #include <string>
 
 namespace assistant {
+namespace details {
+inline int stricmp(const char* _Str1, const char* _Str2) {
+#ifdef _WIN32
+  return ::stricmp(_Str1, _Str2);
+#else
+  /// 暂时无适应于此平台的实现
+  return strcasecmp(_Str1, _Str2);
+#endif
+}
+
+}  // namespace details
+
 struct StringMap {
  private:
   typedef std::string StringType;
@@ -23,7 +35,7 @@ struct StringMap {
   typedef StringType HeaderValue;
   struct MapCompare {
     bool operator()(const HeaderKey& left, const HeaderKey& right) const {
-      return stricmp(left.c_str(), right.c_str()) < 0;
+      return details::stricmp(left.c_str(), right.c_str()) < 0;
     }
   };
   typedef std::map<HeaderKey, HeaderValue, MapCompare> HeaderMap;
@@ -114,19 +126,20 @@ struct HttpRequest_v1 {
       if (special_operator.empty()) {
         break;
       }
-      if (stricmp(special_operator.c_str(), "StopConnect") == 0) {
+      if (details::stricmp(special_operator.c_str(), "StopConnect") == 0) {
         s = SPCECIALOPERATORS_STOPCONNECT;
         break;
       }
-      if (stricmp(special_operator.c_str(), "LimitDownloadSpeed") == 0) {
+      if (details::stricmp(special_operator.c_str(), "LimitDownloadSpeed") ==
+          0) {
         s = SPCECIALOPERATORS_LIMITDOWNLOADSPEED;
         break;
       }
-      if (stricmp(special_operator.c_str(), "LimitUploadSpeed") == 0) {
+      if (details::stricmp(special_operator.c_str(), "LimitUploadSpeed") == 0) {
         s = SPCECIALOPERATORS_LIMITUPLOADSPEED;
         break;
       }
-      if (stricmp(special_operator.c_str(), "ClearCache") == 0) {
+      if (details::stricmp(special_operator.c_str(), "ClearCache") == 0) {
         s = SPCECIALOPERATORS_CLEARCACHE;
         break;
       }

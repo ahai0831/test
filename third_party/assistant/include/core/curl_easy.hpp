@@ -244,15 +244,15 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
       [](const decltype(req.method) &method) -> RequestHttpMethod {
     RequestHttpMethod r = kUnsupport;
     do {
-      if (stricmp(method.c_str(), "GET") == 0) {
+      if (details::stricmp(method.c_str(), "GET") == 0) {
         r = kHttpGet;
         break;
       }
-      if (stricmp(method.c_str(), "POST") == 0) {
+	  if (details::stricmp(method.c_str(), "POST") == 0) {
         r = kHttpPost;
         break;
       }
-      if (stricmp(method.c_str(), "PUT") == 0) {
+	  if (details::stricmp(method.c_str(), "PUT") == 0) {
         r = kHttpPut;
         break;
       }

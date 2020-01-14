@@ -23,7 +23,6 @@ source_set("httpbusiness") {
     "//third_party/assistant",
     "//third_party/cloud_base",
     "//third_party/rxcpp",
-    "//third_party/scopeguard",
   ]
 
   all_dependent_configs = [ ":Default_config" ]
