@@ -55,7 +55,7 @@ third_config("libcurl_internal") {
       "SIZEOF_SHORT=2",
       "SIZEOF_SIZE_T=8",
       "USE_ARES",
-      "USE_SECTRANSP",
+      "USE_SECTRANSP",  #associate with darwinssl
     ]
   }
 }
@@ -69,6 +69,13 @@ third_config("libcurl_using") {
       "ws2_32.lib",
       "wldap32.lib",
       "crypt32.lib",
+    ]
+  }
+  if (is_mac) {
+    libs = [
+      "CoreFoundation.framework",
+      "Security.framework",
+      "LDAP.framework",
     ]
   }
 }
