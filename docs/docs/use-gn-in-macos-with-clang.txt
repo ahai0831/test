@@ -1,0 +1,31 @@
+1. 装好XCode，相关标志是，在终端中：
+clang --version
+命令可用；
+2. 装好brew，并通过brew装好p7zip, aria2等终端工具，相关标志是：
+7z --help
+aria2c --version
+命令可用；
+3. 将`//gn/`下的ninja-mac.zip解压保存到`//gn/ninja/`下，将gn-windows-amd64.zip解压保存到`//gn/gn/`下，
+相关标志是，在终端中cd到此仓库根目录，执行：
+source gn_terminal.sh
+之后，
+gn --version
+ninja --version
+命令可用；
+4. 解压相关的gn规则链，具体为：将`//gn/gn-build-master.zip`解压，将解压出的文件夹改名为`build`，并将此目录移动到此仓库根目录中，标志是：
+'//build/config/BUILDCONFIG.gn'此文件存在；
+5. 保证Python和Git等工具可用，相关标志是，在终端中：
+python --version
+git --version
+命令可用；
+6. 在公共组件仓库不可用，远端可用源网速较慢的场景下，尝试手动将所需的源码压缩包拷贝到相关的目录中去，具体路径为：
+`//third_party/*/`其中*为相应的第三方库的名称，相关脚本在校验对应源码包有效的情况下，将不会再从远端下载；在内网中，且公共组件仓库可用的情况下，可近乎秒下；
+7. 生成相关的GN构建
+gn gen --ide=xcode out/xcode
+再次强调gn gen命令只需要调用一次，如需重复调用应先clear。
+启动xcode工程（注意应在控制台中启动，不要从外部启动）
+open out/xcode/all.xcworkspace
+如需脱离XCode的IDE进行构建（便于在VSCode等外部IDE中调用脚本进行构建）
+ninja -C out/xcode
+
+备注：由于时间紧急，以上配置步骤暂时手动进行。待公共组件仓库恢复服务后，将自动化其中部分配置步骤，简化环境配置流程。
