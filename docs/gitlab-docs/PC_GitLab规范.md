@@ -1,45 +1,45 @@
-# PC GitLab�淶
+# PC GitLab规范
 
-## ����ԭ��
+## 基本原则
 
-+ ����Ϊ�������ع淶�������̣���������Ĺ�������
++ 以人为本：遵守规范化的流程，避免冗余的工作量；
 
-+ �������ȣ�����hotfix���͵ĺϲ����󣬱���ֱ�Ӻϲ���master�ϣ���֤ͨ�����ٸ�����Ҫ�����κϲ���
++ 上游优先：对于hotfix类型的合并请求，必须直接合并到master上，保证通过；再根据需要向下游合并；
 
-+ ����������������ֱ����master�ύ��ԭ���ϣ���������develope��֧�ύ�����ܱ�����֧�ĺϲ�������뾭��review������֤ͨ����
++ 持续交付：不允许直接向master提交；原则上，不建议向develope分支提交；向受保护分支的合并请求必须经过review，并保证通过。
 
-## ���ع淶
+## 遵守规范
 
-+ masterΪ�ܱ�����֧������������develope��hotfix_*��֧�ĺϲ����󣻺ϲ�ǰ���뱣֤ͨ��review��ȫ�����ԣ�
++ master为受保护分支，仅接收来自develope和hotfix_*分支的合并请求；合并前必须保证通过review和全部测试；
 
-+ develope��֧��master��ȡ��Ϊmaster�����η�֧��������master���������ܷ�֧�ĺϲ����󣻺ϲ�ǰ���뱣֤ͨ��review��ԭ���ϲ���ͨ�����Եķ�֧�ϲ�����Ӧ��أ�
++ develope分支从master拉取，为master的下游分支，仅接收master和其他功能分支的合并请求；合并前必须保证通过review，原则上不能通过测试的分支合并请求应打回；
 
-+ �����ܷ�֧����master��develope��hotfix_*�ķ�֧��������ϣ���develope��֧�ϲ�ǰ������rebase��ԭ���ϲ���һ��commit��������������ڷ�ɢ�����鴴�����������ܷ�֧��
++ 各功能分支（非master，develope，hotfix_*的分支）开发完毕，向develope分支合并前，做好rebase，原则上产生一个commit；如果代码量过于分散，建议创建复数个功能分支；
 
-+ ����Э������ͬһ�����ܣ�Ӧ��ǰ���ý�������޸�ͬһ�����³�ͻ�����ڡ����á��Ĵ���Σ�Ӧ�ύ����һ�����ķ�֧�в��ϲ���develope���ٴν�develope�ϲ������ڿ����ķ�֧�У�
++ 多人协作开发同一个功能，应提前做好解耦，避免修改同一处导致冲突；对于“共用”的代码段，应提交到另一独立的分支中并合并到develope，再次将develope合并到正在开发的分支中；
 
-+ �޸�master���ձ���ڵ��ض�����ȱ�ݣ����壬�������������̣����������ҳ�����ܲ����ã�ʱ������hotfix_*��֧���ϲ���master���ٴ������η�֧�ϲ����˴���һ�����֣���ȱ�ݽ�������develope�ϣ��������������ز��Դ���ı�д�������޸���������������Ĺ��ܷ�֧�����̲μ�4����
++ 修复master上普遍存在的特定功能缺陷（定义，阻塞到测试流程，如崩溃、白页、功能不可用）时，建立hotfix_*分支，合并到master后，再次向下游分支合并（此处有一个区分：若缺陷仅存在于develope上，建议优先完成相关测试代码的编写，将此修复视作需紧急开发的功能分支，流程参见4）；
 
-+ �����ض��汾ʱ��ѡ���master���ض��汾��tag;
++ 发布特定版本时，选择从master的特定版本打tag;
 
-## ע������
+## 注意事项
 
-+ ������֧ǰ���Ƚ���issue�����������ڼ�¼�ύ�汾��¼������
++ 建立分支前请先建立issue并关联用于记录提交历史和问题
 
-+ ��֧�������������أ�{WIP_��������}������������_#����issue���_��֧����
++ 分支命名规则请遵守：{WIP_开发者名}所属工作类型_#关联issue编号_分支描述
   
-  ������{WIP_tiany}feature_#130_improve_zlib_gn_support
+  举例：{WIP_tiany}feature_#130_improve_zlib_gn_support
 
-+ �����ڸ��˹�����֧�ϵĶ���ύ��¼��Ϊ��֤���߷�֧�ύ��¼�ɾ����࣬����mrǰӦ������squash�����������������������˵��ύ��¼��������������һ�¿ɱ�������
++ 个人工作分支上，若有多次本地提交记录，为保证远端分支提交记录干净整洁，创建mr前应该做好rebase，squash本地个人的提交记录，保留单条清晰明了的提交记录后推送至远端，特殊情况经达成一致可保留多条
 
-+ ���˹�����֧����mrǰӦ���ú͵�ǰ����develop��֧��rebase on�������ֳ�ͻ����mr�����߸�����
++ 个人工作分支创建mr前应做好当前develop分支的rebase on，出现冲突由mr发起者负责解决
 
-+ ���кϲ���developp��֧�Ĵ����Ӧ�þ����ϸ�Ĵ������󣬰�����������С�齻�������Master����
++ 所有合并至developp分支的代码均应该经过严格的代码评审的测试，包括但不限于小组交叉评审和Master评审
 
-+ С�齻������Ӧ�öԴ��������ʹ���淶���аѿأ����������Ӧ���ڶ�Ӧλ��comment���ڹ���issue�б�����mr�����߽����Ӧ���йرյ�ǰmr���޸Ĵ�������·���mr
++ 小组交叉评审应该对代码质量和代码规范进行把控，相关问题应该在原位置comment并在关联issue中备案，mr发起者解决后应关闭当前mr，修改后重新发起mr
 
-+ ���˹�����֧����mrʱ��Ӧ�����������Ϣ���������issue����assign����Ӧ�Ĵ��������ˣ���������������ͨ����Ӧcomment�ʵ�������assign��master������һ������
++ 个人工作分支发起mr时，应在description中描述相关信息，关联相关issue自动关闭，并依次assign给代码评审人，代码评审人评审通过后应comment描述评审和测试结果并assign给下一位代码评审人进行评审
 
-+ ���ڵ��������Ŀ��������Σ�Ӧ�����������߷�֧������֧������������עcoop��������ɺ���mr
++ 迭代合作开发时，应建立虚拟主线分支进行合作，开发者名标注coop，合作完成后发起mr，并由负责人负责清理远端分支
 
-+ ������Ӧ��������Զ�˲ֿ��ϵĸ��˷�֧
++ 开发者应定期清理远端的个人分支
