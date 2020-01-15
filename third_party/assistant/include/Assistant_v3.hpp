@@ -404,7 +404,7 @@ struct Assistant_v3 {
                             : assistant::core::libcurl_easy_closure::
                                   SpecialOpt::LimitDownloadSpeed,
                         closure->easy_handle, kSpeedLimit);
-                threadpool_data->ready_easy.Enqueue(std::move(opt));
+                threadpool_data->ready_easy.Enqueue(opt);
               }
             };
         for (const auto &x : vec) {
@@ -468,14 +468,22 @@ struct Assistant_v3 {
       : thread_closure(std::make_unique<assistant_v3_thread_closure>()) {}
   ~Assistant_v3() = default;
   /// 调用网络库发起异步请求
+#ifdef _WIN32
   void Assistant_v3::AsyncHttpRequest(const assistant::HttpRequest &request) {
+#else
+  void AsyncHttpRequest(const assistant::HttpRequest &request) {
+#endif
     auto i = std::make_unique<assistant::HttpRequest>(request);
     thread_closure->request_queue.Enqueue(i);
     thread_closure->request_notify.Notify();
   }
   /// 调用网络库发起同步请求
   /// 由于HttpResponse在此处返回时，必须被复制构造，应尽可能调用异步方法减少消耗
+#ifdef _WIN32
   assistant::HttpResponse Assistant_v3::SyncHttpRequest(
+#else
+  assistant::HttpResponse SyncHttpRequest(
+#endif
       const assistant::HttpRequest &request) {
     /// 优化掉一次HttpRequest的深度拷贝
     auto &cast_request = const_cast<assistant::HttpRequest &>(request);

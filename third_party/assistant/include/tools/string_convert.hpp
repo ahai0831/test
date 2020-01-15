@@ -20,7 +20,9 @@ typedef class chs_codecvt
   /// 注意"CHS"与平台相关，若需要跨平台的实现，需根据平台定义不同的cvt_name
   chs_codecvt() : codecvt_byname("CHS") {}
 } CHS;
+
 }  // namespace details
+#ifdef WIN32
 static inline std::string wstringToUtf8(const std::wstring& str) {
   std::wstring_convert<details::UTF8> strcvt(details::kBerr, details::kWerr);
   return strcvt.to_bytes(str);
@@ -40,6 +42,7 @@ static inline std::wstring ansiToWstring(const std::string& str) {
   std::wstring_convert<details::CHS> strcvt(details::kBerr, details::kWerr);
   return strcvt.from_bytes(str);
 }
+#endif
 
 static void StringSplit(const std::string& str, const std::string& split_char,
                         std::vector<std::string>& vec) {

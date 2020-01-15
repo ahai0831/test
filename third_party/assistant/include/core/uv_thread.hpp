@@ -45,7 +45,7 @@ struct libuv_threadmodel {
  public:
   /// TODO: 增加对线程模型的避免重入处理
   /// TODO: 显式指定禁用线程模型的移动构造、复制构造和=号运算符
-  libuv_threadmodel() : thread((void *)(0)){};
+  libuv_threadmodel() /*: thread((void *)(0))*/{};
   void ThreadCreate(thread_worker_cb worker, void *data) {
     uv_thread_create(&thread, worker, data);
   }

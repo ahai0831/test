@@ -45,10 +45,10 @@ source_set("assistant") {
     "//third_party/concurrentqueue",
     "//third_party/libcurl",
     "//third_party/libuv",
-    "//third_party/scopeguard",
   ]
 
-  all_dependent_configs = [ ":Default_config" ]
+  all_dependent_configs = [ ":Default_config",
+  "//build/config:c++14" ]
 }
 
 config("Default_config") {
