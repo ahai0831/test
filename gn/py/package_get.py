@@ -37,7 +37,16 @@ if __name__ == '__main__':
     abs_module_path = os.path.abspath(__file__)
     abs_module_dir = abs_module_path[:abs_module_path.rfind("\\")] + "\\"
     print(abs_module_dir)
+    # py_path = ''
     if (len(sys.argv) > 1):
+      #  if platform.system() == 'Darwin':
+      #   py_path = str(abs_module_path[:abs_module_path.rfind("/")])
+      #   pass
+      # if platform.system() == 'Windows':
+      #   py_path = str(abs_module_path[:abs_module_path.rfind("\\")])
+      #   pass
+      # print('Py_GetFolder_path:' + py_path)
+      # os.chdir(py_path)
       csv_path = str(sys.argv[1])
       print('csv_path:' + csv_path)
       # 保存路径为上层级
@@ -58,17 +67,19 @@ if __name__ == '__main__':
                 break
               with os.popen('aria2c' + ' -d ' + save_path + ' ' + url) as a:
                 message = a.read()
-                print(message)
-                last_line = message[-1]
-              # 判断是否成功，如果不成功就执行下行（TODO）
-              if (last_line.rfind('OK') != -1 and
-                  CalcSha1(file_path) == hash_value):
-                print('下载完成')
-                break
+                # print(message)
+                # last_line = message[-1]
+                # 判断是否成功，如果不成功就执行下行（TODO）
+                if (message.rfind('OK') != -1 and
+                    CalcSha1(file_path) == hash_value):
+                  print('download successed')
+                  break
               pass
             pass
         pass
       pass
-    print('MacOS')
+    else:
+      print('Fail:Args less')
+      pass
   else:
-    print('其他')
+    print('Other system')
