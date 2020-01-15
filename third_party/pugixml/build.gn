@@ -1,17 +1,27 @@
-source_set("pugixml") {
-  sources = [
-    "pugixml-1.10/include/pugiconfig.hpp",
-    "pugixml-1.10/include/pugixml.hpp",
-  ]
+import("//third_party/third_template.gni")
+library_version = "pugixml-1.10"
 
-  public = [
-    "pugixml-1.10/include/pugiconfig.hpp",
-    "pugixml-1.10/include/pugixml.hpp",
-  ]
+third_fetch_code("fetch_code") {
+  csv_file = library_version + ".csv"
 
-  all_dependent_configs = [ ":Default_config" ]
+  # Take care of the suffix name
+  package_file = library_version + ".tar.gz"
 }
 
-config("Default_config") {
-  include_dirs = [ "pugixml-1.10/include" ]
+third_config("pugixml_using") {
+  defines = []
+  include_dirs = [ "/src" ]
+}
+
+third_static_library("pugixml") {
+  deps = [
+    ":fetch_code",
+  ]
+  sources = [
+    "src/pugixml.cpp",
+  ]
+  public = [
+    "src/pugixml.hpp",
+  ]
+  public_configs = [ ":pugixml_using" ]
 }

@@ -1,39 +1,15 @@
 source_set("cloud_base") {
   sources = [
-    "include\AES\AES.h",
-    "include\DateHelper\DateHelper.h",
-    "include\HashAlgorithm\HMAC_SHA1.h",
-    "include\HashAlgorithm\SHA1.h",
-    "include\HashAlgorithm\SHA1Digest.h",
-    "include\HashAlgorithm\md5.h",
-    "include\MiniDump\MiniDump.h",
-    "include\UniqueMachineCode\UniqueMachineCode.h",
-    "include\UrlEncode\UrlEncode.h",
-    "include\base64\base64.h",
-    "include\filesystem_helper\filesystem_helper.h",
-    "include\process_version\process_version.h",
-    "include\rand\rand.h",
+    "src/AES/AES.cpp",
   ]
 
   public = [
-    "include\AES\AES.h",
-    "include\DateHelper\DateHelper.h",
-    "include\HashAlgorithm\HMAC_SHA1.h",
-    "include\HashAlgorithm\SHA1.h",
-    "include\HashAlgorithm\SHA1Digest.h",
-    "include\HashAlgorithm\md5.h",
-    "include\MiniDump\MiniDump.h",
-    "include\UniqueMachineCode\UniqueMachineCode.h",
-    "include\UrlEncode\UrlEncode.h",
-    "include\base64\base64.h",
-    "include\filesystem_helper\filesystem_helper.h",
-    "include\process_version\process_version.h",
-    "include\rand\rand.h",
+    "src/AES/AES.h",
   ]
 
-  all_dependent_configs = [ ":Default_config" ]
+  public_configs = [ ":cloud_base_using" ]
 }
 
-config("Default_config") {
-  include_dirs = [ "include" ]
+config("cloud_base_using") {
+  include_dirs = [ "src" ]
 }

@@ -7,7 +7,7 @@ source_set("rxcpp") {
     "include/rxcpp/rx.hpp",
   ]
 
-  all_dependent_configs = [ ":Default_config" ]
+  public_configs = [ ":Default_config" ]
 }
 
 config("Default_config") {
