@@ -1,10 +1,35 @@
 source_set("cloud_base") {
   sources = [
     "src/AES/AES.cpp",
+    "src/DateHelper/DateHelper.cpp",
+    "src/HashAlgorithm/HMAC_SHA1.cpp",
+    "src/HashAlgorithm/SHA1.cpp",
+    "src/HashAlgorithm/SHA1Digest.cpp",
+    "src/HashAlgorithm/md5.cpp",
+    "src/MiniDump/MiniDump.cpp",
+    "src/UniqueMachineCode/UniqueMachineCode.cpp",
+    "src/UrlEncode/UrlEncode.cpp",
+    "src/base64/base64.cpp",
+    "src/filesystem_helper/filesystem_helper.cpp",
+    "src/filesystem_helper/appdata_path.cpp",
+    "src/process_version/process_version.cpp",
+    "src/rand/rand.cpp",
   ]
 
   public = [
     "src/AES/AES.h",
+    "src/DateHelper/DateHelper.h",
+    "src/HashAlgorithm/HMAC_SHA1.h",
+    "src/HashAlgorithm/SHA1.h",
+    "src/HashAlgorithm/SHA1Digest.h",
+    "src/HashAlgorithm/md5.h",
+    "src/MiniDump/MiniDump.h",
+    "src/UniqueMachineCode/UniqueMachineCode.h",
+    "src/UrlEncode/UrlEncode.h",
+    "src/base64/base64.h",
+    "src/filesystem_helper/filesystem_helper.h",
+    "src/process_version/process_version.h",
+    "src/rand/rand.h",
   ]
 
   public_configs = [ ":cloud_base_using" ]
