@@ -4,10 +4,11 @@
 #include <iostream>
 #include <thread>
 //#include <unistd.h>
-#include <json\json.h>
 #include <chrono>
 #include <functional>
 #include <future>
+
+#include <json/json.h>
 
 void AstProcess(const char *process_info, OnProcessStart on_start,
                 OnProcessCallback on_callback) {
