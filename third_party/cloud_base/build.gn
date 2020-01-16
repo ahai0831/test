@@ -33,7 +33,9 @@ source_set("cloud_base") {
   ]
 
   # prevent some syntax errors
-  configs -= [ "//build/config/win:lean_and_mean" ]
+  if (is_win) {
+    configs -= [ "//build/config/win:lean_and_mean" ]
+  }
 
   public_configs = [ ":cloud_base_using" ]
 }
