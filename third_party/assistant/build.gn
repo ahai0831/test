@@ -47,8 +47,10 @@ source_set("assistant") {
     "//third_party/libuv",
   ]
 
-  all_dependent_configs = [ ":Default_config",
-  "//build/config:c++14" ]
+  public_configs = [ ":Default_config" ]
+  if (is_mac) {
+    public_configs += [ "//build/config:c++14" ]
+  }
 }
 
 config("Default_config") {

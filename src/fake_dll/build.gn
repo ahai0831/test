@@ -1,0 +1,17 @@
+
+config("fake_dll_using") {
+  include_dirs = [ "." ]
+}
+
+shared_library("fake_dll") {
+  deps = [
+    "//third_party/jsoncpp",
+  ]
+  sources = [
+    "fake_dll.cpp",
+  ]
+  public = [
+    "fake_dll.h",
+  ]
+  public_configs = [ ":fake_dll_using" ]
+}

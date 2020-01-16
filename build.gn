@@ -3,3 +3,8 @@ group("test") {
     "//test:HelloGN",
   ]
 }
+group("src") {
+  deps = [
+    "//src/fake_dll",
+  ]
+}

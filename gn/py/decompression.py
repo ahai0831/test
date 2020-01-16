@@ -1,51 +1,31 @@
 # coding=UTF-8
-import socket
-import time
-import sys
-import zipfile
-import tarfile
 
-
-# 解压zip
-def un_zip(file_name, des_dir):
-  """unzip zip file"""
-  zip_file = zipfile.ZipFile(file_name)
-  for names in zip_file.namelist():
-    zip_file.extract(names, des_dir + '/')
-  zip_file.close()
-
-
-# 解压tar
-def un_tar(file_name, des_dir):
-  # untar zip file"""
-  tar = tarfile.open(file_name)
-  names = tar.getnames()
-  for name in names:
-    tar.extract(name, des_dir + '/')
-  tar.close()
-
-
-# 脚本单端口检查
-# def ApplicationInstance():
-#   try:
-#     global s
-#     s = socket.socket()
-#     host = socket.gethostname()
-#     print(host)
-#     s.bind((host, 78888))
-#   except:
-#     print('instance is running...')
-
+# This is a temp impl. Should be imporved by xvrzh.
 if __name__ == '__main__':
   import os
   import sys
   import platform
   import shutil
-  # ApplicationInstance()
-  # while True:
-  if (platform.system() == 'Windows' or platform.system() == 'Darwin'):
-    # Mac需要配置7z
-    # elif (platform.system() == 'Darwin'):
+
+  if (platform.system() == 'Windows'):
+    abs_module_path = os.path.abspath(__file__)
+    abs_module_dir = abs_module_path[:abs_module_path.rfind("\\")] + "\\"
+    target_bat_file = os.path.join(
+        abs_module_dir, '..\\..\\vcproj\\batch-scripts\\decompression.bat')
+
+    zip_path = ''
+    zip_dec_path = ''
+    if (len(sys.argv) > 2):
+      zip_path = str(sys.argv[1])
+      zip_dec_path = str(sys.argv[2])
+      cmd_line = 'call cmd /C \"'+target_bat_file + \
+          ' ' + zip_path + ' ' + zip_dec_path+'\"'
+      print(cmd_line)
+      a = os.popen(cmd_line)
+      text = a.read()
+      print(text)
+  # Mac需要配置7z
+  elif (platform.system() == 'Darwin'):
     abs_module_path = os.path.abspath(__file__)
     # abs_module_dir = abs_module_path[:abs_module_path.rfind("\\")] + "\\"
     print('CurrentPy_Path:' + abs_module_path)
@@ -77,15 +57,7 @@ if __name__ == '__main__':
     if (len(sys.argv) > 2):
       zip_path = str(sys.argv[1])
       zip_dec_path = str(sys.argv[2])
-      # zip_path = str(sys.argv[1]).replace('../..', py_path_retval)
-      # zip_dec_path = str(sys.argv[2]).replace('../..', py_path_retval)
-      # if platform.system() == 'Windows':
-      #   zip_path = zip_path.replace('/', '\\')
-      #   zip_dec_path = zip_dec_path.replace('/', '\\')
-      #   pass
-      print('PyFolder_path:' + py_path)
-      os.system('echo ' + 'WaitUzipPath:' + zip_path + ' UzipToPath:' +
-                zip_dec_path)
+      os.system('echo ' + 'fils:' + zip_path + 'dir:' + zip_dec_path)
       if (len(sys.argv) > 3):
         zip_type = sys.argv[3]
         pass
@@ -118,43 +90,25 @@ if __name__ == '__main__':
         pass
       print('UzipCommand:' + shell_line)
       os.chdir(py_path)
-      if os.system('7z') != 0:
-        print('Without 7z command')
-        # windows 7z失效就走回原来的方式
-        if platform.system() == 'Windows':
-          abs_module_path = os.path.abspath(__file__)
-          abs_module_dir = abs_module_path[:abs_module_path.rfind("\\")] + "\\"
-          target_bat_file = os.path.join(
-              abs_module_dir,
-              '..\\..\\vcproj\\batch-scripts\\decompression.bat')
-          zip_path = ''
-          zip_dec_path = ''
-          if (len(sys.argv) > 2):
-            zip_path = str(sys.argv[1])
-            zip_dec_path = str(sys.argv[2])
-            cmd_line = 'call cmd /C \"'+target_bat_file + \
-                ' ' + zip_path + ' ' + zip_dec_path+'\"'
-            print(cmd_line)
-            a = os.popen(cmd_line)
-            text = a.read()
-            print(text)
-        pass
-      else:
-        with os.popen(shell_line) as a:
-          text = a.read()
-          print(text)
-          if text.rfind('Everything is Ok') != -1:
-            os.system('echo ' + 'Uzip successed')
-          else:
-            os.system('echo ' + 'Uzip failed')
+      with os.popen(shell_line) as a:
+        text = a.read()
+        print(text)
+        if text.rfind('Everything is Ok') != -1:
+          os.system('echo ' + 'Uzip successed')
+        else:
+          os.system('echo ' + 'Uzip failed')
           sys.exit(0)
-        pass
-    else:
-      os.system('echo ' + 'Fail:Args less')
-      sys.exit(0)
-      pass
+      print('cmd order:' + shell_line)
+      with os.popen(shell_line) as a:
+        text = a.read()
+        # if len(text) == 0:
+        # os.system('echo ' + '解压失败')
+        # for line in text:
+        # os.system('echo ' + line)
+        if text.rfind('Everything is Ok') != -1:
+          os.system('echo ' + 'Extract success')
+        else:
+          os.system('echo ' + 'Extract failed')
+    # print('MacOS uZip')
   else:
-    print('Other system')
-    sys.exit(0)
-else:
-  sys.exit(0)
+    print('Unsupport platform.')

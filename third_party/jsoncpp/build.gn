@@ -1,19 +1,31 @@
-source_set("jsoncpp") {
-  sources = [
-    "jsoncpp-1.8.4/include/json/reader.h",
-    "jsoncpp-1.8.4/include/json/value.h",
-    "jsoncpp-1.8.4/include/json/writer.h",
-  ]
+import("//third_party/third_template.gni")
+library_version = "jsoncpp-1.8.4"
 
-  public = [
-    "jsoncpp-1.8.4/include/json/reader.h",
-    "jsoncpp-1.8.4/include/json/value.h",
-    "jsoncpp-1.8.4/include/json/writer.h",
-  ]
+third_fetch_code("fetch_code") {
+  csv_file = library_version + ".csv"
 
-  all_dependent_configs = [ ":Default_config" ]
+  # Take care of the suffix name
+  package_file = library_version + ".tar.gz"
 }
 
-config("Default_config") {
-  include_dirs = [ "jsoncpp-1.8.4/include" ]
+third_config("jsoncpp_using") {
+  defines = []
+  include_dirs = [ "/include" ]
+}
+third_config("jsoncpp_internal") {
+  defines = []
+  include_dirs = [ "/src/lib_json" ]
+}
+
+third_static_library("jsoncpp") {
+  deps = [
+    ":fetch_code",
+  ]
+  sources = [
+    "/src/lib_json/json_reader.cpp",
+    "/src/lib_json/json_value.cpp",
+    "/src/lib_json/json_writer.cpp",
+  ]
+  configs = [ ":jsoncpp_internal" ]
+  public_configs = [ ":jsoncpp_using" ]
 }

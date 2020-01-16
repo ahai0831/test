@@ -1,3 +1,4 @@
+# 标记此项目为弃用，已有其替代品，任何项目或源码都不应再引用此项目内的源文件
 source_set("scopeguard") {
   sources = [
     "include/scopeguard.h",

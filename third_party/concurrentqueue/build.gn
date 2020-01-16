@@ -7,7 +7,7 @@ source_set("concurrentqueue") {
     "include/concurrentqueue.h",
   ]
 
-  all_dependent_configs = [ ":Default_config" ]
+  public_configs = [ ":Default_config" ]
 }
 
 config("Default_config") {

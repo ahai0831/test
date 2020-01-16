@@ -1,12 +1,12 @@
 #include "filesystem_helper.h"
 
-#include <ShlObj.h>
+#include <Shlobj.h>
 using std::wstring;
 
 namespace cloud_base {
 namespace filesystem_helper {
 bool get_appdata_path(std::wstring &appdata_path) {
-  TCHAR tmpPath[MAX_PATH] = {'\0'};
+  WCHAR tmpPath[MAX_PATH] = {'\0'};
   //  get the temp path of application
   //  SHGFP_TYPE_CURRENT (Retrieve the folder's current path.)
   HRESULT result = ::SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL,
