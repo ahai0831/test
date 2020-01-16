@@ -12,8 +12,8 @@ inline uint64_t timestamp_millisecond() {
       .count();
 }
 
-inline std::chrono::high_resolution_clock::time_point timestamp_time_point() {
-  return std::chrono::high_resolution_clock::now();
+inline std::chrono::system_clock::time_point timestamp_time_point() {
+  return std::chrono::system_clock::now();
 }
 }  // namespace
 namespace cloud_base {
@@ -26,7 +26,7 @@ uint64_t get_millisecond_time_stamp() { return timestamp_millisecond(); }
 /// 获取GMT时间戳，格式为"%a, %d %b %Y %H:%M:%S GMT"
 std::string get_gmt_time_stamp() {
   auto gmt_origin = timestamp_time_point();
-  auto gmt_t = std::chrono::high_resolution_clock::to_time_t(gmt_origin);
+  auto gmt_t = std::chrono::system_clock::to_time_t(gmt_origin);
   auto gmt = gmtime(&gmt_t);
   char buff[64] = {0};
   char *wday[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -46,7 +46,7 @@ std::string get_gmt_time_stamp() {
 /// 获取当前时间戳，格式为"%Y-%m-%d %H:%M:%S.xxx"
 std::string get_time_stamp() {
   auto local_origin = timestamp_time_point();
-  auto local_t = std::chrono::high_resolution_clock::to_time_t(local_origin);
+  auto local_t = std::chrono::system_clock::to_time_t(local_origin);
   auto local = localtime(&local_t);
 
   char buff[32] = {0};

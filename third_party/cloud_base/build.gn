@@ -6,7 +6,6 @@ source_set("cloud_base") {
     "src/HashAlgorithm/SHA1.cpp",
     "src/HashAlgorithm/SHA1Digest.cpp",
     "src/HashAlgorithm/md5.cpp",
-    "src/MiniDump/MiniDump.cpp",
     "src/UniqueMachineCode/UniqueMachineCode.cpp",
     "src/UrlEncode/UrlEncode.cpp",
     "src/base64/base64.cpp",
@@ -23,7 +22,6 @@ source_set("cloud_base") {
     "src/HashAlgorithm/SHA1.h",
     "src/HashAlgorithm/SHA1Digest.h",
     "src/HashAlgorithm/md5.h",
-    "src/MiniDump/MiniDump.h",
     "src/UniqueMachineCode/UniqueMachineCode.h",
     "src/UrlEncode/UrlEncode.h",
     "src/base64/base64.h",
@@ -32,12 +30,23 @@ source_set("cloud_base") {
     "src/rand/rand.h",
   ]
 
+  if (is_win) {
+    sources += [ "src/MiniDump/MiniDump.cpp" ]
+    public += [ "src/MiniDump/MiniDump.h" ]
+  }
+
   # prevent some syntax errors
   if (is_win) {
     configs -= [ "//build/config/win:lean_and_mean" ]
   }
-
+  configs += [ ":cloud_base_internal" ]
   public_configs = [ ":cloud_base_using" ]
+}
+
+config("cloud_base_internal") {
+  if (is_mac) {
+    configs = [ "//build/config:c++14" ]
+  }
 }
 
 config("cloud_base_using") {

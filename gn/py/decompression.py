@@ -90,37 +90,14 @@ if __name__ == '__main__':
         pass
       print('UzipCommand:' + shell_line)
       os.chdir(py_path)
-      if os.system('7z') != 0:
-        print('Without 7z command')
-        # windows 7z失效就走回原来的方式
-        if platform.system() == 'Windows':
-          abs_module_path = os.path.abspath(__file__)
-          abs_module_dir = abs_module_path[:abs_module_path.rfind("\\")] + "\\"
-          target_bat_file = os.path.join(
-              abs_module_dir,
-              '..\\..\\vcproj\\batch-scripts\\decompression.bat')
-          zip_path = ''
-          zip_dec_path = ''
-          if (len(sys.argv) > 2):
-            zip_path = str(sys.argv[1])
-            zip_dec_path = str(sys.argv[2])
-            cmd_line = 'call cmd /C \"'+target_bat_file + \
-                ' ' + zip_path + ' ' + zip_dec_path+'\"'
-            print(cmd_line)
-            a = os.popen(cmd_line)
-            text = a.read()
-            print(text)
-        pass
-      else:
-        with os.popen(shell_line) as a:
-          text = a.read()
-          print(text)
-          if text.rfind('Everything is Ok') != -1:
-            os.system('echo ' + 'Uzip successed')
-          else:
-            os.system('echo ' + 'Uzip failed')
+      with os.popen(shell_line) as a:
+        text = a.read()
+        print(text)
+        if text.rfind('Everything is Ok') != -1:
+          os.system('echo ' + 'Uzip successed')
+        else:
+          os.system('echo ' + 'Uzip failed')
           sys.exit(0)
-        pass
       print('cmd order:' + shell_line)
       with os.popen(shell_line) as a:
         text = a.read()

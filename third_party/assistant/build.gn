@@ -48,7 +48,7 @@ source_set("assistant") {
   ]
 
   public_configs = [ ":Default_config" ]
-  if (is_clang) {
+  if (is_mac) {
     public_configs += [ "//build/config:c++14" ]
   }
 }
