@@ -4,6 +4,14 @@
 #else
 #define AST_API __declspec(dllimport)
 #endif
+
+#elif __APPLE__
+#ifdef GENERAL_RESTFUL_SDK_EXPORTS
+#define AST_API __attribute__ ((visibility("default")))
+#else
+#define AST_API __attribute__ ((visibility("hidden")))
+#endif
+
 #else
 #define AST_API
 #endif  // WIN32
