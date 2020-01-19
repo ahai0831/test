@@ -41,7 +41,7 @@ source_set("assistant") {
     "include/tools/uuid.hpp",
   ]
 
-  deps = [
+  public_deps = [
     "//third_party/concurrentqueue",
     "//third_party/libcurl",
     "//third_party/libuv",

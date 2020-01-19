@@ -1,0 +1,21 @@
+config("cloud189_sessionhelper_internal") {
+  include_dirs = [ "." ]
+}
+
+source_set("session_helper") {
+  deps = [
+    "//third_party/cloud_base",
+  ]
+  public_deps = [
+    "//third_party/assistant",
+  ]
+  sources = [
+    "session_helper.cpp",
+    "session_helper.h",
+  ]
+  public = [
+    "session_helper.h",
+  ]
+  configs += [ ":cloud189_sessionhelper_internal" ]
+  public_configs = [ "//src:src_using" ]
+}

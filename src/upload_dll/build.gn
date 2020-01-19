@@ -1,0 +1,25 @@
+config("upload_dll_using") {
+  include_dirs = [ "." ]
+}
+
+shared_library("upload_dll") {
+  deps = [
+    "//src/cloud189/restful:cloud189_uploader",
+    "//src/cloud189/session_helper",
+    "//third_party/httpbusiness",
+    "//third_party/jsoncpp",
+  ]
+  sources = [
+    "ast_singleton.cpp",
+    "ast_singleton.h",
+    "solve_cloud189_uploader.cpp",
+    "solve_cloud189_uploader.h",
+    "upload_dll.cpp",
+    "upload_dll.h",
+  ]
+  public = [
+    "upload_dll.h",
+  ]
+  configs += [ "//src:src_using" ]
+  public_configs = [ ":upload_dll_using" ]
+}

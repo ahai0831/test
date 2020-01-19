@@ -21,10 +21,10 @@ source_set("httpbusiness") {
 
   deps = [
     "//third_party/cloud_base",
-    "//third_party/rxcpp",
   ]
   public_deps = [
     "//third_party/assistant",
+    "//third_party/rxcpp",
   ]
 
   public_configs = [ ":Default_config" ]

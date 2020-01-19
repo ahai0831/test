@@ -1,0 +1,3 @@
+config("src_using") {
+  include_dirs = [ "." ]
+}
