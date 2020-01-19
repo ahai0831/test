@@ -98,12 +98,13 @@ struct uploader_thread_data {
         x_request_id(x_request_id_),
         oper_type(oper_type_),
         is_log(is_log_),
-        file_size({0}),
-        data_exist({false}),
-        already_upload_bytes({0}),
-        current_upload_bytes({0}),
-        int32_error_code({0}),
-        frozen({false}),
+        file_size(0),
+        data_exist(false),
+        already_upload_bytes(0),
+        current_upload_bytes(0),
+        int32_error_code(0),
+        init_success(false),
+        frozen(false),
         speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
   }
   /// 线程安全的数据成员
@@ -118,6 +119,7 @@ struct uploader_thread_data {
   std::atomic<int64_t> already_upload_bytes;  /// 获取续传状态中得到的已传数据量
   std::atomic<int64_t> current_upload_bytes;  /// 上传文件数据中每次的已传数据量
   std::atomic<int32_t> int32_error_code;  /// 错误码
+  std::atomic<bool> init_success;  /// 代表是否在构造期间发生错误
   /// 以下为确认文件上传完成后解析到的字段
   lockfree_string_closure<std::string> commit_id;
   lockfree_string_closure<std::string> commit_name;
@@ -164,13 +166,13 @@ std::shared_ptr<uploader_thread_data> InitThreadData(
   Json::Value json_value;
   ReaderHelper(upload_info, json_value);
   /// 改为jsoncpp_helper内的工具函数进行解析
-  const auto& local_filepath = GetString(json_value["localPath"]);
-  const auto& last_md5 = GetString(json_value["md5"]);
-  const auto& last_upload_id = GetString(json_value["uploadFileId"]);
-  const auto& parent_folder_id = GetString(json_value["parentFolderId"]);
-  const auto oper_type = GetInt(json_value["opertype"]);
-  const auto is_log = GetInt(json_value["isLog"]);
-  std::string x_request_id = GetString(json_value["X-Request-ID"]);
+  const auto& local_filepath = GetString(json_value["local_path"]);
+  const auto& last_md5 = GetString(json_value["last_md5"]);
+  const auto& last_upload_id = GetString(json_value["last_upload_id"]);
+  const auto& parent_folder_id = GetString(json_value["parent_folder_id"]);
+  const auto oper_type = GetInt(json_value["oper_type"]);
+  const auto is_log = GetInt(json_value["is_log"]);
+  std::string x_request_id = GetString(json_value["x_request_id"]);
   if (x_request_id.empty()) {
     x_request_id = assistant::tools::uuid::generate();
   }
@@ -196,7 +198,7 @@ GenerateDataCallback(
             info["md5"] = thread_data->file_md5.load();
             info["upload_id"] = thread_data->upload_file_id.load();
             info["file_size"] = thread_data->file_size.load();
-            info["X-Request-ID"] = thread_data->x_request_id;
+            info["x_request_id"] = thread_data->x_request_id;
             /// 已传输数据量
             auto transferred_size = thread_data->already_upload_bytes.load() +
                                     thread_data->current_upload_bytes.load();
@@ -253,7 +255,7 @@ GenerateDataCallback(
       info["md5"] = thread_data->file_md5.load();
       info["upload_id"] = thread_data->upload_file_id.load();
       info["file_size"] = thread_data->file_size.load();
-      info["X-Request-ID"] = thread_data->x_request_id;
+      info["x_request_id"] = thread_data->x_request_id;
       /// 已传输数据量
       auto transferred_size = thread_data->already_upload_bytes.load() +
                               thread_data->current_upload_bytes.load();
@@ -263,7 +265,12 @@ GenerateDataCallback(
       info["transferred_size"] = transferred_size;
       info["data_exist"] = thread_data->data_exist.load();
       info["file_upload_url"] = thread_data->file_upload_url.load();
-      info["int32_error_code"] = thread_data->int32_error_code.load();
+      const auto int32_error_code = thread_data->int32_error_code.load();
+      info["int32_error_code"] = int32_error_code;
+      if (0 != int32_error_code) {
+        /// 仅在“构造”失败导致触发的完成回调时，才加上此字段
+        info["init_success"] = thread_data->init_success.load();
+      }
       /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
       int32_t ec = thread_data->int32_error_code.load();
       if (ec == 0) {
@@ -932,6 +939,8 @@ Uploader::Uploader(const std::string& upload_info,
     thread_data->int32_error_code =
         Cloud189::ErrorCode::nderr_file_access_error;
     data->null_file_callback(*data->master_control);
+  } else {
+    thread_data->init_success = true;
   }
 }
 
