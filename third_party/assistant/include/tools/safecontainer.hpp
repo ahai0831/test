@@ -7,6 +7,7 @@
 #include <map>
 #include <mutex>
 #include <set>
+#include <vector>
 
 namespace assistant {
 namespace tools {

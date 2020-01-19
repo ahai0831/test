@@ -1,0 +1,32 @@
+config("cloud189_apis_internal") {
+  include_dirs = [ "." ]
+}
+
+source_set("cloud189_upload") {
+  deps = [
+    "//src/cloud189/error_code",
+    "//src/cloud189/session_helper",
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+    "//third_party/jsoncpp",
+    "//third_party/pugixml",
+  ]
+  sources = [
+    "comfirm_upload_file_complete.cpp",
+    "comfirm_upload_file_complete.h",
+    "create_upload_file.cpp",
+    "create_upload_file.h",
+    "get_upload_status.cpp",
+    "get_upload_status.h",
+    "upload_file_data.cpp",
+    "upload_file_data.h",
+  ]
+  public = [
+    "comfirm_upload_file_complete.h",
+    "create_upload_file.h",
+    "get_upload_status.h",
+    "upload_file_data.h",
+  ]
+  configs += [ ":cloud189_apis_internal" ]
+  public_configs = [ "//src:src_using" ]
+}

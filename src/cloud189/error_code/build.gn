@@ -1,0 +1,15 @@
+config("cloud189_ec_internal") {
+  include_dirs = [ "." ]
+}
+
+source_set("error_code") {
+  sources = [
+    "error_code.cpp",
+    "error_code.h",
+  ]
+  public = [
+    "error_code.h",
+  ]
+  configs += [ ":cloud189_ec_internal" ]
+  public_configs = [ "//src:src_using" ]
+}

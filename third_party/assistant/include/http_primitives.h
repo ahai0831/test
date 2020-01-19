@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef HTTPPRIMITIVES_H__
 #define HTTPPRIMITIVES_H__
 #if defined(_MSC_VER)
@@ -21,7 +21,7 @@ inline int stricmp(const char* _Str1, const char* _Str2) {
 #ifdef _WIN32
   return ::stricmp(_Str1, _Str2);
 #else
-  /// ÔİÊ±ÎŞÊÊÓ¦ÓÚ´ËÆ½Ì¨µÄÊµÏÖ
+  /// æš‚æ—¶æ— é€‚åº”äºæ­¤å¹³å°çš„å®ç°
   return strcasecmp(_Str1, _Str2);
 #endif
 }
@@ -86,7 +86,7 @@ struct StringMap {
     for (const auto& x : _str_map) {
       extends_str.append(x.first + ": " + x.second + ";");
     }
-    // ×îºóÒ»¸ö';'×Ö·û²»ĞèÒª¡£
+    // æœ€åä¸€ä¸ª';'å­—ç¬¦ä¸éœ€è¦ã€‚
     if (!extends_str.empty()) {
       extends_str.erase(extends_str.end() - 1);
     }
@@ -99,7 +99,7 @@ struct StringMap {
     }
     return headers_str;
   }
-  /// ÒÆ¶¯¹¹Ôì·½·¨
+  /// ç§»åŠ¨æ„é€ æ–¹æ³•
   StringMap(StringMap&& map) { swap(map); };
   void swap(StringMap& _Right) { _str_map.swap(_Right._str_map); }
   StringMap(const StringMap&) = default;
@@ -184,7 +184,7 @@ struct HttpRequest_v1 {
         break;
     }
   };
-  /// = ²Ù×÷·û£¨²»¸´ÖÆsolve_func»Øµ÷£©
+  /// = æ“ä½œç¬¦ï¼ˆä¸å¤åˆ¶solve_funcå›è°ƒï¼‰
   HttpRequest_v1& operator=(HttpRequest_v1 const& req) {
     method = req.method;
     url = req.url;
@@ -193,13 +193,13 @@ struct HttpRequest_v1 {
     extends = req.extends;
     return *this;
   };
-  /// ÔÊĞí¸´ÖÆ¹¹Ôì·½·¨£¬£¨Éî¶È¿½±´£©»ñµÃÏàÍ¬µÄHttpRequest
+  /// å…è®¸å¤åˆ¶æ„é€ æ–¹æ³•ï¼Œï¼ˆæ·±åº¦æ‹·è´ï¼‰è·å¾—ç›¸åŒçš„HttpRequest
   HttpRequest_v1(HttpRequest_v1 const& req) {
     *this = req;
     this->solve_func = req.solve_func;
     this->retval_func = req.retval_func;
   };
-  /// ÒÆ¶¯¹¹Ôì·½·¨
+  /// ç§»åŠ¨æ„é€ æ–¹æ³•
   HttpRequest_v1(HttpRequest_v1&& req) {
     method.swap(req.method);
     url.swap(req.url);
@@ -211,25 +211,25 @@ struct HttpRequest_v1 {
   };
 
  private:
-  /// ½ûÓÃÄ¬ÈÏ¹¹Ôì·½·¨
+  /// ç¦ç”¨é»˜è®¤æ„é€ æ–¹æ³•
   HttpRequest_v1() = delete;
 };
 struct HttpResponse_v1 {
   struct CallbackBase {
    public:
     HttpRequest::TransCbRetvalCallback retval_callback;
-    /// DestroyÓÃÓÚÏú»Ù×ÊÔ´£¬²¢Ó¦±ÜÃâÖØ¸´Ïú»ÙµÄ¸±×÷ÓÃ
+    /// Destroyç”¨äºé”€æ¯èµ„æºï¼Œå¹¶åº”é¿å…é‡å¤é”€æ¯çš„å‰¯ä½œç”¨
     virtual void Destroy(){};
-    /// VaildÓÃÓÚÅĞ¶Ï×ÓÀàµÄ¹¹ÔìÊÇ·ñÓĞĞ§£¨ÈçÕë¶Ô¾ä±ú¡¢Ö¸ÕëµÈ£©
+    /// Vaildç”¨äºåˆ¤æ–­å­ç±»çš„æ„é€ æ˜¯å¦æœ‰æ•ˆï¼ˆå¦‚é’ˆå¯¹å¥æŸ„ã€æŒ‡é’ˆç­‰ï¼‰
     virtual bool Valid() const { return false; };
-    /// ×ÓÀàÎŞĞè¸ÄĞ´´Ë·½·¨£¬Ö±½ÓÓÃ¼´¿É
+    /// å­ç±»æ— éœ€æ”¹å†™æ­¤æ–¹æ³•ï¼Œç›´æ¥ç”¨å³å¯
     virtual size_t Returnvalue(size_t value) const final {
       (nullptr != retval_callback) ? retval_callback(value) : (void)(0);
       return value;
     };
-    /// Ö§³ÖÄ¬ÈÏ¹¹Ôì·½·¨
+    /// æ”¯æŒé»˜è®¤æ„é€ æ–¹æ³•
     CallbackBase() = default;
-    /// ¶Ô»ùÀà£¬ÒÔĞéÎö¹¹·½·¨ÏÔÊ½ÇåÀí×ÊÔ´£¬±ÜÃâÍâ²¿Ğ´Ôà´úÂë
+    /// å¯¹åŸºç±»ï¼Œä»¥è™šææ„æ–¹æ³•æ˜¾å¼æ¸…ç†èµ„æºï¼Œé¿å…å¤–éƒ¨å†™è„ä»£ç 
     virtual ~CallbackBase() {
       if (Valid()) {
         Destroy();
@@ -237,7 +237,7 @@ struct HttpResponse_v1 {
     };
 
    private:
-    /// ½ûÓÃÒÆ¶¯¹¹Ôì¡¢¸´ÖÆ¹¹Ôì¡¢=²Ù×÷·ûÖØÔØ·½·¨
+    /// ç¦ç”¨ç§»åŠ¨æ„é€ ã€å¤åˆ¶æ„é€ ã€=æ“ä½œç¬¦é‡è½½æ–¹æ³•
     CallbackBase(CallbackBase const&) = delete;
     CallbackBase& operator=(CallbackBase const&) = delete;
     CallbackBase(CallbackBase&&) = delete;
@@ -250,11 +250,11 @@ struct HttpResponse_v1 {
   void* data;
   std::unique_ptr<CallbackBase> transfer_callback;
   std::atomic_bool stop_flag;
-  /// Ö§³ÖÄ¬ÈÏ¹¹Ôì·½·¨
+  /// æ”¯æŒé»˜è®¤æ„é€ æ–¹æ³•
   HttpResponse_v1()
       : status_code(0), data(static_cast<void*>(this)), stop_flag({false}) {}
-  /// = ²Ù×÷·û£¨ÀûÓÃswap¸ÄĞ´Ô­Éî¶È¿½±´ĞĞÎª£©
-  /// ±£Ö¤HttpResponse½öÓĞÒ»·İ
+  /// = æ“ä½œç¬¦ï¼ˆåˆ©ç”¨swapæ”¹å†™åŸæ·±åº¦æ‹·è´è¡Œä¸ºï¼‰
+  /// ä¿è¯HttpResponseä»…æœ‰ä¸€ä»½
   HttpResponse_v1& operator=(HttpResponse_v1 const& res) {
     auto& cast_res = const_cast<HttpResponse_v1&>(res);
     std::swap(status_code, cast_res.status_code);
@@ -265,12 +265,12 @@ struct HttpResponse_v1 {
     data = static_cast<void*>(this);
     return *this;
   };
-  /// ÒÆ¶¯¹¹Ôì·½·¨
+  /// ç§»åŠ¨æ„é€ æ–¹æ³•
   HttpResponse_v1(HttpResponse_v1&& res)
       : status_code(0), data(static_cast<void*>(this)), stop_flag({false}) {
     *this = res;
   };
-  /// ¸´ÖÆ¹¹Ôì·½·¨
+  /// å¤åˆ¶æ„é€ æ–¹æ³•
   HttpResponse_v1(const HttpResponse_v1& res) { *this = res; };
 
  private:

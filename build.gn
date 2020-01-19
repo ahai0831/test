@@ -1,10 +1,12 @@
 group("test") {
   deps = [
     "//test:HelloGN",
+    "//test/test_upload_dll",
   ]
 }
 group("src") {
   deps = [
     "//src/fake_dll",
+    "//src/upload_dll",
   ]
 }
