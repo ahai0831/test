@@ -377,6 +377,7 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
               strtoll(req.extends.Get("upload_offset").c_str(), nullptr, 0);
           const auto kUploadLength =
               strtoll(req.extends.Get("upload_length").c_str(), nullptr, 0);
+ #ifdef _WIN32
           const auto kUploadMmapParam =
               static_cast<assistant::core::readwrite::ReadwriteByMmap::RW>(
                   assistant::core::readwrite::ReadwriteByMmap::RW::need_read |
@@ -386,6 +387,7 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
               std::make_unique<assistant::core::readwrite::ReadwriteByMmap>(
                   kUploadFilepath.c_str(), kUploadFilesize, kUploadOffset,
                   kUploadLength, kUploadMmapParam);
+                  
           if (nullptr != read_cbdata_mmap_ptr &&
               read_cbdata_mmap_ptr->Valid()) {
             curl_easy_setopt(easy_handle, CURLOPT_UPLOAD, 1L);
@@ -399,6 +401,27 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
             curl_easy_setopt(easy_handle, CURLOPT_READDATA,
                              response_callback_data);
           }
+#else
+            auto read_cbdata_file_ptr =
+            std::make_unique<assistant::core::readwrite::ReadByFile>(
+                kUploadFilepath.c_str(), kUploadFilesize, kUploadOffset,
+                kUploadLength);
+
+        if (nullptr != read_cbdata_file_ptr &&
+                read_cbdata_file_ptr->Valid()) {
+              curl_easy_setopt(easy_handle, CURLOPT_UPLOAD, 1L);
+              curl_easy_setopt(
+                  easy_handle, CURLOPT_READFUNCTION,
+                  assistant::core::readwrite::ReadByFile::Callback);
+              curl_easy_setopt(easy_handle, CURLOPT_INFILESIZE_LARGE,
+                               kUploadLength);
+              res.transfer_callback = std::move(read_cbdata_file_ptr);
+              res.transfer_callback->retval_callback = std::move(req.retval_func);
+              curl_easy_setopt(easy_handle, CURLOPT_READDATA,
+                               response_callback_data);
+            }
+#endif
+
         } else {
           /// 从Body中读取数据
           const curl_off_t kDataLength = req.body.size();
