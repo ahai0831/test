@@ -43,6 +43,7 @@ int main(void) {
   test_info_json["is_log"] = int32_t(0);
 
   auto test_info = WriterHelper(test_info_json);
+  printf("%s\n", test_info.c_str());
 
   AstProcess(
       test_info.c_str(),

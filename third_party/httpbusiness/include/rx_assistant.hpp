@@ -287,7 +287,7 @@ inline static ObsType loop(const ObsType& obs,
                            std::function<bool(const rx_assistant::HttpResult&,
                                               assistant::HttpRequest&)>
                                callback) {
-  return obs.flat_map([callback](rx_assistant::HttpResult& res) -> ObsType {
+  return obs.flat_map([callback](rx_assistant::HttpResult res) -> ObsType {
     assistant::HttpRequest iterate_req("");
     return callback(res, iterate_req)
                ? loop(create(iterate_req), callback)
@@ -310,7 +310,7 @@ inline static ObsType loop_with_delay(
     const ObsType& obs, std::function<bool(const rx_assistant::HttpResult&,
                                            assistant::HttpRequest&, int32_t&)>
                             callback) {
-  return obs.flat_map([callback](rx_assistant::HttpResult& res) -> ObsType {
+  return obs.flat_map([callback](rx_assistant::HttpResult res) -> ObsType {
     assistant::HttpRequest iterate_req("");
     int32_t delay_milliseconds = 0;
     return callback(res, iterate_req, delay_milliseconds)

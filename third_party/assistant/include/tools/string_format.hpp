@@ -16,7 +16,7 @@ namespace string {
 
 static std::string StringFormat(const char *format, ...) {
   std::string result;
-  va_list args = nullptr;
+  va_list args /*= nullptr*/;
   va_start(args, format);
   auto size_1 = vsnprintf(nullptr, 0, format, args);
   result.resize(size_1 + 1);

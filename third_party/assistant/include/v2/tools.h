@@ -2,11 +2,16 @@
 #ifndef ASSISTANT_TOOLS_H__
 #define ASSISTANT_TOOLS_H__
 
+#ifdef _WIN32
 #include <codecvt>
+#endif
+
 #include <string>
 #include <vector>
 namespace assistant {
 namespace tools {
+
+  #ifdef _WIN32
 static std::string wstringToUtf8(const std::wstring& str) {
   std::wstring_convert<std::codecvt_utf8<wchar_t>> strcvt(std::string(""),
                                                           std::wstring(L""));
@@ -32,6 +37,7 @@ static std::wstring ansiToWstring(const std::string& str) {
       new std::codecvt_byname<wchar_t, char, std::mbstate_t>("CHS"));
   return gbkStringConverter.from_bytes(str);
 }
+#endif
 
 static void StringSplit(const std::string& str, const std::string& split_char,
                  std::vector<std::string>& vec) {

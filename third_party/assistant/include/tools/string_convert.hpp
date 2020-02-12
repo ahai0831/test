@@ -2,7 +2,10 @@
 #ifndef _TOOLS_STRING_CONVERT_H__
 #define _TOOLS_STRING_CONVERT_H__
 
+#ifdef _WIN32
 #include <codecvt>
+#endif
+
 #include <string>
 #include <vector>
 namespace assistant {
@@ -11,6 +14,7 @@ namespace string {
 namespace details {
 static const auto kBerr = "";
 static const auto kWerr = L"";
+#ifdef _WIN32
 typedef std::codecvt_utf8<wchar_t> UTF8;
 /// 由于wstring_convert的构造函数不支持同时传入指定的_Pcvt_arg与_Berr_arg和_Werr_arg
 /// 为了保证异常安全，需通过定义一个类来继承std::codecvt_byname，以支持指定_Berr_arg和_Werr_arg
@@ -20,7 +24,7 @@ typedef class chs_codecvt
   /// 注意"CHS"与平台相关，若需要跨平台的实现，需根据平台定义不同的cvt_name
   chs_codecvt() : codecvt_byname("CHS") {}
 } CHS;
-
+#endif
 }  // namespace details
 #ifdef WIN32
 static inline std::string wstringToUtf8(const std::wstring& str) {

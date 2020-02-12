@@ -39,7 +39,7 @@ UploadFileMasterControl::UploadFileMasterControl(
       file_ptr_(nullptr),
       file_exists_(0),
       status_call_back_(nullptr),
-      stop_flag_({false}),
+      stop_flag_(false),
       retry_count_ufd_all(0),
       retry_count_ufd_current(0) {
   file_path_ = file_path;

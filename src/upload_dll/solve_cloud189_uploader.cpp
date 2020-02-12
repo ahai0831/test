@@ -97,7 +97,8 @@ int32_t DoUpload(const std::string &upload_info,
     }
     /// 加入任务容器
     ast->uuid_map.Put(uuid, (1 << 0));
-    ast->cloud189_uploader_map.Emplace(std::string(uuid), uploader);
+    auto key_in_map = uuid;
+    ast->cloud189_uploader_map.Emplace(key_in_map, uploader);
 
     /// 启动任务
     uploader_obj.AsyncStart();

@@ -27,8 +27,8 @@ struct rx_multi_worker {
   /// 声明所需用到的类型
  public:
   //////////////////////////////////////////////////////////////////////////
-  typedef typename M Material;
-  typedef typename R Report;
+  typedef M Material;
+  typedef R Report;
   typedef rxcpp::observable<Report> DataSource;
   typedef std::vector<Material> MaterialVector;
   typedef std::unique_ptr<Material> MaterialType;
@@ -99,8 +99,8 @@ struct rx_multi_worker {
     std::atomic_int32_t worker_number;
     std::atomic_int32_t worker_limit;
     internal_data()
-        : stop_flag({false}),
-          serious_error({false}),
+        : stop_flag(false),
+          serious_error(false),
           worker_number(0),
           worker_limit(0) {}
     /// 禁用移动构造、复制构造、=号操作符

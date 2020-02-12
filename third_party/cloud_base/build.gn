@@ -6,12 +6,8 @@ source_set("cloud_base") {
     "src/HashAlgorithm/SHA1.cpp",
     "src/HashAlgorithm/SHA1Digest.cpp",
     "src/HashAlgorithm/md5.cpp",
-    "src/UniqueMachineCode/UniqueMachineCode.cpp",
     "src/UrlEncode/UrlEncode.cpp",
     "src/base64/base64.cpp",
-    "src/filesystem_helper/appdata_path.cpp",
-    "src/filesystem_helper/filesystem_helper.cpp",
-    "src/process_version/process_version.cpp",
     "src/rand/rand.cpp",
   ]
 
@@ -22,17 +18,23 @@ source_set("cloud_base") {
     "src/HashAlgorithm/SHA1.h",
     "src/HashAlgorithm/SHA1Digest.h",
     "src/HashAlgorithm/md5.h",
-    "src/UniqueMachineCode/UniqueMachineCode.h",
     "src/UrlEncode/UrlEncode.h",
     "src/base64/base64.h",
-    "src/filesystem_helper/filesystem_helper.h",
-    "src/process_version/process_version.h",
     "src/rand/rand.h",
   ]
 
   if (is_win) {
-    sources += [ "src/MiniDump/MiniDump.cpp" ]
-    public += [ "src/MiniDump/MiniDump.h" ]
+    sources += [ "src/MiniDump/MiniDump.cpp",
+    "src/process_version/process_version.cpp",
+    "src/filesystem_helper/filesystem_helper.cpp",
+    "src/filesystem_helper/appdata_path.cpp",
+    "src/UniqueMachineCode/UniqueMachineCode.cpp",
+     ]
+    public += [ "src/MiniDump/MiniDump.h",
+    "src/process_version/process_version.h",
+    "src/filesystem_helper/filesystem_helper.h",
+    "src/UniqueMachineCode/UniqueMachineCode.h",
+     ]
   }
 
   # prevent some syntax errors

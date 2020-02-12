@@ -10,9 +10,8 @@
 #include <filesystem_helper/filesystem_helper.h>
 #include <process_version/process_version.h>
 #include <v2/tools.h>
-#include <v2/uuid.h>
+//#include <v2/uuid.h>
 #include <tools/string_format.hpp>
-
 #include "cloud189/error_code/error_code.h"
 #include "cloud189/session_helper/session_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
@@ -85,12 +84,12 @@ bool HttpRequestEncode(const std::string& params_json,
     Cloud189::SessionHelper::AddCloud189Signature(request);
 
     // set url params
-    request.url += assistant::tools::string::StringFormat(
-        "?clientType=%s&version=%s&channelId=%s&rand=%s",
-        GetClientType().c_str(),
-        cloud_base::process_version::GetCurrentProcessVersion().c_str(),
-        GetChannelId().c_str(),
-        restful_common::rand_helper::GetRandString().c_str());
+    // request.url += assistant::tools::string::StringFormat(
+    //     "?clientType=%s&version=%s&channelId=%s&rand=%s",
+    //     GetClientType().c_str(),
+    //     cloud_base::process_version::GetCurrentProcessVersion().c_str(),
+    //     GetChannelId().c_str(),
+    //     restful_common::rand_helper::GetRandString().c_str());
 
     // set header
     request.headers.Set("Content-Type", GetContentType());

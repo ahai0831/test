@@ -303,8 +303,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
 
     /// 计算MD5开始前，获取文件大小
     uint64_t file_size = 0;
-    cloud_base::filesystem_helper::GetFileSize(
-        assistant::tools::string::utf8ToWstring(file_path), file_size);
+    //cloud_base::filesystem_helper::GetFileSize(
+    //    assistant::tools::string::utf8ToWstring(file_path), file_size);
     if (nullptr != thread_data) {
       thread_data->file_size.store(file_size);
     }

@@ -61,8 +61,8 @@ struct SlicedownloadMastercontrol {
         total_length(0),
         processed_bytes(0),
         current_worker(0),
-        processing_flag({false}),
-        stop_flag({false}),
+        processing_flag(false),
+        stop_flag(false),
         total_error_count(0),
         error_count(0) {}
   /// 阻塞式处理分片下载流程

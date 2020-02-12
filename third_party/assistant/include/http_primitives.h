@@ -49,7 +49,7 @@ struct StringMap {
            HeaderMap::mapped_type& header_value) const {
     auto iter = _str_map.find(header_key);
     bool success_flag = false;
-    if (success_flag = (_str_map.end() != iter)) {
+    if ((success_flag = (_str_map.end() != iter))) {
       header_value = iter->second;
     }
     return success_flag;
@@ -61,7 +61,7 @@ struct StringMap {
   bool Delete(const HeaderMap::key_type& header_key) {
     auto iter = _str_map.find(header_key);
     bool success_flag = false;
-    if (success_flag = (_str_map.end() != iter)) {
+    if ((success_flag = (_str_map.end() != iter))) {
       _str_map.erase(iter);
     }
     return success_flag;
@@ -249,10 +249,10 @@ struct HttpResponse_v1 {
   StringMap extends;
   void* data;
   std::unique_ptr<CallbackBase> transfer_callback;
-  std::atomic_bool stop_flag;
+  std::atomic<bool> stop_flag;
   /// 支持默认构造方法
   HttpResponse_v1()
-      : status_code(0), data(static_cast<void*>(this)), stop_flag({false}) {}
+	  : status_code(0), data(static_cast<void*>(this)), stop_flag(false) {}
   /// = 操作符（利用swap改写原深度拷贝行为）
   /// 保证HttpResponse仅有一份
   HttpResponse_v1& operator=(HttpResponse_v1 const& res) {
@@ -267,7 +267,7 @@ struct HttpResponse_v1 {
   };
   /// 移动构造方法
   HttpResponse_v1(HttpResponse_v1&& res)
-      : status_code(0), data(static_cast<void*>(this)), stop_flag({false}) {
+	  : status_code(0), data(static_cast<void*>(this)), stop_flag(false) {
     *this = res;
   };
   /// 复制构造方法

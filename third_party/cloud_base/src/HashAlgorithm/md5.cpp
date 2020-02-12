@@ -107,7 +107,7 @@ void MD5::update(FILE *file) {
   uint4 len;
 
   if (nullptr != file) {
-    while (len = static_cast<uint4>(fread(buffer, 1, 1024, file)))
+    while ((len = static_cast<uint4>(fread(buffer, 1, 1024, file))))
       update(buffer, len);
   }
 }
@@ -162,7 +162,7 @@ unsigned char *MD5::raw_digest() {
   uint1 *s = new (std::nothrow) uint1[16];
 
   if (!finalized) {
-    delete s;
+    delete[] s;
     return nullptr;
   }
 
@@ -182,7 +182,7 @@ char *MD5::hex_digest() {
   char *s = new (std::nothrow) char[33];
 
   if (!finalized) {
-    delete s;
+    delete[] s;
     return nullptr;
   }
 

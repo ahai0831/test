@@ -86,10 +86,10 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetString(json_str["MD5"]);
 
     uint64_t file_size;
-    if (!cloud_base::filesystem_helper::GetFileSize(
-            assistant::tools::utf8ToWstring(localPath), file_size)) {
-      break;
-    }
+    // if (!cloud_base::filesystem_helper::GetFileSize(
+    //         assistant::tools::utf8ToWstring(localPath), file_size)) {
+    //   break;
+    // }
 
     request.url = fileUploadUrl;
     // request.method = GetMethod();
