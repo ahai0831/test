@@ -28,7 +28,6 @@ using namespace std;
 
 namespace cloud_base {
 namespace filecommon_unix {
-namespace {
 
 // get file name
 bool GetFileName(const std::string file_path, std::string &file_name) {
@@ -74,7 +73,19 @@ bool guarantee_directory_exists(const std::string &dir_path) {
     result = true;
     closedir(dir);
   } else {
-    mkdir(sourceDir, 'w+');
+    //      S_IRWXU  00700权限，代表该文件所有者拥有读，写和执行操作的权限
+    //      S_IRUSR(S_IREAD) 00400权限，代表该文件所有者拥有可读的权限
+    //      S_IWUSR(S_IWRITE) 00200权限，代表该文件所有者拥有可写的权限
+    //      S_IXUSR(S_IEXEC) 00100权限，代表该文件所有者拥有执行的权限
+    //      S_IRWXG 00070权限，代表该文件用户组拥有读，写和执行操作的权限
+    //      S_IRGRP 00040权限，代表该文件用户组拥有可读的权限
+    //      S_IWGRP 00020权限，代表该文件用户组拥有可写的权限
+    //      S_IXGRP 00010权限，代表该文件用户组拥有执行的权限
+    //      S_IRWXO 00007权限，代表其他用户拥有读，写和执行操作的权限
+    //      S_IROTH 00004权限，代表其他用户拥有可读的权限
+    //      S_IWOTH 00002权限，代表其他用户拥有可写的权限
+    //      S_IXOTH 00001权限，代表其他用户拥有执行的权限
+    mkdir(sourceDir, 00700);
     if ((dir = opendir(sourceDir)) != NULL) {
       result = true;
       closedir(dir);
@@ -111,7 +122,8 @@ bool get_file_list(const string &dirPath, const string &suffix,
       if (entry.d_type != DT_DIR) { /* save to file */
         // cout << "a" << endl;
         string sFile = entry.d_name;
-        int iPos = sFile.find.find_last_of(".");
+        //        int iPos = sFile.find.find_last_of(".");
+        int iPos = (int)sFile.find_last_of(".");
         if ((iPos == string::npos) ||
             (strcmp(suffix.c_str(), sFile.substr(iPos).c_str()))) {
           continue;
@@ -164,23 +176,6 @@ bool GetFileSize(const std::string &file_path, uint64_t &file_size) {
   return true;
 }
 
-// 获取文件
-bool GetFileLastChange(const char *file_path, std::string &file_modify_date) {
-  struct stat buf;
-  FILE *pFile;
-  pFile = fopen(file_path, "r");
-  int fd = fileno(pFile);
-  fstat(fd, &buf);
-  time_t t = buf.st_mtime;
-  // struct tm lt;
-  // localtime_r(&t, &lt);
-  // char timbuf[80];
-  // 处理为时间字符串
-  file_modify_date = DatetimeToString(t);
-  fclose(pFile);
-  return !file_modify_date.empty();
-}
-
 /// 字符串
 std::string DatetimeToString(time_t time) {
   tm *tm_ = localtime(&time);  // 将time_t格式转换为tm结构体
@@ -223,6 +218,23 @@ std::string DatetimeToString(time_t time) {
   return str;  // 返回转换日期时间后的string变量。
 }
 
+// 获取文件
+bool GetFileLastChange(const char *file_path, std::string &file_modify_date) {
+  struct stat buf;
+  FILE *pFile;
+  pFile = fopen(file_path, "r");
+  int fd = fileno(pFile);
+  fstat(fd, &buf);
+  time_t t = buf.st_mtime;
+  // struct tm lt;
+  // localtime_r(&t, &lt);
+  // char timbuf[80];
+  // 处理为时间字符串
+  file_modify_date = DatetimeToString(t);
+  fclose(pFile);
+  return !file_modify_date.empty();
+}
+
 std::string GetCurrentProcessVersion() {
   CFBundleRef ref = CFBundleGetMainBundle();
   // 构建版本
@@ -253,6 +265,9 @@ std::string GetCurrentProcessVersion() {
 }
 
 // 3、获取mac地址
+static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices);
+static kern_return_t GetMACAddress(io_iterator_t intfIterator,
+                                   UInt8 *MACAddress, UInt8 bufferSize);
 std::string get_mac_address() {
   // struct ifreq ifr;
   // struct ifconf ifc;
@@ -295,12 +310,14 @@ std::string get_mac_address() {
   kernResult = FindEthernetInterfaces(&intfIterator);
   if (KERN_SUCCESS != kernResult) {
     printf("FindEthernetInterfaces returned 0x%08x\n", kernResult);
-    return (char *)kernResult;
+    //    return (char *)kernResult;
+    return std::to_string(kernResult);
   } else {
     kernResult = GetMACAddress(intfIterator, MACAddress, sizeof(MACAddress));
     if (KERN_SUCCESS != kernResult) {
       printf("GetMACAddress returned 0x%08x\n", kernResult);
-      return (char *)kernResult;
+      return std::to_string(kernResult);
+      //      return (char *)kernResult;
     } else {
       printf(
           "This system's built-in MAC address is "
@@ -317,10 +334,6 @@ std::string get_mac_address() {
   (void)IOObjectRelease(intfIterator);  // Release the iterator.
   return MACstring;
 }
-
-static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices);
-static kern_return_t GetMACAddress(io_iterator_t intfIterator,
-                                   UInt8 *MACAddress, UInt8 bufferSize);
 
 // Returns an iterator containing the primary (built-in) Ethernet interface. The
 // caller is responsible for releasing the iterator after the caller is done
@@ -459,7 +472,5 @@ static kern_return_t GetMACAddress(io_iterator_t intfIterator,
   }
   return kernResult;
 }
-
-}  // namespace
-}  // namespace filecommon
+}  // namespace filecommon_unix
 }  // namespace cloud_base
