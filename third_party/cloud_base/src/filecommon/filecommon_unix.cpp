@@ -27,7 +27,7 @@
 using namespace std;
 
 namespace cloud_base {
-namespace filecommon {
+namespace filecommon_unix {
 namespace {
 
 // get file name

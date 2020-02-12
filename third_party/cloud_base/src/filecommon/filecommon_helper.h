@@ -1,10 +1,13 @@
 #pragma once
+#ifndef FILECOMMON_H__
+#define FILECOMMON_H__
+
 #include <cinttypes>
 #include <string>
 #include <vector>
-namespace cloud_base {
-namespace filecommon_unix {
 
+namespace cloud_base {
+namespace file_common {
 //  input a file path,get and write the file name to the reference
 //  parameter(file_name)
 //  return true if get file name successful,return false if failed
@@ -29,12 +32,6 @@ bool guarantee_directory_exists(const std::string& dir_path);
 bool get_file_list(const std::string& dirPath, const std::string& suffix,
                    std::vector<std::string>& vec);
 
-// Get current process version
-// return the version infomation if success
-// return "" if failed
-std::string GetCurrentProcessVersion();
-
-// get Mac address
-std::string get_mac_address(void);
-}  // namespace filecommon_unix
+}  // namespace file_common
 }  // namespace cloud_base
+#endif  // FILECOMMON_WIN_H__
