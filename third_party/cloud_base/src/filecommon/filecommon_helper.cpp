@@ -16,7 +16,7 @@ bool GetFileName(const std::string file_path, std::string& file_name) {
     file_name = tools::string::wstringToUtf8(file_name_wstr);
   }
   return result;
-#elif
+#else
   return filecommon_unix::GetFileName(file_path, file_name);
 #endif
 }
@@ -25,17 +25,16 @@ bool GetFileLastChange(const char* file_path, std::string& file_modify_date) {
 #ifdef _WIN32
   return filecommon_win::GetFileLastChange(
       tools::string::utf8ToWstring(file_path), file_modify_date);
-#elif
-  return filecommon_unix::get
-#endif
+#else
   return filecommon_unix::GetFileLastChange(file_path, file_modify_date);
+#endif
 }
 
 bool GetFileSize(const std::string& file_path, uint64_t& file_size) {
 #ifdef _WIN32
   return filecommon_win::GetFileSize(tools::string::utf8ToWstring(file_path),
                                      file_size);
-#elif
+#else
   return filecommon_unix::GetFileSize(file_path, file_size);
 #endif
 }
@@ -44,7 +43,7 @@ bool guarantee_directory_exists(const std::string& dir_path) {
 #ifdef _WIN32
   return filecommon_win::guarantee_directory_exists(
       tools::string::utf8ToWstring(dir_path));
-#elif
+#else
   return filecommon_unix::guarantee_directory_exists(dir_path);
 
 #endif
@@ -65,7 +64,7 @@ bool get_file_list(const std::string& dirPath, const std::string& suffix,
     }
   }
   return result;
-#elif
+#else
   return filecommon_unix::get_file_list(dirPath, suffix, vec);
 #endif
 }

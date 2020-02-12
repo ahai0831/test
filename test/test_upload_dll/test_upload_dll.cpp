@@ -21,10 +21,10 @@ int main(void) {
   /// ÉèÖÃµÇÂ¼
   /// Éú³ÉConfig×Ö·û´®
   Json::Value save_cloud189_session;
-  save_cloud189_session.append("2b2d56b9-92ec-4214-ae61-cbe79b99e600");
-  save_cloud189_session.append("8A01789EC67579348460701AD565EAAD");
-  save_cloud189_session.append("76c7be65-0367-46c7-844a-7c86655d29ef_family");
-  save_cloud189_session.append("8A01789EC67579348460701AD565EAAD");
+  save_cloud189_session.append("95505f74-9291-443f-9dde-684aaefcbb4c");
+  save_cloud189_session.append("2D6FBBD2630E71A626614DFFD599696E");
+  save_cloud189_session.append("dddd3bf5-95c5-4735-a1e2-644a670e617d_family");
+  save_cloud189_session.append("2D6FBBD2630E71A626614DFFD599696E");
   Json::Value config;
   config["save_cloud189_session"] = save_cloud189_session;
   const auto config_str = WriterHelper(config);

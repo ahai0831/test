@@ -13,6 +13,7 @@
 #include <process_version/process_version.h>
 #include <v2/tools.h>
 //#include <v2/uuid.h>
+#include <filecommon/filecommon_helper.h>
 #include <tools/string_format.hpp>
 
 #include "cloud189/error_code/error_code.h"
@@ -83,10 +84,9 @@ bool HttpRequestEncode(const std::string& params_json,
         restful_common::jsoncpp_helper::GetInt64(json_str["offsetLength"]);
 
     uint64_t file_size;
-    /*if (!cloud_base::filesystem_helper::GetFileSize(
-            assistant::tools::utf8ToWstring(localPath), file_size)) {
+    if (!cloud_base::file_common::GetFileSize(localPath, file_size)) {
       break;
-    }*/
+    }
 
     request.url = fileUploadUrl;
     request.method = GetMethod();
@@ -95,12 +95,10 @@ bool HttpRequestEncode(const std::string& params_json,
     Cloud189::SessionHelper::AddCloud189Signature(request);
 
     // set url params
-    // request.url += assistant::tools::string::StringFormat(
-    //     "?clientType=%s&version=%s&channelId=%s&rand=%s",
-    //     GetClientType().c_str(),
-    //     cloud_base::process_version::GetCurrentProcessVersion().c_str(),
-    //     GetChannelId().c_str(),
-    //     restful_common::rand_helper::GetRandString().c_str());
+    request.url += assistant::tools::string::StringFormat(
+        "?clientType=%s&version=%s&channelId=%s&rand=%s",
+        GetClientType().c_str(), "1.0.0.0", GetChannelId().c_str(),
+        restful_common::rand_helper::GetRandString().c_str());
 
     // set header
     request.headers.Set("Content-Type", GetContentType());

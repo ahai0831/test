@@ -11,6 +11,7 @@
 
 /// 改为依赖闭包，避免直接依赖平台特定的系统级API
 // #include <windows.h>
+#include <filecommon/filecommon_helper.h>
 #include <filesystem_helper/filesystem_helper.h>
 
 namespace rx_assistant {
@@ -48,11 +49,12 @@ inline static std::string md5_sync_calculate_with_process(
   std::unique_ptr<assistant::core::readwrite::ReadByFile> readonly_file;
 #endif
   do {
-    const std::wstring filepath_w /*= assistant::tools::string::utf8ToWstring(file_path)*/;
+//     const std::wstring filepath_w /*= assistant::tools::string::utf8ToWstring(file_path)*/;
     /// 改成获取文件元数据
     uint64_t file_size = 0;
     //const auto file_exist =cloud_base::filesystem_helper::GetFileSize(filepath_w, file_size);
-    bool file_exist=false;
+    const auto file_exist =
+        cloud_base::file_common::GetFileSize(file_path, file_size);
     if (!file_exist) {
       break;
     }

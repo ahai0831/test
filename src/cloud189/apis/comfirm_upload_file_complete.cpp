@@ -84,12 +84,10 @@ bool HttpRequestEncode(const std::string& params_json,
     Cloud189::SessionHelper::AddCloud189Signature(request);
 
     // set url params
-    // request.url += assistant::tools::string::StringFormat(
-    //     "?clientType=%s&version=%s&channelId=%s&rand=%s",
-    //     GetClientType().c_str(),
-    //     cloud_base::process_version::GetCurrentProcessVersion().c_str(),
-    //     GetChannelId().c_str(),
-    //     restful_common::rand_helper::GetRandString().c_str());
+    request.url += assistant::tools::string::StringFormat(
+        "?clientType=%s&version=%s&channelId=%s&rand=%s",
+        GetClientType().c_str(), "1.0.0.0", GetChannelId().c_str(),
+        restful_common::rand_helper::GetRandString().c_str());
 
     // set header
     request.headers.Set("Content-Type", GetContentType());
