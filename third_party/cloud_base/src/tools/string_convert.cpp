@@ -1,14 +1,10 @@
-#pragma once
-#ifndef _TOOLS_STRING_CONVERT_H__
-#define _TOOLS_STRING_CONVERT_H__
+#include "string_convert.h"
 
 #ifdef _WIN32
 #include <codecvt>
 #endif
 
-#include <string>
-#include <vector>
-namespace assistant {
+namespace cloud_base {
 namespace tools {
 namespace string {
 namespace details {
@@ -26,30 +22,31 @@ typedef class chs_codecvt
 } CHS;
 #endif
 }  // namespace details
-#ifdef WIN32
-static inline std::string wstringToUtf8(const std::wstring& str) {
+
+#ifdef _WIN32
+std::string wstringToUtf8(const std::wstring& str) {
   std::wstring_convert<details::UTF8> strcvt(details::kBerr, details::kWerr);
   return strcvt.to_bytes(str);
 }
 
-static inline std::wstring utf8ToWstring(const std::string& str) {
+std::wstring utf8ToWstring(const std::string& str) {
   std::wstring_convert<details::UTF8> strcvt(details::kBerr, details::kWerr);
   return strcvt.from_bytes(str);
 }
 
-static inline std::string wstringToAnsi(const std::wstring& str) {
+std::string wstringToAnsi(const std::wstring& str) {
   std::wstring_convert<details::CHS> strcvt(details::kBerr, details::kWerr);
   return strcvt.to_bytes(str);
 }
 
-static inline std::wstring ansiToWstring(const std::string& str) {
+std::wstring ansiToWstring(const std::string& str) {
   std::wstring_convert<details::CHS> strcvt(details::kBerr, details::kWerr);
   return strcvt.from_bytes(str);
 }
 #endif
 
-static void StringSplit(const std::string& str, const std::string& split_char,
-                        std::vector<std::string>& vec) {
+void StringSplit(const std::string& str, const std::string& split_char,
+                 std::vector<std::string>& vec) {
   char splitchar = ';';
   if (!split_char.empty()) {
     splitchar = split_char[0];
@@ -74,6 +71,4 @@ static void StringSplit(const std::string& str, const std::string& split_char,
 
 }  // namespace string
 }  // namespace tools
-}  // namespace assistant
-
-#endif  // _TOOLS_STRING_CONVERT_H__
+}  // namespace cloud_base

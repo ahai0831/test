@@ -11,7 +11,7 @@
 #include <random>
 #include <string>
 
-#include <rand\rand.h>
+#include <rand/rand.h>
 namespace restful_common {
 namespace rand_helper {
 //  generate a rand string as xxxx_xxxxxxxx

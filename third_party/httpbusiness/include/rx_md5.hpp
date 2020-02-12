@@ -11,6 +11,7 @@
 
 /// 改为依赖闭包，避免直接依赖平台特定的系统级API
 // #include <windows.h>
+#include <filecommon/filecommon_helper.h>
 #include <filesystem_helper/filesystem_helper.h>
 
 namespace rx_assistant {
@@ -42,13 +43,18 @@ inline static std::string md5_sync_calculate_with_process(
   /// 若中途取消计算，返回空字符串
   /// 若文件读取完毕，计算的完整字节数与文件大小不一致，返回空字符串
   std::string result;
+#ifdef _WIN32
   std::unique_ptr<assistant::core::readwrite::ReadwriteByMmap> readonly_mmap;
+#else
+  std::unique_ptr<assistant::core::readwrite::ReadByFile> readonly_file;
+#endif
   do {
-    const auto filepath_w = assistant::tools::string::utf8ToWstring(file_path);
+//     const std::wstring filepath_w /*= assistant::tools::string::utf8ToWstring(file_path)*/;
     /// 改成获取文件元数据
     uint64_t file_size = 0;
+    //const auto file_exist =cloud_base::filesystem_helper::GetFileSize(filepath_w, file_size);
     const auto file_exist =
-        cloud_base::filesystem_helper::GetFileSize(filepath_w, file_size);
+        cloud_base::file_common::GetFileSize(file_path, file_size);
     if (!file_exist) {
       break;
     }
@@ -71,6 +77,9 @@ inline static std::string md5_sync_calculate_with_process(
       result = _md5.hex_string();
       break;
     }
+    /// 记录已计算的mmap长度
+    uint64_t calculate_done = 0;
+#ifdef _WIN32
     /// 文件存在，且大小大于0，才调用Mmap去读文件算MD5
     const auto mmap_type =
         static_cast<assistant::core::readwrite::ReadwriteByMmap::RW>(
@@ -86,8 +95,6 @@ inline static std::string md5_sync_calculate_with_process(
     /// 开启内存映射成功，才计算MD5
     const uint64_t caled_size = readonly_mmap->granularity
                                 << readonly_mmap->power_of_multiple;
-    /// 记录已计算的mmap长度
-    uint64_t calculate_done = 0;
     /// 初始化内存映射读取MD5所需回调
     details::mmap_md5_callback read_function =
         [&_md5, &calculate_done, process_cb](void *data, uint64_t len) {
@@ -102,6 +109,28 @@ inline static std::string md5_sync_calculate_with_process(
       readonly_mmap->AccessDelegate(
           caled_size, details::mmap_md5_access_callback, &read_function);
     }
+#else
+    readonly_file = std::make_unique<assistant::core::readwrite::ReadByFile>(
+        file_path.c_str(), file_size, range_begin, range_length);
+    if (nullptr == readonly_file || !readonly_file->Valid()) {
+      break;
+    }
+    const uint64_t caled_size = 4194304;  // 4MB
+    auto file_buffer = std::make_unique<unsigned char[]>(caled_size);
+    if (0 == caled_size || nullptr == file_buffer) {
+      break;
+    }
+    void *const &fileview = static_cast<void *>(&file_buffer[0]);
+    while (calculate_done < readonly_file->length && checkstop_cb()) {
+      /// TODO: 需要完成所需读取逻辑
+      auto readed_size = readonly_file->SelfCallback(
+          fileview, (1 << 0), caled_size, &*readonly_file);
+      _md5.update(static_cast<unsigned char *>(fileview),
+                  static_cast<uint32_t>(readed_size));
+      calculate_done += static_cast<uint32_t>(readed_size);
+      process_cb(static_cast<uint32_t>(readed_size));
+    }
+#endif
     _md5.finalize();
     /// 仅当读取的数据总长度===文件长度；支持range
     /// 计算MD5成功
@@ -109,9 +138,15 @@ inline static std::string md5_sync_calculate_with_process(
       result = _md5.hex_string();
     }
   } while (false);
+#ifdef _WIN32
   if (nullptr != readonly_mmap) {
     readonly_mmap->Destroy();
   }
+#else
+  if (nullptr != readonly_file) {
+    readonly_file->Destroy();
+  }
+#endif
   return result;
 }
 /// 异步计算MD5，仅需要结果，无需进度回显

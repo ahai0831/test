@@ -35,7 +35,7 @@ struct speed_counter {
   /// 传输实际的字节数（由于允许回滚，可能大于processed_bytes）
   std::atomic<UintType> finished_bytes;
   /// 用于数据源OnComplete 的原子bool标志
-  std::atomic_bool finished_flag;
+  std::atomic<bool> finished_flag;
 
  private:
   /// speedcounter使用的工作线程标识
@@ -54,7 +54,7 @@ struct speed_counter {
   speed_counter()
       : worker(default_worker::get_worker()),
         finished_bytes(0),
-        finished_flag({false}),
+		finished_flag(false),
         guard([this]() {
           subscription_map.ForeachDelegate(
               [](std::string, rxcpp::composite_subscription cs) {
@@ -107,7 +107,7 @@ struct speed_counter {
   bool UnregSubscription(const std::string& uuid) {
     bool flag = false;
     rxcpp::composite_subscription subscrition;
-    if (flag = subscription_map.Take(uuid, subscrition)) {
+    if ((flag = subscription_map.Take(uuid, subscrition))) {
       subscrition.unsubscribe();
     }
     return flag;
@@ -234,7 +234,7 @@ struct speed_counter_with_stop {
   bool UnregSubscription(const std::string& uuid) {
     bool flag = false;
     rxcpp::composite_subscription subscrition;
-    if (flag = subscription_map.Take(uuid, subscrition)) {
+    if ((flag = subscription_map.Take(uuid, subscrition))) {
       subscrition.unsubscribe();
     }
     return flag;
@@ -259,7 +259,7 @@ struct progress_notifier {
   std::atomic<UintType> finished_number;
   std::atomic<UintType> total_number;
   /// 用于数据源OnComplete 的原子bool标志
-  std::atomic_bool finished_flag;
+  std::atomic<bool> finished_flag;
 
  private:
   /// speedcounter使用的工作线程标识
@@ -277,7 +277,7 @@ struct progress_notifier {
       : worker(default_worker::get_worker()),
         finished_number(0),
         total_number(0),
-        finished_flag({false}),
+		finished_flag(false),
         guard([this]() {
           subscription_map.ForeachDelegate(
               [](std::string, rxcpp::composite_subscription cs) {
@@ -312,7 +312,7 @@ struct progress_notifier {
   bool UnregSubscription(const std::string& uuid) {
     bool flag = false;
     rxcpp::composite_subscription subscrition;
-    if (flag = subscription_map.Take(uuid, subscrition)) {
+    if ((flag = subscription_map.Take(uuid, subscrition))) {
       subscrition.unsubscribe();
     }
     return flag;

@@ -1,0 +1,9 @@
+executable("hello_gn") {
+  sources = [
+    "hello_gn.cpp",
+  ]
+  deps = [
+    "//src/cloud189/restful:cloud189_uploader",
+    "//third_party/httpbusiness",
+  ]
+}

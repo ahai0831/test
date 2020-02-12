@@ -116,12 +116,12 @@ struct sliceuploader_thread_data {
         per_slice_size(per_slice_size_),
         oper_type(oper_type_),
         is_log(is_log_),
-        file_size({0}),
-        data_exist({false}),
-        already_upload_bytes({0}),
-        current_upload_bytes({0}),
-        int32_error_code({0}),
-        frozen({false}),
+        file_size(0),
+        data_exist(false),
+        already_upload_bytes(0),
+        current_upload_bytes(0),
+        int32_error_code(0),
+        frozen(false),
         speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
   }
   /// 线程安全的数据成员

@@ -29,8 +29,8 @@ std::string get_gmt_time_stamp() {
   auto gmt_t = std::chrono::system_clock::to_time_t(gmt_origin);
   auto gmt = gmtime(&gmt_t);
   char buff[64] = {0};
-  char *wday[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-  char *mon[] = {"Jan",  "Feb", "Mar",  "Apr", "May", "June",
+  const char *wday[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+  const char *mon[] = {"Jan",  "Feb", "Mar",  "Apr", "May", "June",
                  "July", "Aug", "Sept", "Oct", "Nov", "Dec"};
   size_t len = strftime(buff, sizeof(buff) - 1, "%Y %H:%M:%S GMT", gmt);
   auto wday_temp = (gmt->tm_wday >= 0 && gmt->tm_wday <= 6) ? gmt->tm_wday : 0;

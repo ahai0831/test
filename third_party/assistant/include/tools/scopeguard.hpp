@@ -31,11 +31,19 @@ class scope_guard {
 };
 
 /// define some safe release macros for scopeguard
-inline static void SafeDelete(void*& p) {
-  if (nullptr != p) {
-    delete p;
-    p = nullptr;
+namespace details {
+template <typename T>
+void safedelete(T&& t) {
+  if (nullptr != t) {
+    delete t;
+    t = nullptr;
   }
+}
+}  // namespace details
+template <typename... Args>
+void SafeDelete(Args&&... args) {
+  std::initializer_list<int>{
+      (details::safedelete(std::forward<Args>(args)), 0)...};
 }
 
 inline static void SafeFree(void*& p) {

@@ -1,6 +1,6 @@
 group("test") {
   deps = [
-    "//test:HelloGN",
+    "//test/hello_gn",
     "//test/test_upload_dll",
   ]
 }

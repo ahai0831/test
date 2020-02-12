@@ -213,7 +213,7 @@ struct WriteByFile : public assistant::HttpResponse::CallbackBase {
     /// 要求目标文件必须已存在
     /// begin_offset小于filesize，且begin_offset+length-1小于filesize
     return (nullptr != file) && (begin_offset < filesize) &&
-           (begin_offset + length - 1 >= filesize);
+           (begin_offset + length - 1 < filesize);
   }
   virtual void Destroy() override final {
     if (nullptr != file) {
@@ -245,6 +245,98 @@ struct WriteByFile : public assistant::HttpResponse::CallbackBase {
   WriteByFile(WriteByFile const &) = delete;
   WriteByFile &operator=(WriteByFile const &) = delete;
   WriteByFile(WriteByFile &&) = delete;
+};
+
+struct ReadByFile : public assistant::HttpResponse::CallbackBase {
+ public:
+  bool count_size;
+  const int64_t filesize;
+  const int64_t begin_offset;
+  const int64_t length;
+  FILE *file;
+
+ private:
+  int64_t done;
+
+ public:
+  ReadByFile(const char *filepath, int64_t size, int64_t begin, int64_t len)
+      : count_size(false),
+        filesize(size),
+        begin_offset(begin),
+        length(len),
+        file(nullptr),
+        done(0) {
+    do {
+      //       auto w_filepath =
+      //       assistant::tools::string::utf8ToWstring(filepath); if
+      //       (w_filepath.empty()) {
+      //         break;
+      //       }
+      /// 初始化file句柄
+      /// 要求文件必须已经存在；以二进制方式打开；
+      /// 指定为顺序访问而优化磁盘缓存
+      //       file = _wfopen(w_filepath.c_str(), L"r+bS");
+      file = details::fopen(filepath, "rb");
+    } while (false);
+    /// 要求可成功移动file文件句柄到begin指向的位置
+    if (!Valid() || 0 != details::fseek(file, begin_offset, SEEK_SET)) {
+      Destroy();
+    }
+  }
+  virtual bool Valid() const override final {
+    /// 要求目标文件必须已存在
+    /// begin_offset小于filesize，且begin_offset+length-1小于filesize
+    return (nullptr != file) && (begin_offset < filesize) &&
+           (begin_offset + length - 1 < filesize);
+  }
+  virtual void Destroy() override final {
+    if (nullptr != file) {
+      fclose(file);
+      file = nullptr;
+    }
+  }
+  static size_t Callback(void *ptr, size_t size, size_t nmemb, void *data) {
+    auto &response = *static_cast<assistant::HttpResponse *>(data);
+    auto &cb = static_cast<ReadByFile &>(*response.transfer_callback);
+    auto total_size = size * nmemb;
+    size_t write_size = 0;
+    if (static_cast<uint64_t>(cb.done) + total_size <=
+        static_cast<uint64_t>(cb.length)) {
+      write_size = fread(ptr, size, nmemb, cb.file);
+      cb.done += total_size;
+    } else if (cb.done < cb.length) {
+      /// 这种情况下将发生截断；
+      /// 都已经发生内存块的截断了，这里即使发生数值的截断，也不会有更坏的结果了
+      write_size = fread(ptr, (1 << 0),
+                         static_cast<size_t>(cb.length - cb.done), cb.file);
+      cb.done += write_size;
+    }
+    return cb.Returnvalue(write_size);
+  }
+  static size_t SelfCallback(void *ptr, size_t size, size_t nmemb,
+                             ReadByFile *cb_ptr) {
+    auto &cb = *cb_ptr;
+    auto total_size = size * nmemb;
+    size_t write_size = 0;
+    if (static_cast<uint64_t>(cb.done) + total_size <=
+        static_cast<uint64_t>(cb.length)) {
+      write_size = fread(ptr, size, nmemb, cb.file);
+      cb.done += total_size;
+    } else if (cb.done < cb.length) {
+      /// 这种情况下将发生截断；
+      /// 都已经发生内存块的截断了，这里即使发生数值的截断，也不会有更坏的结果了
+      write_size = fread(ptr, (1 << 0),
+                         static_cast<size_t>(cb.length - cb.done), cb.file);
+      cb.done += write_size;
+    }
+    return cb.Returnvalue(write_size);
+  }
+
+ private:
+  ReadByFile() = delete;
+  ReadByFile(ReadByFile const &) = delete;
+  ReadByFile &operator=(ReadByFile const &) = delete;
+  ReadByFile(ReadByFile &&) = delete;
 };
 
 struct ReadwriteByMmap : public assistant::HttpResponse::CallbackBase {

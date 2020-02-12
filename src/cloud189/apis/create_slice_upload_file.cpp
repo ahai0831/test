@@ -97,13 +97,13 @@ bool HttpRequestEncode(const std::string& params_json,
     uint64_t sliceSize = 6291456;
 
     std::string file_last_change;
-    if (!cloud_base::filesystem_helper::GetFileSize(
-            assistant::tools::utf8ToWstring(localPath), size) ||
-        !cloud_base::filesystem_helper::GetFileName(
-            assistant::tools::utf8ToWstring(localPath), file_name)) {
-      break;
-    }
-    std::string file_name_temp = assistant::tools::wstringToUtf8(file_name);
+    // if (!cloud_base::filesystem_helper::GetFileSize(
+    //         assistant::tools::utf8ToWstring(localPath), size) ||
+    //     !cloud_base::filesystem_helper::GetFileName(
+    //         assistant::tools::utf8ToWstring(localPath), file_name)) {
+    //   break;
+    // }
+    std::string file_name_temp /*= assistant::tools::wstringToUtf8(file_name)*/;
 
     request.url = GetHost() + GetURI();
     request.method = GetMethod();

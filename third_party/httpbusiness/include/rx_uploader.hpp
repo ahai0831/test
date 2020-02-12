@@ -105,13 +105,13 @@ struct rx_uploader {
    public:
     explicit rx_uploader_data(const proof::proof_obs_packages &proof_orders)
         : orders(proof_orders),
-          current_stage({proof::UploadInitial}),
-          create_upload_total_error_count({0}),
-          create_upload_current_error_count({0}),
-          check_upload_total_error_count({0}),
-          check_upload_current_error_count({0}),
+          current_stage(proof::UploadInitial),
+          create_upload_total_error_count(0),
+          create_upload_current_error_count(0),
+          check_upload_total_error_count(0),
+          check_upload_current_error_count(0),
           error_count_limit(9),
-          max_transfered_length({0}) {}
+          max_transfered_length(0) {}
 
    private:
     /// 禁止默认构造、复制构造、移动构造和=号操作符

@@ -31,7 +31,7 @@ struct safeset_closure {
     std::lock_guard<decltype(mutex)> lock(mutex);
     bool flag = false;
     auto iter = set.find(key);
-    if (flag = (set.end() != iter)) {
+    if ((flag = (set.end() != iter))) {
       set.erase(iter);
     }
     return flag;
@@ -84,7 +84,7 @@ struct safevector_closure {
     std::lock_guard<decltype(mutex)> lock(mutex);
     bool flag = false;
     auto iter = vec.find(key);
-    if (flag = (vec.end() != iter)) {
+    if ((flag = (vec.end() != iter))) {
       vec.erase(iter);
     }
     return flag;
@@ -151,7 +151,7 @@ struct safemap_closure {
     std::lock_guard<decltype(mutex)> lock(mutex);
     bool flag = false;
     auto iter = map.find(key);
-    if (flag = (map.end() != iter)) {
+    if ((flag = (map.end() != iter))) {
       value = iter->second;
     }
     return flag;
@@ -161,7 +161,7 @@ struct safemap_closure {
     std::lock_guard<decltype(mutex)> lock(mutex);
     bool flag = false;
     auto iter = map.find(key);
-    if (flag = (map.end() != iter)) {
+    if ((flag = (map.end() != iter))) {
       value = iter->second;
       map.erase(iter);
     }
@@ -172,7 +172,7 @@ struct safemap_closure {
     std::lock_guard<decltype(mutex)> lock(mutex);
     bool flag = false;
     auto iter = map.find(key);
-    if (flag = (map.end() != iter)) {
+    if ((flag = (map.end() != iter))) {
       map.erase(iter);
     }
     return flag;
