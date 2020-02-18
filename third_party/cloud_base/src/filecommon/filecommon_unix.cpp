@@ -1,6 +1,6 @@
 #include "filecommon_unix.h"
 // mac
-#include <CoreFoundation/CFBundle.h>
+// #include <CoreFoundation/CFBundle.h>
 #include <dirent.h>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -235,34 +235,34 @@ bool GetFileLastChange(const char *file_path, std::string &file_modify_date) {
   return !file_modify_date.empty();
 }
 
-std::string GetCurrentProcessVersion() {
-  CFBundleRef ref = CFBundleGetMainBundle();
-  // 构建版本
-  int build_version = CFBundleGetVersionNumber(ref);
-  CFDictionaryRef dict = CFBundleGetInfoDictionary(ref);
-  // 版本名
-  CFStringRef key_name = CFStringCreateWithCString(
-      CFAllocatorGetDefault(), "CFBundleExecutable", kCFStringEncodingUTF8);
-  CFStringRef value_name =
-      (CFStringRef)CFDictionaryGetValue(dict, (void *)key_name);
-  // 版本号
-  CFStringRef key_version = CFStringCreateWithCString(
-      CFAllocatorGetDefault(), "CFBundleShortVersionString",
-      kCFStringEncodingUTF8);
-  CFStringRef value_version =
-      (CFStringRef)CFDictionaryGetValue(dict, (void *)key_version);
+// std::string GetCurrentProcessVersion() {
+//   CFBundleRef ref = CFBundleGetMainBundle();
+//   // 构建版本
+//   int build_version = CFBundleGetVersionNumber(ref);
+//   CFDictionaryRef dict = CFBundleGetInfoDictionary(ref);
+//   // 版本名
+//   CFStringRef key_name = CFStringCreateWithCString(
+//       CFAllocatorGetDefault(), "CFBundleExecutable", kCFStringEncodingUTF8);
+//   CFStringRef value_name =
+//       (CFStringRef)CFDictionaryGetValue(dict, (void *)key_name);
+//   // 版本号
+//   CFStringRef key_version = CFStringCreateWithCString(
+//       CFAllocatorGetDefault(), "CFBundleShortVersionString",
+//       kCFStringEncodingUTF8);
+//   CFStringRef value_version =
+//       (CFStringRef)CFDictionaryGetValue(dict, (void *)key_version);
 
-  // 拼接版本号，并做cstring转换
-  CFMutableStringRef version =
-      CFStringCreateMutable(CFAllocatorGetDefault(), 20);
-  CFStringAppend(version, value_name);
-  CFStringAppendCString(version, " ", kCFStringEncodingUTF8);
-  CFStringAppend(version, value_version);
-  char buf[1025];
-  memset(buf, 0, 1025);
-  CFStringGetCString(version, buf, 1024, kCFStringEncodingUTF8);
-  return buf;
-}
+//   // 拼接版本号，并做cstring转换。不做拼接直接返回版本号
+//   // CFMutableStringRef version =
+//   //     CFStringCreateMutable(CFAllocatorGetDefault(), 20);
+//   // CFStringAppend(version, value_name);
+//   // CFStringAppendCString(version, " ", kCFStringEncodingUTF8);
+//   // CFStringAppend(version, value_version);
+//   char buf[1025];
+//   memset(buf, 0, 1025);
+//   CFStringGetCString(value_version, buf, 1024, kCFStringEncodingUTF8);
+//   return buf;
+// }
 
 // 3、获取mac地址
 static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices);

@@ -32,7 +32,8 @@ bool get_file_list(const std::string& dirPath, const std::string& suffix,
 // Get current process version
 // return the version infomation if success
 // return "" if failed
-std::string GetCurrentProcessVersion();
+// 移动到process_common_unix
+// std::string GetCurrentProcessVersion();
 
 // get Mac address
 std::string get_mac_address(void);
