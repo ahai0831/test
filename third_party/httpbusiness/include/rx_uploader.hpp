@@ -481,11 +481,17 @@ struct rx_uploader {
                   if (nullptr != this->data) {
                     data->current_stage = proof::UploadFinal;
                   }
+                  std::promise<void> wait_move;
+                  bool move_success = false;
+                  if (nullptr != this->data) {
+                    wait_move = std::move(data->wait);
+                    move_success = true;
+                  }
                   if (nullptr != complete_callback) {
                     complete_callback(*this);
                   }
-                  if (nullptr != this->data) {
-                    data->wait.set_value();
+                  if (move_success) {
+                    wait_move.set_value();
                   }
                 })
                 .publish()) {}
