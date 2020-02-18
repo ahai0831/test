@@ -1,0 +1,10 @@
+executable("test_process_common") {
+  sources = [
+    "test_process_common.cpp",
+  ]
+
+  deps = [
+    "//third_party/cloud_base",
+  ]
+  configs += [ "//src:src_using" ]
+}

@@ -35,7 +35,7 @@ source_set("cloud_base") {
       "src/MiniDump/MiniDump.h",
       "src/UniqueMachineCode/UniqueMachineCode.h",
       "src/filesystem_helper/filesystem_helper.h",
-      "src/process_version/process_version.h",
+      "src/process_version/process_version.h", 
     ]
   }
 
@@ -50,12 +50,31 @@ source_set("cloud_base") {
       "src/filecommon/filecommon_win.h",
       "src/tools/string_convert.cpp",
       "src/tools/string_convert.h",
+
     ]
   }
   if (is_mac) {
     sources += [
       "src/filecommon/filecommon_unix.cpp",
       "src/filecommon/filecommon_unix.h",
+    ]
+  }
+
+  # solve process_version module
+  sources += [
+    "src/process_common/process_common_helper.cpp",
+    "src/process_common/process_common_helper.h",
+  ]
+  if (is_win) {
+    sources += [
+      "src/process_common/process_common_win.cpp",
+      "src/process_common/process_common_win.h",
+    ]
+  }
+  if (is_mac) {
+    sources += [
+      "src/process_common/process_common_unix.cpp",
+      "src/process_common/process_common_unix.h",
     ]
   }
 
