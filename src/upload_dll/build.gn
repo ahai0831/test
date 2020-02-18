@@ -6,6 +6,7 @@ shared_library("upload_dll") {
   deps = [
     "//src/cloud189/restful:cloud189_uploader",
     "//src/cloud189/session_helper",
+    "//src/upload_dll/log_system",
     "//third_party/httpbusiness",
     "//third_party/jsoncpp",
   ]
@@ -16,6 +17,7 @@ shared_library("upload_dll") {
     "solve_cloud189_uploader.h",
     "upload_dll.cpp",
     "upload_dll.h",
+    "pile.cpp",
   ]
   public = [
     "upload_dll.h",
