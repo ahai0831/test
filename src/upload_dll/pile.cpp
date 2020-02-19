@@ -15,20 +15,20 @@ static struct InitAssistantOnce {
     /// 或者 std::function<void(assistant::HttpResponse &)>
     auto& request_pile = assistant::Assistant_v3::HttprequestPile();
 
-    /// set proxy
+	/// print request
+	request_pile.Add([](assistant::HttpRequest& req) -> void {
+		LogInfo("[HttpRequest] %s %s\nheaders: %s\nextends:%s",
+			req.method.c_str(), req.url.c_str(),
+			req.headers.extends_str().c_str(),
+			req.extends.extends_str().c_str());
+	});
+
+	/// set proxy
     request_pile.Add([=](assistant::HttpRequest& req) -> void {
       auto proxy_info = general_restful_sdk_ast::Proxy::GetProxy();
       if (!proxy_info.empty()) {
         req.extends.Set("proxy", proxy_info);
       }
-    });
-
-    /// print request
-    request_pile.Add([](assistant::HttpRequest& req) -> void {
-      LogInfo("[HttpRequest] %s %s\nheaders: %s\nextends:%s",
-              req.method.c_str(), req.url.c_str(),
-              req.headers.extends_str().c_str(),
-              req.extends.extends_str().c_str());
     });
 
     auto& response_pile = assistant::Assistant_v3::HttpresponsePile();
