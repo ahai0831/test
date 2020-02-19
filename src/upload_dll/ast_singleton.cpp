@@ -1,4 +1,4 @@
-
+ï»¿
 /// Defines some singleton impl.
 
 /// A singleton for AstConfig
@@ -11,9 +11,12 @@
 #include <rx_assistant.hpp>
 
 #include "cloud189/session_helper/session_helper.h"
+#include "log_system/log_system.h"
+
+using general_restful_sdk_ast::log_system::LogInfo;
 
 namespace {
-/// ±£´æÏà¹ØµÄAstÖÇÄÜÖ¸ÕëºÍÏß³Ì°²È«¼ÓÔØ±êÖ¾Î»
+/// ä¿å­˜ç›¸å…³çš„Astæ™ºèƒ½æŒ‡é’ˆå’Œçº¿ç¨‹å®‰å…¨åŠ è½½æ ‡å¿—ä½
 std::once_flag flag;
 std::shared_ptr<general_restful_sdk_ast::AstInfo> ast_ptr;
 
@@ -23,6 +26,9 @@ void InitAstPtr() {
       rx_assistant::default_asssitant_v3::get_assistant();
 }
 
+/// ä¿å­˜çº¿ç¨‹å®‰å…¨çš„å­—ç¬¦ä¸²å®¹å™¨
+assistant::tools::lockfree_string_closure<std::string> proxy_string;
+
 }  // namespace
 
 namespace general_restful_sdk_ast {
@@ -31,21 +37,30 @@ bool Config::StoreCloud189Session(
     const std::string &cloud189_session_secret,
     const std::string &familycloud_session_key,
     const std::string &familycloud_session_secret) {
+  LogInfo("[Config] StoreCloud189Session");
   return Cloud189::SessionHelper::Cloud189Login(
       cloud189_session_key, cloud189_session_secret, familycloud_session_key,
       familycloud_session_secret);
 }
 
 void Config::ClearCloud189Session() {
+  LogInfo("[Config] ClearCloud189Session");
   return Cloud189::SessionHelper::Cloud189Logout();
 }
 
-///  ±ØĞë±£Ö¤Ã¿¸öÁ÷³ÌµÄĞÅÏ¢¶¼´Ó´Ë»ñÈ¡£¬²»Ó¦ÔÚÆäËûµØ·½±£´æAstInfoµÄ¸±±¾
+///  å¿…é¡»ä¿è¯æ¯ä¸ªæµç¨‹çš„ä¿¡æ¯éƒ½ä»æ­¤è·å–ï¼Œä¸åº”åœ¨å…¶ä»–åœ°æ–¹ä¿å­˜AstInfoçš„å‰¯æœ¬
 std::shared_ptr<AstInfo> general_restful_sdk_ast::GetAstInfo() {
   std::call_once(flag, InitAstPtr);
   return ast_ptr;
 }
 
 AstInfo::AstInfo() {}
+
+void Proxy::SetProxy(const std::string &proxy_info) {
+  LogInfo("[Proxy] SetProxy: %s", proxy_info.c_str());
+  proxy_string.store(proxy_info);
+}
+
+std::string Proxy::GetProxy() { return proxy_string.load(); }
 
 }  // namespace general_restful_sdk_ast

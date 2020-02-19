@@ -1,0 +1,14 @@
+source_set("log_system") {
+  deps = [
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+  ]
+  sources = [
+    "log_system.cpp",
+    "log_system.h",
+  ]
+  public = [
+    "log_system.h",
+  ]
+  public_configs = [ "//src:src_using" ]
+}

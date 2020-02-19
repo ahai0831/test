@@ -1,4 +1,4 @@
-
+ï»¿
 /// Defines some singleton impl.
 
 /// A singleton for AstConfig
@@ -15,7 +15,7 @@
 
 namespace general_restful_sdk_ast {
 struct Config {
-  /// ½ûÓÃÈ«²¿¹¹Ôìº¯Êı
+  /// ç¦ç”¨å…¨éƒ¨æ„é€ å‡½æ•°
   static bool StoreCloud189Session(
       const std::string &cloud189_session_key,
       const std::string &cloud189_session_secret,
@@ -30,12 +30,12 @@ struct Config {
   Config(const Config &) = delete;
   Config &operator=(const Config &) = delete;
 };
-/// ±£´æÏà¹ØµÄAstÊı¾İ½á¹¹¶¨Òå
+/// ä¿å­˜ç›¸å…³çš„Astæ•°æ®ç»“æ„å®šä¹‰
 struct AstInfo {
   AstInfo();
-  /// ½ûÓÃÒÆ¶¯¹¹Ôì¡¢¸´ÖÆ¹¹ÔìºÍ=ºÅ²Ù×÷·û
+  /// ç¦ç”¨ç§»åŠ¨æ„é€ ã€å¤åˆ¶æ„é€ å’Œ=å·æ“ä½œç¬¦
 
-  /// ±£´æÏàÓ¦×Ü¿ØÈİÆ÷
+  /// ä¿å­˜ç›¸åº”æ€»æ§å®¹å™¨
   assistant::tools::safemap_closure<std::string, int32_t> uuid_map;
   assistant::tools::safemap_closure<
       std::string, std::unique_ptr<::Cloud189::Restful::Uploader>>
@@ -49,6 +49,16 @@ struct AstInfo {
 
 std::shared_ptr<AstInfo> GetAstInfo();
 
+struct Proxy {
+  static void SetProxy(const std::string &proxy_info);
+  static std::string GetProxy();
+
+ private:
+  Proxy() = delete;
+  Proxy(Config &&) = delete;
+  Proxy(const Proxy &) = delete;
+  Proxy &operator=(const Proxy &) = delete;
+};
 }  // namespace general_restful_sdk_ast
 
 #endif

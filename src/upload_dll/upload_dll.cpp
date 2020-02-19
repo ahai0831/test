@@ -12,18 +12,19 @@
 #include <tools/uuid.hpp>
 
 #include "ast_singleton.h"
+#include "log_system/log_system.h"
 #include "solve_cloud189_uploader.h"
 
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
+using general_restful_sdk_ast::log_system::LogInfo;
 using restful_common::jsoncpp_helper::GetString;
 using restful_common::jsoncpp_helper::ReaderHelper;
 using restful_common::jsoncpp_helper::WriterHelper;
 
 void AstProcess(const char *process_info, OnProcessStart on_start,
                 OnProcessCallback on_callback) {
-  // 	auto dddd = general_restful_sdk_ast::GetAstInfo();
-
+  LogInfo("[AstProcess] OnReceived process_info: %s", process_info);
   /// 处理uuid
   Json::Value on_start_json;
   /// -10000代表尚未被支持的domain或operation，或json字符串非法
@@ -61,12 +62,12 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
 
   } while (false);
   const auto on_start_str = WriterHelper(on_start_json);
-  printf("OnStart resolved: %s\n", on_start_str.c_str());
+  LogInfo("[AstProcess] OnResolved result: %s", on_start_str.c_str());
   on_start(on_start_str.c_str());
 }
 
 void AstConfig(const char *json_str, OnConfigFinished on_config_finished) {
-  /// For test
+  LogInfo("[AstConfig] OnReceived json_str: %s", json_str);
 
   Json::Value root_value;
   Json::Value json_res;
@@ -122,7 +123,11 @@ void AstConfig(const char *json_str, OnConfigFinished on_config_finished) {
     const auto logoutEnterprise = GetString(root_value["logoutEnterprise"]);
 
     /************解析proxyInfo字段*********************/
-    const auto proxyInfo = GetString(root_value["proxyInfo"]);
+    const auto proxy_info = GetString(root_value["proxy_info"]);
+    if (!proxy_info.empty()) {
+      json_res["proxy_info"] = Json::Value(proxy_info);
+      general_restful_sdk_ast::Proxy::SetProxy(proxy_info);
+    }
 
     /***************json字符串拼接****************************/
     ///
@@ -135,14 +140,11 @@ void AstConfig(const char *json_str, OnConfigFinished on_config_finished) {
       json_res["logoutEnterprise"] = Json::Value(logoutEnterprise);
     }
 
-    if (!proxyInfo.empty()) {
-      json_res["proxyInfo"] = Json::Value(proxyInfo);
-    }
-
   } while (false);
   // json result
   std::string config_result_str =
       restful_common::jsoncpp_helper::WriterHelper(json_res);
-  printf("OnConfig resolved: %s\n", config_result_str.c_str());
+  LogInfo("[AstConfig] OnResolved result: %s", config_result_str.c_str());
+
   on_config_finished(config_result_str.c_str());
 }

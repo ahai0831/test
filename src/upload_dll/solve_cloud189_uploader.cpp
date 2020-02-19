@@ -2,8 +2,10 @@
 
 #include "ast_singleton.h"
 
+#include "log_system/log_system.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
+using general_restful_sdk_ast::log_system::LogInfo;
 using restful_common::jsoncpp_helper::GetBool;
 using restful_common::jsoncpp_helper::GetInt;
 using restful_common::jsoncpp_helper::GetString;
@@ -76,8 +78,7 @@ int32_t DoUpload(const std::string &upload_info,
         callback_data_json["operation"] = operation;
 
         const auto info_outer = WriterHelper(callback_data_json);
-        printf("OnInfoOuter: %s\n", info_outer.c_str());
-
+        LogInfo("[DoUpload] OnCallback info_outer: %s", info_outer.c_str());
         /// 将信息回调给外部
         on_callback(info_outer.c_str());
 
