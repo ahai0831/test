@@ -1,4 +1,4 @@
-﻿#include "create_folder.h"
+﻿#include "get_download_address.h"
 
 #include <iostream>
 #include <memory>
@@ -8,7 +8,6 @@
 #include <pugixml.hpp>
 
 //#include <filesystem_helper/filesystem_helper.h>
-#include <UrlEncode/UrlEncode.h>
 #include <process_common/process_common_helper.h>
 
 #include <v2/tools.h>
@@ -21,15 +20,15 @@
 #include "restful_common/rand_helper/rand_helper.hpp"
 
 using cloud_base::process_common_helper::GetCurrentApplicationVersion;
-using cloud_base::url_encode::http_post_form::url_encode;
+using restful_common::jsoncpp_helper::GetInt;
 using restful_common::jsoncpp_helper::GetString;
 
 namespace {
 // 这些是请求中一些固定的参数
 const static std::string host = "https://api.cloud.189.cn";
-const static std::string uri = "/createFolder.action";
-const static std::string method = "POST";
-// const static int flag = 1;
+const static std::string uri = "/getFileDownloadUrl.action";
+const static std::string method = "GET";
+const static int flag = 1;
 const static std::string client_type = "TELEPC";
 const static std::string channel_id = "web_cloud.189.cn";
 
@@ -38,21 +37,21 @@ std::string GetURI() { return uri; }
 std::string GetMethod() { return method; }
 std::string GetClientType() { return client_type; }
 std::string GetChannelId() { return channel_id; }
-// int GetFlag() { return flag; }
+int GetFlag() { return flag; }
 
 }  // namespace
 namespace Cloud189 {
 namespace Apis {
-namespace CreateFolder {
+namespace GetDownloadAddress {
 
 // 用于构建一个json字符串，包含查询文件上传需要的参数
-std::string JsonStringHelper(const std::string parentFolderId,
-                             const std::string relativePath,
-                             const std::string folderName,
+std::string JsonStringHelper(const std::string fileId, int32_t dt,
+                             const std::string shareId,
+                             const std::string groupSpaceId, bool shorts,
                              const std::string x_request_id) {
   return assistant::tools::string::StringFormat(
-      R"({"parentFolderId":"%s","relativePath":"%s","folderName":"%s","X-Request-ID":"%s"})",
-      parentFolderId.c_str(), relativePath.c_str(), folderName.c_str(),
+      R"({"fileId":"%s","dt":%d,"shareId":"%s","groupSpaceId":"%s","short":%d,"X-Request-ID":"%s"})",
+      fileId.c_str(), dt, shareId.c_str(), groupSpaceId.c_str(), shorts,
       x_request_id.c_str());
 }
 
@@ -71,22 +70,20 @@ bool HttpRequestEncode(const std::string& params_json,
     // add session key, signature and date.
     Cloud189::SessionHelper::AddCloud189Signature(request);
 
-    std::string parentFolderId = GetString(json_str["parentFolderId"]);
-    /*********************解决中文参数乱码问题**********************/
-    std::string relativePath_temp = GetString(json_str["relativePath"]);
-    std::string folderName_temp = GetString(json_str["folderName"]);
-    std::string relativePath = url_encode(relativePath_temp);
-    std::string folderName = url_encode(folderName_temp);
-    /**************************************************************/
+    std::string fileId = GetString(json_str["fileId"]);
+    int32_t dt = GetInt(json_str["dt"]);
+    std::string shareId = GetString(json_str["shareId"]);
+    std::string groupSpaceId = GetString(json_str["groupSpaceId"]);
+    int32_t shorts = GetInt(json_str["short"]);
     std::string x_request_id = GetString(json_str["X-Request-ID"]);
 
     //  set url params
     request.url += assistant::tools::string::StringFormat(
-        "?parentFolderId=%s&relativePath=%s&folderName=%s"
+        "?fileId=%s&dt=%d&shareId=%s&groupSpaceId=%s&short=%d&x_request_id=%s"
         "&clientType=%s&version=%s&channelId=%s&rand=%s",
-        parentFolderId.c_str(), relativePath.c_str(), folderName.c_str(),
-        GetClientType().c_str(), GetCurrentApplicationVersion().c_str(),
-        GetChannelId().c_str(),
+        fileId.c_str(), dt, shareId.c_str(), groupSpaceId.c_str(), shorts,
+        x_request_id.c_str(), GetClientType().c_str(),
+        GetCurrentApplicationVersion().c_str(), GetChannelId().c_str(),
         restful_common::rand_helper::GetRandString().c_str());
 
     // set header
@@ -107,8 +104,7 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   auto http_status_code = response.status_code;
   auto curl_code = atoi(response.extends.Get("CURLcode").c_str());
   auto content_type = response.headers.Get("Content-Type");
-  // auto content_length =
-  // atoll(response.headers.Get("Content-Length").c_str());
+  auto content_length = atoll(response.headers.Get("Content-Length").c_str());
   do {
     if (0 == curl_code && http_status_code / 100 == 2) {
       if (response.body.size() == 0) {
@@ -118,19 +114,8 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
       if (prs.status != pugi::xml_parse_status::status_ok) {
         break;
       }
-      auto folder = result_xml.child("folder");
-
-      result_json["id"] = folder.child("id").text().as_string();
-      // 注：原id类型为int32_t，由于表示范围不够会被截断，此处改为string类型
-
-      result_json["parentId"] = folder.child("parentId").text().as_string();
-      result_json["name"] = folder.child("name").text().as_string();
-      result_json["createDate"] = folder.child("createDate").text().as_string();
-      result_json["lastOpTime"] = folder.child("lastOpTime").text().as_string();
-      result_json["rev"] = folder.child("rev").text().as_string();
-      // 注：原rev类型为int32_t，由于表示范围不够会被截断，此处改为string类型
-      result_json["fileCata"] = folder.child("fileCata").text().as_int();
-
+      result_json["fileDownloadUrl"] =
+          result_xml.child("fileDownloadUrl").first_child().text().as_string();
     } else if (0 == curl_code && http_status_code / 100 != 2) {
       if (!response.body.empty()) {
         /*****************解析error节点***********************/
@@ -159,6 +144,6 @@ bool HttpResponseDecode(const assistant::HttpResponse& response,
   return is_success;
 }
 
-}  // namespace CreateFolder
+}  // namespace GetDownloadAddress
 }  // namespace Apis
 }  // namespace Cloud189

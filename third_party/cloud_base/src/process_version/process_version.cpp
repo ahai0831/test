@@ -6,7 +6,7 @@
 #include <Windows.h>
 namespace cloud_base {
 namespace process_version {
-#ifdef _WIN32
+
 std::string GetCurrentProcessVersion() {
   std::string result = "";
   do {
@@ -76,6 +76,6 @@ std::string GetCurrentProcessVersion() {
 
   return result;
 }
-#endif
+
 }  // namespace process_version
 }  // namespace cloud_base

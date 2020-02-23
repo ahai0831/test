@@ -6,6 +6,8 @@ group("test") {
     "//test/test_create_folder",
     "//test/test_cloud189_folder_uploader",
     "//test/test_process_common",
+    "//test/test_download/test_get_download_address",
+    "//test/test_download/test_file_data_download",
   ]
 }
 group("src") {

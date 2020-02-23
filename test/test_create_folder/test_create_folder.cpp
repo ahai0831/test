@@ -73,8 +73,9 @@ int main() {
 #ifdef _WIN32
   auto decode_res_wstr = utf8ToWstring(decode_res);
   auto decode_res_ansi = wstringToAnsi(decode_res_wstr);
+  printf("respons_parse:\n%s",decode_res_ansi.c_str());
 #else
-  printf("响应解析：\n%s", decode_res.c_str());
+  printf("respons_parse:\n%s", decode_res.c_str());
 #endif
   return 0;
 }
