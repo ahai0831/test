@@ -3,6 +3,7 @@ group("test") {
     "//test/hello_gn",
     "//test/test_upload_dll",
     "//test/test_create_folder",
+    "//test/test_cloud189_folder_uploader",
   ]
 }
 group("src") {
