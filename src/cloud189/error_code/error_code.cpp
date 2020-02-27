@@ -155,6 +155,8 @@ int int32ErrCode(const char* sErr) {
     iErr = nderr_oauth2_invalidaccesstoken;
   } else if (strcmp(sErr, "ContentTypeError") == 0) {
     iErr = nderr_content_type_error;
+  } else if (strcmp(sErr, "AuditErrorCode") == 0) {
+    iErr = nderr_auditerrorcode;
   }
   return iErr;
 }

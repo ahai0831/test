@@ -30,3 +30,22 @@ source_set("cloud189_upload") {
   configs += [ ":cloud189_apis_internal" ]
   public_configs = [ "//src:src_using" ]
 }
+source_set("cloud189_create_folder") {
+  deps = [
+    "//src/cloud189/error_code",
+    "//src/cloud189/session_helper",
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+    "//third_party/jsoncpp",
+    "//third_party/pugixml",
+  ]
+  sources = [
+    "create_folder.cpp",
+    "create_folder.h",
+  ]
+  public = [
+    "create_folder.h",
+  ]
+  configs += [ ":cloud189_apis_internal" ]
+  public_configs = [ "//src:src_using" ]
+}

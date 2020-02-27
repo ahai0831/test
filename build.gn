@@ -2,6 +2,7 @@ group("test") {
   deps = [
     "//test/hello_gn",
     "//test/test_upload_dll",
+    "//test/test_create_folder",
   ]
 }
 group("src") {
