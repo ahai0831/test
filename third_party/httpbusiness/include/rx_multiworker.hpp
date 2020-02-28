@@ -120,14 +120,16 @@ struct rx_multi_worker {
       : data(std::make_shared<internal_data>()) {
     data->worker_limit = worker_limit;
     for (const auto &x : material) {
-      data->material_queue.Enqueue(std::make_unique<Material>(x));
+      auto tempX = std::make_unique<Material>(x);
+      data->material_queue.Enqueue(tempX);
     }
     auto data_weak = std::weak_ptr<internal_data>(data);
     ExtraMaterialCallback extra_material =
         [data_weak](const Material &material) -> void {
       auto data = data_weak.lock();
       if (nullptr != data) {
-        data->material_queue.Enqueue(std::make_unique<Material>(material));
+        auto tempMaterial = std::make_unique<Material>(material);
+        data->material_queue.Enqueue(tempMaterial);
       }
     };
     /// worker根据语义，应在取物料前调用此标志位方法

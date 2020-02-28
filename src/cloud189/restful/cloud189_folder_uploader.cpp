@@ -74,7 +74,7 @@ typedef struct folderupload_worker_function_generator {
       const FolderUpload::MaterialVector& materials)
       : thread_data_weak(weak) {
     auto folderupload_worker = std::bind(
-        &folderupload_helper::folderupload_worker, this, std::placeholders::_1);
+        &folderupload_worker_function_generator::folderupload_worker, this, std::placeholders::_1);
     folderupload_unique =
         std::move(FolderUpload::Create(materials, folderupload_worker, 1));
   }

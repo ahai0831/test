@@ -30,6 +30,9 @@ source_set("httpbusiness") {
   ]
 
   public_configs = [ ":Default_config" ]
+   if (is_mac) {
+    public_configs += [ "//build/config:c++14" ]
+  }
 }
 
 config("Default_config") {

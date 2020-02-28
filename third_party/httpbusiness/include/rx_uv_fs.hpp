@@ -40,7 +40,8 @@ struct uv_loop_with_thread {
     thread_model.ThreadCreate(thread_worker, &uv_loop);
   }
   void Do(uv_todo_wrapper& wrapper) {
-    uv_todo_queue.Enqueue(std::make_unique<uv_todo_wrapper>(wrapper));
+    auto tempWarpper = std::make_unique<uv_todo_wrapper>(wrapper);
+    uv_todo_queue.Enqueue(tempWarpper);
     uv_wakeup.Notify();
   }
 
