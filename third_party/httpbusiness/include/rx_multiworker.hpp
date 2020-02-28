@@ -99,8 +99,8 @@ struct rx_multi_worker {
     std::atomic_int32_t worker_number;
     std::atomic_int32_t worker_limit;
     internal_data()
-        : stop_flag(false),
-          serious_error(false),
+        : stop_flag(ATOMIC_VAR_INIT(false)),
+          serious_error(ATOMIC_VAR_INIT(false)),
           worker_number(0),
           worker_limit(0) {}
     /// 禁用移动构造、复制构造、=号操作符
