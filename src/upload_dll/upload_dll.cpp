@@ -13,6 +13,7 @@
 
 #include "ast_singleton.h"
 #include "log_system/log_system.h"
+#include "solve_cloud189_folder_uploader.h"
 #include "solve_cloud189_uploader.h"
 
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
@@ -58,6 +59,12 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
       auto cloud189_doupload_res =
           general_restful_sdk_ast::Cloud189::DoUpload(solved_info, on_callback);
       on_start_json["start_result"] = cloud189_doupload_res;
+    } else if (domain.compare("Cloud189") == 0 &&
+               operation.compare("DoFolderUpload") == 0) {
+      auto cloud189_dofolderupload_res =
+          general_restful_sdk_ast::Cloud189::DoFolderUpload(solved_info,
+                                                            on_callback);
+      on_start_json["start_result"] = cloud189_dofolderupload_res;
     }
 
   } while (false);

@@ -11,6 +11,7 @@
 
 #include <tools/safecontainer.hpp>
 
+#include "cloud189/restful/cloud189_folder_uploader.h"
 #include "cloud189/restful/cloud189_uploader.h"
 
 namespace general_restful_sdk_ast {
@@ -40,6 +41,9 @@ struct AstInfo {
   assistant::tools::safemap_closure<
       std::string, std::unique_ptr<::Cloud189::Restful::Uploader>>
       cloud189_uploader_map;
+  assistant::tools::safemap_closure<
+      std::string, std::unique_ptr<::Cloud189::Restful::FolderUploader>>
+      cloud189_folder_uploader_map;
 
  private:
   AstInfo(AstInfo &&) = delete;

@@ -331,7 +331,9 @@ Cloud189::Restful::FolderUploader::FolderUploader(
                 root["local_folder_path"] = report.local_folder_path;
                 Json::Value sub_file_data;
                 for (const auto& sub_file : report.sub_file_data) {
-                  sub_file_data.append(sub_file);
+                  Json::Value value;
+                  value["local_path"] = sub_file;
+                  sub_file_data.append(value);
                 }
                 root["sub_file_data"] = sub_file_data;
                 const auto json_str = WriterHelper(root);
