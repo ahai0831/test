@@ -146,7 +146,7 @@ enum nderr {
   // 2019.8.14 新增能力开放，accessToken换sessionKey接口，相关错误码
   /// 供合作方对接天翼云能力开放后，免密登录使用
   nderr_oauth2_invalidaccesstoken,
-
+  nderr_auditerrorcode,// 50063 敏感词检查不通过
   //-------50000-50999为服务器非网络错误码------- end
 
   //-------51000-51999为服务器网络相关错误码------- start

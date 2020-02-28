@@ -99,8 +99,8 @@ struct rx_multi_worker {
     std::atomic_int32_t worker_number;
     std::atomic_int32_t worker_limit;
     internal_data()
-        : stop_flag(false),
-          serious_error(false),
+        : stop_flag(ATOMIC_VAR_INIT(false)),
+          serious_error(ATOMIC_VAR_INIT(false)),
           worker_number(0),
           worker_limit(0) {}
     /// 禁用移动构造、复制构造、=号操作符
@@ -120,14 +120,16 @@ struct rx_multi_worker {
       : data(std::make_shared<internal_data>()) {
     data->worker_limit = worker_limit;
     for (const auto &x : material) {
-      data->material_queue.Enqueue(std::make_unique<Material>(x));
+      auto tempX = std::make_unique<Material>(x);
+      data->material_queue.Enqueue(tempX);
     }
     auto data_weak = std::weak_ptr<internal_data>(data);
     ExtraMaterialCallback extra_material =
         [data_weak](const Material &material) -> void {
       auto data = data_weak.lock();
       if (nullptr != data) {
-        data->material_queue.Enqueue(std::make_unique<Material>(material));
+        auto tempMaterial = std::make_unique<Material>(material);
+        data->material_queue.Enqueue(tempMaterial);
       }
     };
     /// worker根据语义，应在取物料前调用此标志位方法

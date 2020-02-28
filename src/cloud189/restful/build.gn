@@ -22,3 +22,24 @@ source_set("cloud189_uploader") {
   configs += [ ":cloud189_restful_internal" ]
   public_configs = [ "//src:src_using" ]
 }
+
+source_set("folder_uploader") {
+  deps = [
+    "//src/cloud189/apis:cloud189_create_folder",
+    "//src/cloud189/error_code",
+    "//src/cloud189/session_helper",
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+    "//third_party/httpbusiness",
+    "//third_party/jsoncpp",
+  ]
+  sources = [
+    "cloud189_folder_uploader.cpp",
+    "cloud189_folder_uploader.h",
+  ]
+  public = [
+    "cloud189_folder_uploader.h",
+  ]
+  configs += [ ":cloud189_restful_internal" ]
+  public_configs = [ "//src:src_using" ]
+}

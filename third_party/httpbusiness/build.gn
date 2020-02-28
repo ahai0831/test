@@ -1,6 +1,7 @@
 source_set("httpbusiness") {
   sources = [
     "include/rx_assistant.hpp",
+    "include/rx_uv_fs.hpp",
     "include/rx_downloader.hpp",
     "include/rx_md5.hpp",
     "include/rx_multiworker.hpp",
@@ -11,6 +12,7 @@ source_set("httpbusiness") {
 
   public = [
     "include/rx_assistant.hpp",
+    "include/rx_uv_fs.hpp",
     "include/rx_downloader.hpp",
     "include/rx_md5.hpp",
     "include/rx_multiworker.hpp",
@@ -28,6 +30,9 @@ source_set("httpbusiness") {
   ]
 
   public_configs = [ ":Default_config" ]
+   if (is_mac) {
+    public_configs += [ "//build/config:c++14" ]
+  }
 }
 
 config("Default_config") {
