@@ -13,7 +13,7 @@
 namespace cloud_base {
 namespace process_common_unix {
     
-bool get_appdata_path(std::string &appdata_path){
+bool GetCurrentApplicationDataPath(std::string &appdata_path){
     std::string tempPath;
     c_get_appdata_path(tempPath);
     if (tempPath.empty()) {
@@ -39,8 +39,6 @@ std::string GetCurrentProcessVersion() {
   CFStringRef key_version = CFStringCreateWithCString(
       CFAllocatorGetDefault(), "CFBundleShortVersionString",
       kCFStringEncodingUTF8);
-  CFStringRef value_version =
-      (CFStringRef)CFDictionaryGetValue(dict, (void *)key_version);
 
   // 拼接版本号，并做cstring转换。不做拼接直接返回版本号
   // CFMutableStringRef version =
@@ -50,7 +48,10 @@ std::string GetCurrentProcessVersion() {
   // CFStringAppend(version, value_version);
   char buf[1025];
   memset(buf, 0, 1025);
-  CFStringGetCString(value_version, buf, 1024, kCFStringEncodingUTF8);
+  if (CFDictionaryContainsValue(dict, key_version)){
+    CFStringRef value_version = (CFStringRef)CFDictionaryGetValue(dict, (void *)key_version);
+    CFStringGetCString(value_version, buf, 1024, kCFStringEncodingUTF8);
+  }
   return buf;
 }
 
