@@ -17,7 +17,7 @@ bool GetCurrentApplicationDataPath(std::string &appdata_path);
 // Get current process version
 // return the version infomation if success
 // return "" if failed
-std::string GetCurrentProcessVersion();
+std::string GetCurrentApplicationVersion();
 
 /// log存放路径
 bool get_log_path(std::string &log_path);

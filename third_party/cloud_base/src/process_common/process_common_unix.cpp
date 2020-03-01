@@ -25,7 +25,7 @@ bool GetCurrentApplicationDataPath(std::string &appdata_path){
     }
 }
 
-std::string GetCurrentProcessVersion() {
+std::string GetCurrentApplicationVersion() {
   CFBundleRef ref = CFBundleGetMainBundle();
   // 构建版本
   int build_version = CFBundleGetVersionNumber(ref);

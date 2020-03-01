@@ -22,12 +22,12 @@ bool GetCurrentApplicationDataPath(std::string& appdata_path) {
 #endif
 }
 
-std::string GetCurrentApplicationVersion() {
-#ifdef _WIN32
-  return cloud_base::process_common_win::GetCurrentApplicationVersion();
-#else
-  return cloud_base::process_common_unix::GetCurrentApplicationVersion();
-#endif
-}
+//std::string GetCurrentApplicationVersion() {
+//#ifdef _WIN32
+//  return cloud_base::process_common_win::GetCurrentApplicationVersion();
+//#else
+//  return cloud_base::process_common_unix::GetCurrentApplicationVersion();
+//#endif
+//}
 }  // namespace process_common_helper
 }  // namespace cloud_base
