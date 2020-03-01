@@ -8,7 +8,6 @@ executable("test_create_folder") {
     "//third_party/scopeguard",
     "//third_party/rxcpp",
     "//third_party/libuv",
-    "//third_party/openssl",
     "//third_party/c-ares",
     "//third_party/zlib",
     "//third_party/libcurl",

@@ -12,7 +12,7 @@ bool GetCurrentApplicationDataPath(std::string& appdata_path);
 // Get current process version
 // return the version infomation if success
 // return "" if failed
-//std::string GetCurrentApplicationVersion();
+std::string GetCurrentApplicationVersion();
 }  // namespace process_common_helper
 }  // namespace cloud_base
 #endif  // PROCESS_COMMON_HELPER_H__

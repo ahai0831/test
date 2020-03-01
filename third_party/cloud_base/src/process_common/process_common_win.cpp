@@ -81,7 +81,9 @@ std::string GetCurrentApplicationVersion() {
     product_version[2] = HIWORD(versioninfo_ptr->dwProductVersionLS);
     product_version[3] = LOWORD(versioninfo_ptr->dwProductVersionLS);
     result = std::to_string(product_version[0]) + "." +
-             std::to_string(product_version[1]);
+             std::to_string(product_version[1]) + "." +
+             std::to_string(product_version[2]) + "." +
+             std::to_string(product_version[3]);
 
   } while (false);
 

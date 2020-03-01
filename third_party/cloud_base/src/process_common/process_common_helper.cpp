@@ -1,10 +1,11 @@
 #include "process_common_helper.h"
 #ifdef _WIN32
 #include "process_common_win.h"
+
+#include <tools/string_convert.h>
 #else
 #include "process_common_unix.h"
 #endif
-#include <tools/string_convert.h>
 
 namespace cloud_base {
 namespace process_common_helper {
@@ -18,15 +19,15 @@ bool GetCurrentApplicationDataPath(std::string& appdata_path) {
   }
   return result;
 #else
-  return cloud_base::process_common_unix::GetCurrentApplicationDataPath(appdata_path);
+  return cloud_base::process_common_unix::GetCurrentApplicationDataPath(
+      appdata_path);
 #endif
 }
-
 std::string GetCurrentApplicationVersion() {
 #ifdef _WIN32
-  return cloud_base::process_common_win::GetCurrentProcessVersion();
+  return cloud_base::process_common_win::GetCurrentApplicationVersion();
 #else
-  return cloud_base::process_common_unix::GetCurrentProcessVersion();
+  return cloud_base::process_common_unix::GetCurrentApplicationVersion();
 #endif
 }
 }  // namespace process_common_helper

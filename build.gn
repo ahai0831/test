@@ -2,7 +2,7 @@ group("test") {
   deps = [
     "//test/hello_gn",
     "//test/test_upload_dll",
-    # "//test/test_create_folder",
+    "//test/test_create_folder",
     "//test/test_cloud189_folder_uploader",
     "//test/test_process_common",
   ]
