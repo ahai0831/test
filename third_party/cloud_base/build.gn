@@ -75,6 +75,9 @@ source_set("cloud_base") {
     sources += [
       "src/process_common/process_common_unix.cpp",
       "src/process_common/process_common_unix.h",
+      "src/process_common/Process-C-Interface.h",
+      "src/process_common/OcToC_bridge.h",
+      "src/process_common/OcToC_bridge.mm",
     ]
   }
 

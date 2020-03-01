@@ -18,16 +18,16 @@ bool GetCurrentApplicationDataPath(std::string& appdata_path) {
   }
   return result;
 #else
-  return process_common_unix::GetCurrentApplicationDataPath(appdata_path);
+  return cloud_base::process_common_unix::GetCurrentApplicationDataPath(appdata_path);
 #endif
 }
 
-//std::string GetCurrentApplicationVersion() {
-//#ifdef _WIN32
-//  return cloud_base::process_common_win::GetCurrentApplicationVersion();
-//#else
-//  return cloud_base::process_common_unix::GetCurrentApplicationVersion();
-//#endif
-//}
+std::string GetCurrentApplicationVersion() {
+#ifdef _WIN32
+  return cloud_base::process_common_win::GetCurrentProcessVersion();
+#else
+  return cloud_base::process_common_unix::GetCurrentProcessVersion();
+#endif
+}
 }  // namespace process_common_helper
 }  // namespace cloud_base

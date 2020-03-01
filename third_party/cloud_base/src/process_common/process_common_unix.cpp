@@ -48,7 +48,7 @@ std::string GetCurrentApplicationVersion() {
   // CFStringAppend(version, value_version);
   char buf[1025];
   memset(buf, 0, 1025);
-  if (CFDictionaryContainsValue(dict, key_version)){
+  if (CFDictionaryContainsKey(dict, key_version)){
     CFStringRef value_version = (CFStringRef)CFDictionaryGetValue(dict, (void *)key_version);
     CFStringGetCString(value_version, buf, 1024, kCFStringEncodingUTF8);
   }
