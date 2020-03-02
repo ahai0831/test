@@ -18,6 +18,8 @@ bool GetCurrentApplicationDataPath(std::wstring& appdata_path);
 // return the version infomation if success
 // return "" if failed
 std::string GetCurrentApplicationVersion();
+// get appName
+std::wstring GetCurrentApplicationName();
 }  // namespace process_common_win
 }  // namespace cloud_base
 #endif  // PROCESS_COMMON_WIN__H__

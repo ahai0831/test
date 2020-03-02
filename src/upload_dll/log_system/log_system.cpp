@@ -11,15 +11,16 @@
 #include <pthread.h>
 #endif
 
+#include <DateHelper/DateHelper.h>
+#include <filecommon/filecommon_helper.h>
+#include <process_common/process_common_helper.h>
 #include <cinttypes>
+#include <core/readwrite_callback.hpp>
 #include <cstdarg>
 #include <cstdio>
 #include <mutex>
 #include <string>
 #include <thread>
-#include <process_common/process_common_helper.h>
-#include <DateHelper/DateHelper.h>
-#include <core/readwrite_callback.hpp>
 #include <tools/string_format.hpp>
 
 namespace {
@@ -62,17 +63,24 @@ static struct InitOutOnce {
 
 inline void InitOut() {
   std::call_once(initout_flag, []() {
-    std::string log_filename = assistant::tools::string::StringFormat(
+    std::string log_name = assistant::tools::string::StringFormat(
         "logs-%s-%" PRIu64 ".log", "upload_dll",
         cloud_base::date_helper::get_millisecond_time_stamp());
-  std::string appDataPath;
-  cloud_base::process_common_helper::GetCurrentApplicationDataPath(appDataPath);
-  std::string tmp_log_filename = appDataPath+"/"+log_filename;
-    out = assistant::core::readwrite::details::fopen(tmp_log_filename.c_str(), "w");
-    initfile_success = true;
+    std::string appDataPath;
+    cloud_base::process_common_helper::GetCurrentApplicationDataPath(
+        appDataPath);
+    std::string log_save_path = appDataPath + "\\" + "logs";
+    bool isPathExist =
+        cloud_base::file_common::guarantee_directory_exists(log_save_path);
+    if (isPathExist) {
+      std::string log_file_name = log_save_path + "\\" + log_name;
+      out = assistant::core::readwrite::details::fopen(log_file_name.c_str(),
+                                                       "w");
+      initfile_success = true;
 
-    if (!initfile_success) {
-      out = stdout;
+      if (!initfile_success) {
+        out = stdout;
+      }
     }
   });
 }

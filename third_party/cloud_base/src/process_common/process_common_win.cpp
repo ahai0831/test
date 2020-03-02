@@ -9,12 +9,20 @@ using std::wstring;
 namespace cloud_base {
 namespace process_common_win {
 bool GetCurrentApplicationDataPath(std::wstring& appdata_path) {
-  WCHAR tmpPath[MAX_PATH] = {'\0'};
-  //  get the temp path of application
-  //  SHGFP_TYPE_CURRENT (Retrieve the folder's current path.)
-  HRESULT result = ::SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL,
-                                      SHGFP_TYPE_CURRENT, tmpPath);
-  appdata_path = (S_OK == result) ? tmpPath : L"";
+  appdata_path.clear();
+  do {
+    WCHAR tmpPath[MAX_PATH] = {'\0'};
+    //  get the temp path of application
+    //  SHGFP_TYPE_CURRENT (Retrieve the folder's current path.)
+    HRESULT result = ::SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL,
+                                        SHGFP_TYPE_CURRENT, tmpPath);
+    std::wstring rootAppDataPath = (S_OK == result) ? tmpPath : L"";
+    if (rootAppDataPath.empty()) {
+      break;
+    }
+    std::wstring appName = GetCurrentApplicationName();
+    appdata_path = rootAppDataPath + L'\\' + appName;
+  } while (false);
   return !appdata_path.empty();
 }
 
@@ -90,5 +98,36 @@ std::string GetCurrentApplicationVersion() {
   return result;
 }
 
+std::wstring GetCurrentApplicationName() {
+  std::wstring appName;
+  do {
+    WCHAR szFileFullPath[MAX_PATH];
+    WCHAR szProcessName[MAX_PATH];
+    int res =
+        ::GetModuleFileNameW(NULL, szFileFullPath, MAX_PATH);  //��ȡ����·��
+    if (0 == res) {
+      break;
+    }
+    std::wstring appFullName = szFileFullPath;
+    for (auto& tmp : appFullName) {
+      if (tmp == '/') {
+        tmp = '\\';
+      }
+    }
+
+    size_t pos1 = appFullName.rfind('\\');
+    if (appFullName.npos == pos1) {
+      break;
+    }
+    std::wstring appTempName = appFullName.substr(pos1 + 1);
+    size_t pos2 = appTempName.rfind('.');
+    if (appTempName.npos == pos2) {
+      break;
+    }
+
+    appName = appTempName.substr(0, pos2);
+  } while (false);
+  return appName;
+}
 }  // namespace process_common_win
 }  // namespace cloud_base

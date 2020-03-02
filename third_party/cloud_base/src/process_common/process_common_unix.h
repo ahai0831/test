@@ -12,6 +12,7 @@
 namespace cloud_base {
 namespace process_common_unix {
 // appdata路径的获取
+// 需拼接appName到此路径中
 bool GetCurrentApplicationDataPath(std::string &appdata_path);
 
 // Get current process version
@@ -22,6 +23,8 @@ std::string GetCurrentApplicationVersion();
 /// log存放路径
 bool get_log_path(std::string &log_path);
 
+// Get current application name
+// std::string GetCurrentApplicationName();
 }  // namespace process_common_unix
 }  // namespace cloud_base
 #endif  // PROCESS_COMMON_UNIX__H__
