@@ -23,8 +23,9 @@ std::string GetCurrentApplicationVersion();
 /// log存放路径
 bool get_log_path(std::string &log_path);
 
-// Get current application name
-// std::string GetCurrentApplicationName();
+/// get current application name
+std::string GetCurrentApplicationName();
+
 }  // namespace process_common_unix
 }  // namespace cloud_base
 #endif  // PROCESS_COMMON_UNIX__H__

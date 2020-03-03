@@ -51,11 +51,12 @@ bool c_get_log_path(std::string &logPath){
     }
     NSString *homePath = NSHomeDirectory();
     if (homePath.length > 0) {
-        std::string logString = [[NSString stringWithFormat:@"%@/cloud-log", homePath] UTF8String];
-        if (opendir(logString.c_str()) == NULL) {
-            mkdir(logString.c_str(), S_IRWXU);
-        }
-        logPath = [[NSString stringWithFormat:@"%@/cloud-log", homePath] UTF8String];
+        std::string logString = [homePath UTF8String];
+        // if (opendir(logString.c_str()) == NULL) {
+        //     mkdir(logString.c_str(), S_IRWXU);
+        // }
+        // logPath = [[NSString stringWithFormat:@"%@/cloud-log", homePath] UTF8String];
+        logPath = logstring.c_str();
         return true;
     }else{
         logPath = "";

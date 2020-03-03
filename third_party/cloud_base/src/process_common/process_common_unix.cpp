@@ -55,6 +55,27 @@ std::string GetCurrentApplicationVersion() {
   return buf;
 }
 
+std::string GetCurrentApplicationName() {
+     CFBundleRef ref = CFBundleGetMainBundle();
+  // 构建版本
+  int build_version = CFBundleGetVersionNumber(ref);
+  CFDictionaryRef dict = CFBundleGetInfoDictionary(ref);
+  // 版本名
+  CFStringRef key_name = CFStringCreateWithCString(
+      CFAllocatorGetDefault(), "CFBundleExecutable", kCFStringEncodingUTF8);
+ // 版本号
+  CFStringRef key_version = CFStringCreateWithCString(
+      CFAllocatorGetDefault(), "CFBundleShortVersionString",
+      kCFStringEncodingUTF8);
+  char buf[1025];
+  memset(buf, 0, 1025);
+  if (CFDictionaryContainsKey(dict, key_name)){
+    CFStringRef value_name = (CFStringRef)CFDictionaryGetValue(dict, (void *)key_name);
+    CFStringGetCString(value_name, buf, 1024, kCFStringEncodingUTF8);
+  }
+  return buf;
+}
+
 bool get_log_path(std::string &log_path){
     std::string logPath;
     c_get_log_path(logPath);
