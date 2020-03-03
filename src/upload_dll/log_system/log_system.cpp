@@ -1,4 +1,4 @@
-#include "log_system.h"
+﻿#include "log_system.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -69,11 +69,19 @@ inline void InitOut() {
     std::string appDataPath;
     cloud_base::process_common_helper::GetCurrentApplicationDataPath(
         appDataPath);
+#ifdef _WIN32
     std::string log_save_path = appDataPath + "\\" + "logs";
     bool isPathExist =
         cloud_base::file_common::guarantee_directory_exists(log_save_path);
     if (isPathExist) {
       std::string log_file_name = log_save_path + "\\" + log_name;
+#else
+        std::string log_save_path = appDataPath + '/' + "logs";
+        bool isPathExist =
+            cloud_base::file_common::guarantee_directory_exists(log_save_path);
+        if (isPathExist) {
+          std::string log_file_name = log_save_path + "/" + log_name;
+#endif
       out = assistant::core::readwrite::details::fopen(log_file_name.c_str(),
                                                        "w");
       initfile_success = true;
@@ -83,7 +91,7 @@ inline void InitOut() {
       }
     }
   });
-}
+}  // namespace
 }  // namespace
 
 namespace general_restful_sdk_ast {

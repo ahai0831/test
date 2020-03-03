@@ -19,8 +19,19 @@ bool GetCurrentApplicationDataPath(std::string& appdata_path) {
   }
   return result;
 #else
-  return cloud_base::process_common_unix::GetCurrentApplicationDataPath(
-      appdata_path);
+  bool result = false;
+  std::string app_name =
+      cloud_base::process_common_unix::GetCurrentMacOsXApplicationName();
+  std::string log_home_path;
+  result = cloud_base::process_common_unix::get_log_path(log_home_path);
+  if (result && app_name.empty()) {
+    std::string process_name =
+        cloud_base::process_common_unix::GetCurrentUnixApplicationName();
+    appdata_path = log_home_path + '/' + process_name;
+  } else if (result) {
+    appdata_path = log_home_path;
+  }
+  return result;
 #endif
 }
 std::string GetCurrentApplicationVersion() {
@@ -37,7 +48,15 @@ std::string GetCurrentApplicationName() {
   std::string appdata_name = tools::string::wstringToUtf8(appdata_name_wstr);
   return appdata_name;
 #else
-    return "";
+  std::string app_name =
+      cloud_base::process_common_unix::GetCurrentMacOsXApplicationName();
+  if (app_name.empty()) {
+    std::string process_name =
+        cloud_base::process_common_unix::GetCurrentUnixApplicationName();
+    return process_name;
+  } else {
+    return app_name;
+  }
 #endif
 }
 }  // namespace process_common_helper

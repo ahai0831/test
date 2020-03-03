@@ -56,7 +56,7 @@ bool c_get_log_path(std::string &logPath){
         //     mkdir(logString.c_str(), S_IRWXU);
         // }
         // logPath = [[NSString stringWithFormat:@"%@/cloud-log", homePath] UTF8String];
-        logPath = logstring.c_str();
+        logPath = logString.c_str();
         return true;
     }else{
         logPath = "";
