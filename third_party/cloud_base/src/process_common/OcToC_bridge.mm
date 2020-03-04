@@ -73,4 +73,20 @@ bool c_get_log_path(std::string &logPath){
     }
 }
 
+bool c_get_process_name(std::string &processName) {
+    if (!ocToC_bridge) {
+        ocToC_bridge = [OcToC_bridge shareInstance];
+    }
+    NSProcessInfo *pInfo = [NSProcessInfo processInfo];
+    NSString *processNameStr = [pInfo processName];
+    if (processNameStr.length > 0) {
+        std::string nameString = [processNameStr UTF8String];
+        processName = nameString.c_str();
+        return true;
+    }else{
+        processNameStr = "";
+        return false;
+    }
+}
+
 @end

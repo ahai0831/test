@@ -55,7 +55,7 @@ std::string GetCurrentApplicationVersion() {
   return buf;
 }
 
-std::string GetCurrentApplicationName() {
+std::string GetCurrentMacOsXApplicationName() {
      CFBundleRef ref = CFBundleGetMainBundle();
   // 构建版本
   int build_version = CFBundleGetVersionNumber(ref);
@@ -86,6 +86,12 @@ bool get_log_path(std::string &log_path){
         log_path = logPath.c_str();
         return true;
     }
+}
+
+std::string GetCurrentUnixApplicationName(){
+    std::string unixProcessName;
+    c_get_process_name(unixProcessName);
+    return unixProcessName;
 }
 
 }  // namespace process_common_unix

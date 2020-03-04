@@ -24,7 +24,10 @@ std::string GetCurrentApplicationVersion();
 bool get_log_path(std::string &log_path);
 
 /// get current application name
-std::string GetCurrentApplicationName();
+std::string GetCurrentMacOsXApplicationName();
+
+// get current unix的进程名
+std::string GetCurrentUnixApplicationName();
 
 }  // namespace process_common_unix
 }  // namespace cloud_base
