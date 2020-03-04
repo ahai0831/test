@@ -84,7 +84,7 @@ bool c_get_process_name(std::string &processName) {
         processName = nameString.c_str();
         return true;
     }else{
-        processNameStr = "";
+        processName = "";
         return false;
     }
 }

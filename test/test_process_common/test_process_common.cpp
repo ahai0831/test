@@ -16,5 +16,7 @@ int main() {
   printf("process_version:  %s\n", appVersion.c_str());
   printf("app_name:  %s\n", appName.c_str());
   printf("appdata_path:  %s\n\n", appDataPath.c_str());
+  
   return 0;
 }
+

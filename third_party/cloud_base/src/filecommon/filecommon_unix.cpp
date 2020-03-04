@@ -63,16 +63,29 @@ bool GetFileName(const std::string file_path, std::string &file_name) {
 // 判断文件夹是否存在，不存在就创建
 bool guarantee_directory_exists(const std::string &dir_path) {
   bool result = false;
-  if (dir_path.empty()) {
-    return result;
-  }
-  DIR *dir;
-  char *sourceDir = new char[dir_path.size() + 4];
-  strcpy(sourceDir, dir_path.c_str());
-  if ((dir = opendir(sourceDir)) != NULL) {
-    result = true;
-    closedir(dir);
-  } else {
+  do {
+    // 1.路径为空，break
+    if (dir_path.empty()) {
+      break;
+    }
+    // 2.路径已存在，返回true，break
+    DIR *dir;
+    if ((dir = opendir(dir_path.c_str())) != NULL) {
+      result = true;
+      closedir(dir);
+      break;
+    }
+    // 3.路径不存在，逐级创建路径
+    // 分割字符串
+    std::vector<std::string> vec;
+    size_t tmp_pos = 0;
+    while (tmp_pos != dir_path.npos) {
+      tmp_pos = dir_path.find('/', tmp_pos + 1);
+      std::string temp_path = dir_path.substr(0, tmp_pos);
+      vec.emplace_back(temp_path);
+    }
+
+    // 逐级创建路径
     //      S_IRWXU  00700权限，代表该文件所有者拥有读，写和执行操作的权限
     //      S_IRUSR(S_IREAD) 00400权限，代表该文件所有者拥有可读的权限
     //      S_IWUSR(S_IWRITE) 00200权限，代表该文件所有者拥有可写的权限
@@ -85,12 +98,24 @@ bool guarantee_directory_exists(const std::string &dir_path) {
     //      S_IROTH 00004权限，代表其他用户拥有可读的权限
     //      S_IWOTH 00002权限，代表其他用户拥有可写的权限
     //      S_IXOTH 00001权限，代表其他用户拥有执行的权限
-    mkdir(sourceDir, 00700);
-    if ((dir = opendir(sourceDir)) != NULL) {
-      result = true;
-      closedir(dir);
+    bool mkdir_flag = false;
+    for (const auto &path : vec) {
+      DIR *dir;
+      if ((dir = opendir(path.c_str())) == NULL) {
+        int res = mkdir(path.c_str(), 00700);
+        if (0 != res) {
+          break;
+        }
+      } else {
+        closedir(dir);
+      }
     }
-  }
+    DIR *last_dir;
+    if ((last_dir = opendir(dir_path.c_str())) == NULL) {
+      break;
+    }
+    result = true;
+  } while (false);
   return result;
 }
 
@@ -242,7 +267,8 @@ bool GetFileLastChange(const char *file_path, std::string &file_modify_date) {
 //   CFDictionaryRef dict = CFBundleGetInfoDictionary(ref);
 //   // 版本名
 //   CFStringRef key_name = CFStringCreateWithCString(
-//       CFAllocatorGetDefault(), "CFBundleExecutable", kCFStringEncodingUTF8);
+//       CFAllocatorGetDefault(), "CFBundleExecutable",
+//       kCFStringEncodingUTF8);
 //   CFStringRef value_name =
 //       (CFStringRef)CFDictionaryGetValue(dict, (void *)key_name);
 //   // 版本号
@@ -284,7 +310,8 @@ std::string get_mac_address() {
   // }
 
   // struct ifreq *it = ifc.ifc_req;
-  // const struct ifreq *const end = it + (ifc.ifc_len / sizeof(struct ifreq));
+  // const struct ifreq *const end = it + (ifc.ifc_len / sizeof(struct
+  // ifreq));
 
   // for (; it != end; ++it) {
   //   strcpy(ifr.ifr_name, it->ifr_name);
@@ -335,16 +362,16 @@ std::string get_mac_address() {
   return MACstring;
 }
 
-// Returns an iterator containing the primary (built-in) Ethernet interface. The
-// caller is responsible for releasing the iterator after the caller is done
-// with it.
+// Returns an iterator containing the primary (built-in) Ethernet interface.
+// The caller is responsible for releasing the iterator after the caller is
+// done with it.
 static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices) {
   kern_return_t kernResult;
   CFMutableDictionaryRef matchingDict;
   CFMutableDictionaryRef propertyMatchDict;
   // Ethernet interfaces are instances of class kIOEthernetInterfaceClass.
-  // IOServiceMatching is a convenience function to create a dictionary with the
-  // key kIOProviderClassKey and the specified value.
+  // IOServiceMatching is a convenience function to create a dictionary with
+  // the key kIOProviderClassKey and the specified value.
   matchingDict = IOServiceMatching(kIOEthernetInterfaceClass);
   // Note that another option here would be:
   // matchingDict = IOBSDMatching("en0");
@@ -371,11 +398,11 @@ static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices) {
     // kIOBSDNameKey (IOBSDNameMatching)
     // kIOLocationMatchKey
 
-    // The IONetworkingFamily does not define any family-specific matching. This
-    // means that in order to have IOServiceGetMatchingServices consider the
-    // kIOPrimaryInterface property, we must add that property to a separate
-    // dictionary and then add that to our matching dictionary specifying
-    // kIOPropertyMatchKey.
+    // The IONetworkingFamily does not define any family-specific matching.
+    // This means that in order to have IOServiceGetMatchingServices consider
+    // the kIOPrimaryInterface property, we must add that property to a
+    // separate dictionary and then add that to our matching dictionary
+    // specifying kIOPropertyMatchKey.
 
     propertyMatchDict = CFDictionaryCreateMutable(
         kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks,
@@ -384,9 +411,9 @@ static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices) {
     if (NULL == propertyMatchDict) {
       printf("CFDictionaryCreateMutable returned a NULL dictionary.\n");
     } else {
-      // Set the value in the dictionary of the property with the given key, or
-      // add the key to the dictionary if it doesn't exist. This call retains
-      // the value object passed in.
+      // Set the value in the dictionary of the property with the given key,
+      // or add the key to the dictionary if it doesn't exist. This call
+      // retains the value object passed in.
       CFDictionarySetValue(propertyMatchDict, CFSTR(kIOPrimaryInterface),
                            kCFBooleanTrue);
 
@@ -400,10 +427,10 @@ static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices) {
     }
   }
 
-  // IOServiceGetMatchingServices retains the returned iterator, so release the
-  // iterator when we're done with it. IOServiceGetMatchingServices also
-  // consumes a reference on the matching dictionary so we don't need to release
-  // the dictionary explicitly.
+  // IOServiceGetMatchingServices retains the returned iterator, so release
+  // the iterator when we're done with it. IOServiceGetMatchingServices also
+  // consumes a reference on the matching dictionary so we don't need to
+  // release the dictionary explicitly.
   kernResult = IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDict,
                                             matchingServices);
   if (KERN_SUCCESS != kernResult) {
@@ -413,10 +440,10 @@ static kern_return_t FindEthernetInterfaces(io_iterator_t *matchingServices) {
   return kernResult;
 }
 
-// Given an iterator across a set of Ethernet interfaces, return the MAC address
-// of the last one. If no interfaces are found the MAC address is set to an
-// empty string. In this sample the iterator should contain just the primary
-// interface.
+// Given an iterator across a set of Ethernet interfaces, return the MAC
+// address of the last one. If no interfaces are found the MAC address is set
+// to an empty string. In this sample the iterator should contain just the
+// primary interface.
 static kern_return_t GetMACAddress(io_iterator_t intfIterator,
                                    UInt8 *MACAddress, UInt8 bufferSize) {
   io_object_t intfService;
@@ -439,20 +466,20 @@ static kern_return_t GetMACAddress(io_iterator_t intfIterator,
 
     // IONetworkControllers can't be found directly by the
     // IOServiceGetMatchingServices call, since they are hardware nubs and do
-    // not participate in driver matching. In other words, registerService() is
-    // never called on them. So we've found the IONetworkInterface and will get
-    // its parent controller by asking for it specifically.
+    // not participate in driver matching. In other words, registerService()
+    // is never called on them. So we've found the IONetworkInterface and will
+    // get its parent controller by asking for it specifically.
 
-    // IORegistryEntryGetParentEntry retains the returned object, so release it
-    // when we're done with it.
+    // IORegistryEntryGetParentEntry retains the returned object, so release
+    // it when we're done with it.
     kernResult = IORegistryEntryGetParentEntry(intfService, kIOServicePlane,
                                                &controllerService);
 
     if (KERN_SUCCESS != kernResult) {
       printf("IORegistryEntryGetParentEntry returned 0x%08x\n", kernResult);
     } else {
-      // Retrieve the MAC address property from the I/O Registry in the form of
-      // a CFData
+      // Retrieve the MAC address property from the I/O Registry in the form
+      // of a CFData
       MACAddressAsCFData = IORegistryEntryCreateCFProperty(
           controllerService, CFSTR(kIOMACAddress), kCFAllocatorDefault, 0);
       if (MACAddressAsCFData) {
