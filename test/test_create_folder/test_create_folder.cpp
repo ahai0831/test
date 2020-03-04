@@ -1,17 +1,20 @@
-﻿#include <iostream>
+#include <iostream>
 #include <memory>
 #include <string>
 
 #include <Assistant_v3.hpp>
+#ifdef _WIN32
 #include <tools/string_convert.hpp>
-
+#endif
 #include <cloud189/apis/create_folder.h>
 #include <cloud189/session_helper/session_helper.h>
 
+#ifdef _WIN32
 using assistant::tools::string::utf8ToWstring;
 using assistant::tools::string::wstringToAnsi;
 using assistant::tools::string::wstringToUtf8;
-//#include <tools\string_convert.h>
+#endif
+
 int main() {
   // 测试步骤：
   // 1.根据抓包 更换登录session参数
@@ -43,10 +46,13 @@ int main() {
       parentFolderId, relativePath, folderName, x_request_id);
 
   //打印参数
+#ifdef _WIN32
   auto params_json_wstr = utf8ToWstring(params_json);
   auto params_json_ansi = wstringToAnsi(params_json_wstr);
   printf("params_json:\n%s\n", params_json_ansi.c_str());
-
+#else
+  printf("params_json:\n%s\n",params_json.c_str());
+#endif
   //  http请求初始化
   assistant::HttpRequest create_folder_request("");
   Cloud189::Apis::CreateFolder::HttpRequestEncode(params_json,
@@ -64,8 +70,11 @@ int main() {
   Cloud189::Apis::CreateFolder::HttpResponseDecode(
       response, create_folder_request, decode_res);
 
+#ifdef _WIN32
   auto decode_res_wstr = utf8ToWstring(decode_res);
   auto decode_res_ansi = wstringToAnsi(decode_res_wstr);
-  printf("响应解析：\n%s", decode_res_ansi.c_str());
+#else
+  printf("响应解析：\n%s", decode_res.c_str());
+#endif
   return 0;
 }
