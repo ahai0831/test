@@ -1,0 +1,11 @@
+executable("test_cloud189_restful_file_downloader") {
+  sources = [
+    "test_cloud189_restful_file_downloader.cpp",
+  ]
+  deps = [
+    "//src/cloud189/restful/file_downloader",
+    "//third_party/jsoncpp",
+  ]
+
+  configs += [ "//src:src_using" ]
+}

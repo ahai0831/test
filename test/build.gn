@@ -1,0 +1,5 @@
+group("test") {
+  deps = [
+    "//test/test_general_restful_sdk",
+  ]
+}
