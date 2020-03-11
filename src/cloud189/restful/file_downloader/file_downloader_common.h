@@ -3,6 +3,7 @@
 
 #include <rx_assistant.hpp>
 #include <rx_downloader.hpp>
+#include <rx_uv_fs.hpp>
 
 namespace Cloud189 {
 namespace Restful {
@@ -20,7 +21,7 @@ struct downloader_internal_data {
  public:
   std::unique_ptr<httpbusiness::downloader::rx_downloader> const master_control;
   /// 以file_protect为标志，如果此指针已为空，则什么都不用做
-  bool Valid() { return nullptr != file_protect; }
+  bool Valid() { return true; }
   /// 保存此回调，以供调用
   const httpbusiness::downloader::rx_downloader::CompleteCallback
       null_file_callback;
@@ -68,6 +69,7 @@ struct downloader_thread_data {
         transferred_size(0),
         already_download_bytes(0),
         current_download_bytes(0),
+        uv_thread_ptr(std::make_shared<rx_uv_fs::uv_loop_with_thread>()),
         frozen(false),
         speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
   }
@@ -80,6 +82,9 @@ struct downloader_thread_data {
   std::atomic<int64_t> transferred_size;
   std::atomic<int64_t> already_download_bytes;
   std::atomic<int64_t> current_download_bytes;
+
+  /// 保存进行本地fs操作的uv线程对象
+  const std::shared_ptr<rx_uv_fs::uv_loop_with_thread> uv_thread_ptr;
 
   /// 以下为确认文件上传完成后解析到的字段
 

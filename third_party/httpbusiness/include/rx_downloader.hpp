@@ -243,7 +243,7 @@ struct rx_downloader {
             /// 失败：无需重试的错误，或是重试此处达到上限，则直接失败
             /// 重试：可进行重试的错误，或未知情形
             do {
-              if (proof::Succeeded != currernt_proof.result) {
+              if (proof::Succeeded == currernt_proof.result) {
                 ResolveNextStage(proof::GetRemoteFileSize, 0, true);
                 break;
               }

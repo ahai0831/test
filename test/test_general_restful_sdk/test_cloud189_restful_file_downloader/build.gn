@@ -5,6 +5,7 @@ executable("test_cloud189_restful_file_downloader") {
   deps = [
     "//src/cloud189/restful/file_downloader",
     "//third_party/jsoncpp",
+    "//src/cloud189/session_helper",
   ]
 
   configs += [ "//src:src_using" ]

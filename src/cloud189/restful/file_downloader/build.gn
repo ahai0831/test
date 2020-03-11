@@ -4,7 +4,7 @@ config("cloud189_restful_internal") {
 
 source_set("file_downloader") {
   deps = [
-    #"//src/cloud189/apis:cloud189_upload",
+    "//src/cloud189/apis:cloud189_download",
     "//src/cloud189/error_code",
     "//src/cloud189/session_helper",
     "//third_party/assistant",
