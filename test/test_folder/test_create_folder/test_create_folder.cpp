@@ -33,11 +33,11 @@ int main() {
   std::string x_request_id = "";
 
 #ifdef _WIN32
-  //std::string relativePath = wstringToUtf8(
-  //    L"XYZ/abc/a1/b2/c3/d4/e5/f6/g7/h8/i9/j10/k11/l12/m13/n14/o15/p16/q17/r18/"
-  //    L"s19/t20/u21/v22/w23/x24/y25");
-  std::string relativePath = wstringToUtf8(L"/XYZ/abc");
-  std::string folderName = wstringToUtf8(L"spencer");
+  std::string relativePath = wstringToUtf8(
+      L"XYZ/abc/a1/b2/c3/d4/e5/f6/g7/h8/i9/j10/k11/l12/m13/n14/o15/p16/q17/r18/"
+      L"s19/t20/u21/v22/w23/x24/y25");
+  // std::string relativePath = wstringToUtf8(L"/XYZ/abc");
+  std::string folderName = wstringToUtf8(L"z26");
 #else
   std::string relativePath = "/XYZ/雪山妖狐";
   std::string folderName = "太阳";
@@ -51,7 +51,7 @@ int main() {
   auto params_json_ansi = wstringToAnsi(params_json_wstr);
   printf("params_json:\n%s\n", params_json_ansi.c_str());
 #else
-  printf("params_json:\n%s\n",params_json.c_str());
+  printf("params_json:\n%s\n", params_json.c_str());
 #endif
   //  http请求初始化
   assistant::HttpRequest create_folder_request("");
@@ -73,9 +73,9 @@ int main() {
 #ifdef _WIN32
   auto decode_res_wstr = utf8ToWstring(decode_res);
   auto decode_res_ansi = wstringToAnsi(decode_res_wstr);
-  printf("respons_parse:\n%s",decode_res_ansi.c_str());
+  printf("response parse:\n%s", decode_res_ansi.c_str());
 #else
-  printf("respons_parse:\n%s", decode_res.c_str());
+  printf("response parse:\n%s", decode_res.c_str());
 #endif
   return 0;
 }

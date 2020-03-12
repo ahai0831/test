@@ -30,7 +30,7 @@ source_set("cloud189_upload") {
   configs += [ ":cloud189_apis_internal" ]
   public_configs = [ "//src:src_using" ]
 }
-source_set("cloud189_create_folder") {          
+source_set("cloud189_folder") {          
   deps = [
     "//src/cloud189/error_code",
     "//src/cloud189/session_helper",
@@ -42,9 +42,12 @@ source_set("cloud189_create_folder") {
   sources = [
     "create_folder.cpp",
     "create_folder.h",
+    "get_folder_info.cpp",
+    "get_folder_info.h",
   ]
   public = [
     "create_folder.h",
+    "get_folder_info.h",
   ]
   configs += [ ":cloud189_apis_internal" ]
   public_configs = [ "//src:src_using" ]
@@ -59,14 +62,11 @@ source_set("cloud189_download") {
     "//third_party/pugixml",
   ]
   sources = [     
-    "get_download_address.cpp",
-    "get_download_address.h",
-    "file_data_download.cpp",
-    "file_data_download.h",
+    "list_files.cpp",
+    "list_files.h",
   ]
   public = [
-    "get_download_address.h",
-    "file_data_download.h",
+    "list_files.h",
   ]
   configs += [ ":cloud189_apis_internal" ]
   public_configs = [ "//src:src_using" ]

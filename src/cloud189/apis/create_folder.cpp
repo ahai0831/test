@@ -11,8 +11,6 @@
 #include <UrlEncode/UrlEncode.h>
 #include <process_common/process_common_helper.h>
 
-#include <v2/tools.h>
-#include <v2/uuid.h>
 #include <tools/string_format.hpp>
 
 #include "cloud189/error_code/error_code.h"

@@ -1,6 +1,6 @@
-executable("test_create_folder") {
+executable("test_list_files") {
   sources = [
-    "test_create_folder.cpp",
+    "test_list_files.cpp",
   ]
 
   deps = [
@@ -15,7 +15,7 @@ executable("test_create_folder") {
     "//third_party/concurrentqueue",
     "//third_party/assistant",
     "//src/cloud189/session_helper",
-    "//src/cloud189/apis:cloud189_create_folder",
+    "//src/cloud189/apis:cloud189_download",
   ]
   configs += [ "//src:src_using" ]
 }
