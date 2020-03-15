@@ -52,9 +52,10 @@ std::string JsonStringHelper(const std::string folderId, int32_t recursive,
                              int64_t pageNum, int64_t pageSize,
                              const std::string x_request_id) {
   return assistant::tools::string::StringFormat(
-      R"({"folderId":"%s","recursive":%d,"fileType":%d,"mediaType":%d,"mediaAttr":%d,"iconOption":%d,"orderBy":"%s","descending":%d,"pageNum":%d,"pageSize":%d,"X-Request-ID":"%s"})",
+	  R"({"folderId":"%s","recursive":%d,"fileType":%d,"mediaType":%d,"mediaAttr":%d,"iconOption":%d,"orderBy":"%s","descending":%d,"pageNum":)" "%" PRId64 "" R"(, "pageSize":)" "%" PRId64 "" R"(, "X-Request-ID": "%s"})",
       folderId.c_str(), recursive, fileType, mediaType, mediaAttr, iconOption,
-      orderBy.c_str(), descending, pageNum, pageSize, x_request_id.c_str());
+      orderBy.c_str(), descending ? 1 : 0, pageNum, pageSize,
+      x_request_id.c_str());
 }
 
 // 查询文件上传状态请求
@@ -87,7 +88,7 @@ bool HttpRequestEncode(const std::string& params_json,
     //  set url params
     request.url += assistant::tools::string::StringFormat(
         "?folderId=%s&flag=%d&recursive=%d&fileType=%d&mediaType=%d&mediaAttr=%"
-        "d&iconOption=%d&orderBy=%s&descending=%d&pageNum=%d&pageSize=%d&x_"
+		    "d&iconOption=%d&orderBy=%s&descending=%d&pageNum=%" PRId64 "&pageSize=%" PRId64 "&x_"
         "request_id=%s"
         "&clientType=%s&version=%s&channelId=%s&rand=%s",
         folderId.c_str(), GetFlag(), recursive, fileType, mediaType, mediaAttr,

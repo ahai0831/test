@@ -158,6 +158,49 @@ inline void uv_fs_scandir_wrapper(uv_loop_t& loop, const std::string& path,
 }
 }  // namespace uv_fs_scandir
 
+namespace uv_fs_mkdir {
+/// 入参内的int32_t为0，代表传入的路径mkdir操作成功
+typedef int32_t Type;
+typedef std::function<void(Type)> Callback;
+namespace details {
+inline void mkdir_callback(uv_fs_t* req) {
+  /// req必然非空指针
+  Type result{static_cast<Type>(req->result)};
+
+  if (0 == result) {
+    printf("mkdir: %s succeed\n", req->path);
+  } else {
+    printf("mkdir: %s failed\n", req->path);
+  }
+
+  do {
+    if (nullptr == req->data) {
+      break;
+    }
+    const auto& callback = *static_cast<Callback*>(req->data);
+    if (nullptr == callback) {
+      break;
+    }
+    callback(result);
+    delete static_cast<Callback*>(req->data);
+    req->data = nullptr;
+  } while (false);
+
+  if (nullptr != req) {
+    uv_fs_req_cleanup(req);
+    delete req;
+  }
+}
+}  // namespace details
+inline void uv_fs_mkdir_wrapper(uv_loop_t& loop, const std::string& path,
+                                Callback callback) {
+  uv_fs_t* req = new (std::nothrow) uv_fs_t({0});
+  auto callback_ptr = new (std::nothrow) Callback(callback);
+  req->data = static_cast<void*>(callback_ptr);
+  ::uv_fs_mkdir(&loop, req, path.c_str(), 0L, details::mkdir_callback);
+}
+}  // namespace uv_fs_mkdir
+
 namespace rx_uv_fs_factory {
 inline rxcpp::observable<uv_fs_stat::Type> Stat(
     std::weak_ptr<uv_loop_with_thread> thread, const std::string& path) {
@@ -204,6 +247,31 @@ inline rxcpp::observable<uv_fs_scandir::Type> Scandir(
         } else if (s.is_subscribed()) {
           /// 发射一个负面的响应，保证完备
           s.on_next(uv_fs_scandir::Type());
+          s.on_completed();
+        }
+      });
+}
+
+inline rxcpp::observable<uv_fs_mkdir::Type> Mkdir(
+    std::weak_ptr<uv_loop_with_thread> thread, const std::string& path) {
+  return rxcpp::observable<>::create<uv_fs_mkdir::Type>(
+      [thread, path](rxcpp::subscriber<uv_fs_mkdir::Type> s) -> void {
+        auto thread_ptr = thread.lock();
+        if (s.is_subscribed() && nullptr != thread_ptr) {
+          /// 必须以值捕获的方式，保持rxcpp::subscriber<XXX>生命周期
+          uv_fs_mkdir::Callback subscriber_func =
+              [s](uv_fs_mkdir::Type result) -> void {
+            s.on_next(result);
+            s.on_completed();
+          };
+
+          rx_uv_fs::uv_loop_with_thread::uv_todo_wrapper stat_task =
+              std::bind(uv_fs_mkdir::uv_fs_mkdir_wrapper, std::placeholders::_1,
+                        path, subscriber_func);
+          thread_ptr->Do(stat_task);
+        } else if (s.is_subscribed()) {
+          /// 发射一个负面的响应，保证完备
+          s.on_next(0);
           s.on_completed();
         }
       });

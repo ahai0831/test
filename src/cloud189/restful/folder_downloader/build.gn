@@ -1,0 +1,31 @@
+config("cloud189_restful_internal") {
+  include_dirs = [ "." ]
+}
+
+source_set("folder_downloader") {
+  deps = [
+    "//src/cloud189/apis:cloud189_list_files",
+    "//src/cloud189/error_code",
+    "//src/cloud189/session_helper",
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+    "//third_party/httpbusiness",
+    "//third_party/jsoncpp",
+  ]
+  sources = [
+    "folder_downloader.cpp",
+    "folder_downloader.h",
+    "folder_downloader_helper.cpp",
+    "folder_downloader_helper.h",
+    "folder_downloader_common.h",
+    "folder_downloader_helper_get_server_folder_info.cpp",
+    "folder_downloader_helper_check_local_folder.cpp",
+    "folder_downloader_helper_resolve_each_sub_folder.cpp",
+  ]
+  public = [
+    "folder_downloader.h",
+  ]
+  configs += [ ":cloud189_restful_internal" ]
+  public_configs = [ "//src:src_using" ]
+}
+

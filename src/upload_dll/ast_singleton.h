@@ -14,6 +14,7 @@
 #include "cloud189/restful/cloud189_folder_uploader.h"
 #include "cloud189/restful/cloud189_uploader.h"
 #include "cloud189/restful/file_downloader/file_downloader.h"
+#include "cloud189/restful/folder_downloader/folder_downloader.h"
 
 namespace general_restful_sdk_ast {
 struct Config {
@@ -48,6 +49,9 @@ struct AstInfo {
   assistant::tools::safemap_closure<
       std::string, std::unique_ptr<::Cloud189::Restful::Downloader>>
       cloud189_downloader_map;
+  assistant::tools::safemap_closure<
+      std::string, std::unique_ptr<::Cloud189::Restful::FolderDownloader>>
+      cloud189_folder_downloader_map;
 
  private:
   AstInfo(AstInfo &&) = delete;

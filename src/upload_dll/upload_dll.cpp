@@ -14,6 +14,7 @@
 #include "ast_singleton.h"
 #include "log_system/log_system.h"
 #include "solve_cloud189_downloader.h"
+#include "solve_cloud189_folder_downloader.h"
 #include "solve_cloud189_folder_uploader.h"
 #include "solve_cloud189_uploader.h"
 
@@ -72,6 +73,12 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
           general_restful_sdk_ast::Cloud189::DoDownload(solved_info,
                                                         on_callback);
       on_start_json["start_result"] = cloud189_dodownload_res;
+    } else if (domain.compare("Cloud189") == 0 &&
+               operation.compare("DoFolderDownload") == 0) {
+      auto cloud189_dofolderdownload_res =
+          general_restful_sdk_ast::Cloud189::DoFolderDownload(solved_info,
+                                                              on_callback);
+      on_start_json["start_result"] = cloud189_dofolderdownload_res;
     }
 
   } while (false);

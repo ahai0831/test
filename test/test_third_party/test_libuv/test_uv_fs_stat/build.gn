@@ -1,0 +1,8 @@
+executable("test_uv_fs_stat") {
+  sources = [
+    "test_uv_fs_stat.cpp",
+  ]
+  deps = [
+    "//third_party/httpbusiness",
+  ]
+}

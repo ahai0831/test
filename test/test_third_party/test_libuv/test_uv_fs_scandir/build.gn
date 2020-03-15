@@ -1,0 +1,9 @@
+executable("test_uv_fs_scandir") {
+  sources = [
+    "test_uv_fs_scandir.cpp",
+  ]
+  deps = [
+    "//third_party/libuv",
+    "//third_party/httpbusiness",
+  ]
+}

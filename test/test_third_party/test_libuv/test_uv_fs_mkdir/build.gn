@@ -1,0 +1,8 @@
+executable("test_uv_fs_mkdir") {
+  sources = [
+    "test_uv_fs_mkdir.cpp",
+  ]
+  deps = [
+    "//third_party/httpbusiness",
+  ]
+}

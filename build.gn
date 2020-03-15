@@ -1,19 +1,14 @@
 group("test") {
   deps = [
     "//test",
-    "//test/hello_gn",
-    "//test/test_upload_dll",
-    "//test/test_folder/test_create_folder",
-    "//test/test_folder/test_get_folder_info",
-    "//test/test_cloud189_folder_uploader",
-    "//test/test_process_common",
-    "//test/test_download/test_get_download_address",
-    "//test/test_download/test_file_data_download",
+#    "//test/test_create_folder",
+#    "//test/test_process_common",
+#    "//test/test_download/test_get_download_address",
+#    "//test/test_download/test_file_data_download",
   ]
 }
 group("src") {
   deps = [
-    "//src/fake_dll",
     "//src/upload_dll",
   ]
 }

@@ -1,0 +1,5 @@
+group("test_third_party") {
+  deps = [
+    "//test/test_third_party/test_libuv",
+  ]
+}

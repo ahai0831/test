@@ -1,4 +1,4 @@
-#ifdef _WIN32
+﻿#ifdef _WIN32
 #include <Windows.h>
 #else
 #include <dlfcn.h>
@@ -91,6 +91,9 @@ static std::future<void> complete_folder_signal;
 static std::promise<void> test_for_download_finished;
 static std::future<void> complete_download_signal;
 
+static std::promise<void> test_for_folder_download_finished;
+static std::future<void> complete_folder_download_signal;
+
 int main(void) {
   if (nullptr == AstConfig || nullptr == AstProcess) {
     return -11;
@@ -98,6 +101,8 @@ int main(void) {
   complete_signal = test_for_finished.get_future();
   complete_folder_signal = test_for_folder_finished.get_future();
   complete_download_signal = test_for_download_finished.get_future();
+  complete_folder_download_signal =
+      test_for_folder_download_finished.get_future();
   /// 设置登录
   /// 生成Config字符串
   Json::Value save_cloud189_session;
@@ -113,6 +118,48 @@ int main(void) {
   AstConfig(config_str.c_str(),
             [](const char *on_config) { printf("OnConfig: %s\n", on_config); });
 
+  /*************************测试文件夹下载*****************************/
+  /// 在外部生成测试字符串
+  Json::Value test_info_folder_download_json;
+  test_info_folder_download_json["domain"] = "Cloud189";
+  test_info_folder_download_json["operation"] = "DoFolderDownload";
+  /// 设置必传的业务字段
+
+  test_info_folder_download_json["folder_id"] = "7149115489233549";
+  test_info_folder_download_json["folder_path"] = "/tools/";
+  test_info_folder_download_json["download_path"] = "D:/test/";
+
+  auto test_info_download = WriterHelper(test_info_folder_download_json);
+  printf("%s\n", test_info_download.c_str());
+
+  AstProcess(
+      test_info_download.c_str(),
+      [](const char *start_data) {
+        Json::Value start_data_json;
+        ReaderHelper(start_data, start_data_json);
+        const auto start_result = GetInt(start_data_json["start_result"]);
+        if (0 != start_result) {
+          printf("OnStart, failed: %s\n", start_data);
+          test_for_folder_download_finished.set_value();
+        } else {
+          printf("OnStart: %s\n", start_data);
+        }
+      },
+      [](const char *callback_data) {
+        Json::Value callback_data_json;
+        ReaderHelper(callback_data, callback_data_json);
+        const auto is_complete = GetBool(callback_data_json["is_complete"]);
+        if (is_complete) {
+          printf("OnComplete: %s\n", callback_data);
+          test_for_folder_download_finished.set_value();
+        } else {
+          printf("OnCallback: %s\n", callback_data);
+        }
+      });
+
+  complete_folder_download_signal.wait();
+
+  return 0;
   /*************************测试文件下载*****************************/
   /// 在外部生成测试字符串
   Json::Value test_info_download_json;
@@ -153,6 +200,8 @@ int main(void) {
       });
 
   complete_download_signal.wait();
+
+  return 0;
   /*************************测试文件上传*****************************/
   /// 在外部生成测试字符串
   Json::Value test_info_json;
