@@ -197,7 +197,13 @@ inline void uv_fs_mkdir_wrapper(uv_loop_t& loop, const std::string& path,
   uv_fs_t* req = new (std::nothrow) uv_fs_t({0});
   auto callback_ptr = new (std::nothrow) Callback(callback);
   req->data = static_cast<void*>(callback_ptr);
-  ::uv_fs_mkdir(&loop, req, path.c_str(), 0L, details::mkdir_callback);
+  int mode = 0;
+#ifdef _WIN32
+  /// Do nothing, for libuv ignore mode in Windows.
+#else
+  mode = S_IRWXU | S_IRWXG | S_IRWXO;
+#endif
+  ::uv_fs_mkdir(&loop, req, path.c_str(), mode, details::mkdir_callback);
 }
 }  // namespace uv_fs_mkdir
 

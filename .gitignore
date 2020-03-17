@@ -59,6 +59,7 @@ vcproj/**/Debug/
 vcproj/**/Release/
 vcproj/**/x64/
 
+**/.DS_Store
 
 #/GN_tools/
 #/build/

@@ -1,4 +1,4 @@
-#include "folder_downloader_helper.h"
+﻿#include "folder_downloader_helper.h"
 
 #include <rx_multiworker.hpp>
 
@@ -188,7 +188,7 @@ void folderdownload_async_work(
           })
 
       .flat_map(
-          [material](listfiles_done_type&) -> rxcpp::observable<bool> {
+          [material](listfiles_done_type) -> rxcpp::observable<bool> {
             return rx_uv_fs::rx_uv_fs_factory::Mkdir(
                        material.thread, material.target_local_folder_path)
                 .flat_map([material](int32_t) -> rxcpp::observable<bool> {

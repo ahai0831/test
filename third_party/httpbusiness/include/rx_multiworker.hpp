@@ -93,14 +93,14 @@ struct rx_multi_worker {
 
  private:
   struct internal_data {
-    std::atomic_bool stop_flag;
-    std::atomic_bool serious_error;
+    std::atomic<bool> stop_flag;
+    std::atomic<bool> serious_error;
     assistant::tools::safequeue_closure<Material> material_queue;
     std::atomic_int32_t worker_number;
     std::atomic_int32_t worker_limit;
     internal_data()
-        : stop_flag(ATOMIC_VAR_INIT(false)),
-          serious_error(ATOMIC_VAR_INIT(false)),
+        : stop_flag(false),
+          serious_error(false),
           worker_number(0),
           worker_limit(0) {}
     /// 禁用移动构造、复制构造、=号操作符

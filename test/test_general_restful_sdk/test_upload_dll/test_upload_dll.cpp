@@ -129,11 +129,11 @@ int main(void) {
   test_info_folder_download_json["folder_path"] = "/tools/";
   test_info_folder_download_json["download_path"] = "D:/test/";
 
-  auto test_info_download = WriterHelper(test_info_folder_download_json);
-  printf("%s\n", test_info_download.c_str());
+  auto test_info_folder_download = WriterHelper(test_info_folder_download_json);
+  printf("%s\n", test_info_folder_download.c_str());
 
   AstProcess(
-      test_info_download.c_str(),
+      test_info_folder_download.c_str(),
       [](const char *start_data) {
         Json::Value start_data_json;
         ReaderHelper(start_data, start_data_json);
