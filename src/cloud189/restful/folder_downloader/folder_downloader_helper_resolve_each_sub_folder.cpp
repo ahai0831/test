@@ -155,8 +155,8 @@ void folderdownload_async_work(
               return rxcpp::observable<>::just(listfiles_done_type{});
             }
             ListFiles::MaterialVector materials;
-            const auto page_size = 1000L;
-            auto page_num = 1L;
+            const auto page_size = 1000;
+            auto page_num = 1;
             for (int64_t i = 0; i < value; i += page_size, ++page_num) {
               materials.emplace_back(listfiles_mateiral_type{
                   material.source_server_folder_id, page_num, page_size,
