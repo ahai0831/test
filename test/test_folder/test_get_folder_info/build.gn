@@ -1,0 +1,21 @@
+executable("test_get_folder_info") {
+  sources = [
+    "test_get_folder_info.cpp",
+  ]
+
+  deps = [
+    "//third_party/jsoncpp",
+    "//third_party/scopeguard",
+    "//third_party/rxcpp",
+    "//third_party/libuv",
+    "//third_party/c-ares",
+    "//third_party/zlib",
+    "//third_party/libcurl",
+    "//third_party/httpbusiness",
+    "//third_party/concurrentqueue",
+    "//third_party/assistant",
+    "//src/cloud189/session_helper",
+    "//src/cloud189/apis:cloud189_folder",
+  ]
+  configs += [ "//src:src_using" ]
+}

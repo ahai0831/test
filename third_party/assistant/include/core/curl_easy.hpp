@@ -230,6 +230,12 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
                      assistant::core::readwrite::Headeronly::writeCallback);
     curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, response_callback_data);
   }
+  /// 处理 follow_location 扩展
+  const bool kFollowLocation =
+      req.extends.Get("follow_location").compare("true") == 0;
+  if (kFollowLocation) {
+    curl_easy_setopt(easy_handle, CURLOPT_FOLLOWLOCATION, 1L);
+  }
 
   /// 处理方法特定的HTTP Method所需的扩展
   //////////////////////////////////////////////////////////////////////////
@@ -248,11 +254,11 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
         r = kHttpGet;
         break;
       }
-	  if (details::stricmp(method.c_str(), "POST") == 0) {
+      if (details::stricmp(method.c_str(), "POST") == 0) {
         r = kHttpPost;
         break;
       }
-	  if (details::stricmp(method.c_str(), "PUT") == 0) {
+      if (details::stricmp(method.c_str(), "PUT") == 0) {
         r = kHttpPut;
         break;
       }
@@ -377,7 +383,7 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
               strtoll(req.extends.Get("upload_offset").c_str(), nullptr, 0);
           const auto kUploadLength =
               strtoll(req.extends.Get("upload_length").c_str(), nullptr, 0);
- #ifdef _WIN32
+#ifdef _WIN32
           const auto kUploadMmapParam =
               static_cast<assistant::core::readwrite::ReadwriteByMmap::RW>(
                   assistant::core::readwrite::ReadwriteByMmap::RW::need_read |
@@ -387,7 +393,7 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
               std::make_unique<assistant::core::readwrite::ReadwriteByMmap>(
                   kUploadFilepath.c_str(), kUploadFilesize, kUploadOffset,
                   kUploadLength, kUploadMmapParam);
-                  
+
           if (nullptr != read_cbdata_mmap_ptr &&
               read_cbdata_mmap_ptr->Valid()) {
             curl_easy_setopt(easy_handle, CURLOPT_UPLOAD, 1L);
@@ -402,24 +408,23 @@ static void ConfigEasyHandle(const assistant::HttpRequest &request,
                              response_callback_data);
           }
 #else
-            auto read_cbdata_file_ptr =
-            std::make_unique<assistant::core::readwrite::ReadByFile>(
-                kUploadFilepath.c_str(), kUploadFilesize, kUploadOffset,
-                kUploadLength);
+          auto read_cbdata_file_ptr =
+              std::make_unique<assistant::core::readwrite::ReadByFile>(
+                  kUploadFilepath.c_str(), kUploadFilesize, kUploadOffset,
+                  kUploadLength);
 
-        if (nullptr != read_cbdata_file_ptr &&
-                read_cbdata_file_ptr->Valid()) {
-              curl_easy_setopt(easy_handle, CURLOPT_UPLOAD, 1L);
-              curl_easy_setopt(
-                  easy_handle, CURLOPT_READFUNCTION,
-                  assistant::core::readwrite::ReadByFile::Callback);
-              curl_easy_setopt(easy_handle, CURLOPT_INFILESIZE_LARGE,
-                               kUploadLength);
-              res.transfer_callback = std::move(read_cbdata_file_ptr);
-              res.transfer_callback->retval_callback = std::move(req.retval_func);
-              curl_easy_setopt(easy_handle, CURLOPT_READDATA,
-                               response_callback_data);
-            }
+          if (nullptr != read_cbdata_file_ptr &&
+              read_cbdata_file_ptr->Valid()) {
+            curl_easy_setopt(easy_handle, CURLOPT_UPLOAD, 1L);
+            curl_easy_setopt(easy_handle, CURLOPT_READFUNCTION,
+                             assistant::core::readwrite::ReadByFile::Callback);
+            curl_easy_setopt(easy_handle, CURLOPT_INFILESIZE_LARGE,
+                             kUploadLength);
+            res.transfer_callback = std::move(read_cbdata_file_ptr);
+            res.transfer_callback->retval_callback = std::move(req.retval_func);
+            curl_easy_setopt(easy_handle, CURLOPT_READDATA,
+                             response_callback_data);
+          }
 #endif
 
         } else {

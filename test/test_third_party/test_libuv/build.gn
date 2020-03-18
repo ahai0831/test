@@ -1,0 +1,7 @@
+group("test_libuv") {
+  deps = [
+    "//test/test_third_party/test_libuv/test_uv_fs_scandir",
+    "//test/test_third_party/test_libuv/test_uv_fs_stat",
+    "//test/test_third_party/test_libuv/test_uv_fs_mkdir",
+  ]
+}

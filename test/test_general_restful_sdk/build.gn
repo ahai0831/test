@@ -1,0 +1,8 @@
+group("test_general_restful_sdk") {
+  deps = [
+    "//test/test_general_restful_sdk/test_upload_dll",
+    "//test/test_general_restful_sdk/test_cloud189_restful_file_downloader",
+    "//test/test_general_restful_sdk/test_cloud189_folder_uploader",
+    "//test/test_general_restful_sdk/test_cloud189_restful_folder_downloader",
+  ]
+}

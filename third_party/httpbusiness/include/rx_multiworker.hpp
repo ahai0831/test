@@ -93,14 +93,14 @@ struct rx_multi_worker {
 
  private:
   struct internal_data {
-    std::atomic_bool stop_flag;
-    std::atomic_bool serious_error;
+    std::atomic<bool> stop_flag;
+    std::atomic<bool> serious_error;
     assistant::tools::safequeue_closure<Material> material_queue;
     std::atomic_int32_t worker_number;
     std::atomic_int32_t worker_limit;
     internal_data()
-        : stop_flag(ATOMIC_VAR_INIT(false)),
-          serious_error(ATOMIC_VAR_INIT(false)),
+        : stop_flag(false),
+          serious_error(false),
           worker_number(0),
           worker_limit(0) {}
     /// 禁用移动构造、复制构造、=号操作符
@@ -239,11 +239,133 @@ struct rx_multi_worker {
   void Stop() { data->stop_flag = true; }
   /// 禁用复制构造、默认构造、移动构造和等号操作符
  private:
+  rx_multi_worker() = delete;
   rx_multi_worker(rx_multi_worker &&) = delete;
   rx_multi_worker(const rx_multi_worker &) = delete;
   rx_multi_worker &operator=(const rx_multi_worker &) = delete;
 };
 
+/// M, R,如上述所示；I代表中间产物(intermediate products)
+/// 此模板类的作用是帮助生成生成器，而无需在外部业务逻辑中定义太多类
+/// 只需写好相关的lambda表达式即可
+template <class M, class R, class I>
+struct rx_multi_worker_helper {
+  /// 私有定义，根据M, R定义一个rx_multi_worker的类型
+ private:
+  typedef rx_multi_worker<M, R> MultiWorkerType;
+
+ public:
+  /// M
+  typedef typename MultiWorkerType::Material Material;
+  /// std::vector<M>
+  typedef typename MultiWorkerType::MaterialVector MaterialVector;
+  /// rxcpp::observable<Report>
+  typedef typename MultiWorkerType::DataSource DataSource;
+  /// I
+  typedef I IntermediateProducts;
+  /// rx_multi_worker_callbacks_package
+  typedef typename MultiWorkerType::CalledCallbacks CalledCallbacks;
+  /// 通过调用此函数，worker函数汇报中间产物
+  typedef std::function<void(IntermediateProducts &)>
+      IntermediateProductsFunction;
+  /// AsyncWork必须保证：一定会触发且仅触发一次IntermediateProductsFunction
+  typedef std::function<void(const Material &,
+                             const IntermediateProductsFunction)>
+      AsyncWork;
+  typedef std::function<void(const IntermediateProducts &,
+                             const CalledCallbacks &)>
+      AfterWork;
+  /// 通过工厂方法产生一个unique_ptr对象
+  static std::unique_ptr<rx_multi_worker_helper> Create(
+      const MaterialVector &materials, const AsyncWork &async_work_,
+      const AfterWork &after_work_, const int32_t max_worker_number) {
+    return std::unique_ptr<rx_multi_worker_helper>(
+        new (std::nothrow) rx_multi_worker_helper(
+            materials, async_work_, after_work_, max_worker_number));
+    /// 使用make_unique带来的好处并不多，但需要声明一个极其复杂的友元类型，所以没必要；std::unique_ptr<>直接使用更方便
+  }
+  DataSource GetDataSource() { return multi_worker_unique->data_source; }
+  void Stop() { multi_worker_unique->Stop(); }
+
+ private:
+  /// 构造函数，其中应做好初始化
+  /// multi_worker_unique
+  rx_multi_worker_helper(const MaterialVector &materials,
+                         const AsyncWork &async_work_,
+                         const AfterWork &after_work_,
+                         const int32_t max_worker_number)
+      : multi_worker_unique(MultiWorkerType::Create(
+            materials,
+            std::bind(&rx_multi_worker_helper::multi_worker_worker, this,
+                      std::placeholders::_1),
+            max_worker_number)),
+        async_work(async_work_),
+        after_work(after_work_) {}
+
+  typename MultiWorkerType::MultiWorkerUnique const multi_worker_unique;
+  const AsyncWork async_work;
+  const AfterWork after_work;
+
+  /// 定义一个worker函数
+  void multi_worker_worker(CalledCallbacks callbacks) {
+    typename MultiWorkerType::MaterialType material_unique = nullptr;
+    if (!callbacks.check_stop()) {
+      material_unique = callbacks.get_material();
+    }
+    /// 注意这里是新增的worker的对应的选项，要么新增，要么不变（指物料池空）
+    callbacks.get_material_result(nullptr != material_unique ? 1 : 0);
+    if (nullptr != material_unique) {
+      async_worker_function(
+          *material_unique,
+          std::bind(&rx_multi_worker_helper::after_work_callback, this,
+                    std::placeholders::_1, std::placeholders::_2),
+          callbacks);
+    }
+  }
+
+  /// 在此定义好async_worker_function
+  void async_worker_function(
+      Material material,
+      std::function<void(IntermediateProducts &, CalledCallbacks)>
+          done_callback,
+      CalledCallbacks callbacks) {
+    /// 要保证传入的material，一定会触发且仅触发一次on_done
+    IntermediateProductsFunction on_done =
+        std::bind(done_callback, std::placeholders::_1, callbacks);
+    async_work(material, on_done);
+  }
+
+  /// 在此定义好after_work_callback
+  void after_work_callback(IntermediateProducts &done_result,
+                           CalledCallbacks callbacks) {
+    /// 产生额外物料，调用extra_material
+    /// 进行报告
+    /// 需要检查主控是否已经“frozen”，如有需尽快停止整个multi_worker流程
+    /// 以上均为AfterWork的职责
+    after_work(done_result, callbacks);
+
+    /// 尝试下一轮生产
+    typename MultiWorkerType::MaterialType material_after = nullptr;
+    if (!callbacks.check_stop()) {
+      material_after = callbacks.get_material();
+    }
+    /// 注意这里是旧worker的对应的选项，要么不变，要么减少（指物料池空）
+    callbacks.get_material_result(nullptr != material_after ? 0 : -1);
+    if (nullptr != material_after) {
+      async_worker_function(
+          *material_after,
+          std::bind(&rx_multi_worker_helper::after_work_callback, this,
+                    std::placeholders::_1, std::placeholders::_2),
+          callbacks);
+    }
+  }
+
+  /// 构造函数禁用掉
+  rx_multi_worker_helper() = delete;
+  rx_multi_worker_helper(rx_multi_worker_helper &&) = delete;
+  rx_multi_worker_helper(const rx_multi_worker_helper &) = delete;
+  rx_multi_worker_helper &operator=(const rx_multi_worker_helper &) = delete;
+};
 }  // namespace httpbusiness
 
 #endif  /// _RX_MULTIWORKER_HH_

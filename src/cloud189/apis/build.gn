@@ -30,7 +30,7 @@ source_set("cloud189_upload") {
   configs += [ ":cloud189_apis_internal" ]
   public_configs = [ "//src:src_using" ]
 }
-source_set("cloud189_create_folder") {
+source_set("cloud189_create_folder") {          
   deps = [
     "//src/cloud189/error_code",
     "//src/cloud189/session_helper",
@@ -45,6 +45,50 @@ source_set("cloud189_create_folder") {
   ]
   public = [
     "create_folder.h",
+  ]
+  configs += [ ":cloud189_apis_internal" ]
+  public_configs = [ "//src:src_using" ]
+}
+source_set("cloud189_download") {
+  deps = [
+    "//src/cloud189/error_code",
+    "//src/cloud189/session_helper",
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+    "//third_party/jsoncpp",
+    "//third_party/pugixml",
+  ]
+  sources = [     
+    "get_download_address.cpp",
+    "get_download_address.h",
+    "file_data_download.cpp",
+    "file_data_download.h",
+  ]
+  public = [
+    "get_download_address.h",
+    "file_data_download.h",
+  ]
+  configs += [ ":cloud189_apis_internal" ]
+  public_configs = [ "//src:src_using" ]
+}
+source_set("cloud189_list_files") {
+  deps = [
+    "//src/cloud189/error_code",
+    "//src/cloud189/session_helper",
+    "//third_party/assistant",
+    "//third_party/cloud_base",
+    "//third_party/jsoncpp",
+    "//third_party/pugixml",
+  ]
+  sources = [     
+    "list_files.cpp",
+    "list_files.h",
+    "get_folder_info.cpp",
+    "get_folder_info.h",
+]
+  public = [
+    "list_files.h",
+    "get_folder_info.h",
   ]
   configs += [ ":cloud189_apis_internal" ]
   public_configs = [ "//src:src_using" ]
