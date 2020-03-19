@@ -49,8 +49,22 @@ bool c_get_log_path(std::string &logPath){
     if (!ocToC_bridge) {
         ocToC_bridge = [OcToC_bridge shareInstance];
     }
-    NSString *homePath = NSHomeDirectory();
-    if (homePath.length > 0) {
+    // NSString *homePath = NSHomeDirectory();
+    NSString *homePath = [[NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"com.21cn.cloud-dist"];
+         
+    NSFileManager *fm = [NSFileManager defaultManager];
+    BOOL isYes;
+    isYes = [fm fileExistsAtPath:homePath];
+    if (!isYes) {
+        NSError *error;
+        if(![fm createDirectoryAtPath:homePath withIntermediateDirectories:YES attributes:NULL error:&error]){
+            NSLog(@"%@", error);
+        }else{
+            isYes = YES;
+        }
+    }
+
+    if (homePath.length > 0 && isYes) {
         std::string logString = [homePath UTF8String];
         // if (opendir(logString.c_str()) == NULL) {
         //     mkdir(logString.c_str(), S_IRWXU);

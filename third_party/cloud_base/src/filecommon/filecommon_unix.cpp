@@ -102,7 +102,7 @@ bool guarantee_directory_exists(const std::string &dir_path) {
     for (const auto &path : vec) {
       DIR *dir;
       if ((dir = opendir(path.c_str())) == NULL) {
-        int res = mkdir(path.c_str(), 00700);
+        int res = mkdir(path.c_str(), S_IRWXU);
         if (0 != res) {
           break;
         }
