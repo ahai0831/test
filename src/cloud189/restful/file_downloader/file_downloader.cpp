@@ -57,6 +57,29 @@ void Downloader::UserCancel() {
   }
 }
 
+bool Downloader::Valid() {
+  bool result = false;
+  do {
+    if (thread_data->file_id.empty()) {
+      break;
+    }
+    if (thread_data->file_name.empty()) {
+      break;
+    }
+    if (thread_data->md5.empty()) {
+      break;
+    }
+    if (thread_data->download_folder_path.empty()) {
+      break;
+    }
+    if ('/' != thread_data->download_folder_path.back()) {
+      break;
+    }
+    result = true;
+  } while (false);
+  return result;
+}
+
 Downloader::~Downloader() = default;
 
 }  // namespace Restful

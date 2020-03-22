@@ -42,12 +42,15 @@ std::shared_ptr<downloader_thread_data> InitThreadData(
   const auto download_folder_path =
       GetString(download_json["download_folder_path"]);
   auto x_request_id = GetString(download_json["x_request_id"]);
+  const auto download_breakpoint_data =
+      GetString(download_json["last_download_breakpoint_data"]);
   if (x_request_id.empty()) {
     x_request_id = assistant::tools::uuid::generate();
   }
 
   return std::make_shared<downloader_thread_data>(
-      file_id, file_name, md5, download_folder_path, x_request_id);
+      file_id, file_name, md5, download_folder_path, download_breakpoint_data,
+      x_request_id);
 }
 
 /// 生成总控使用的完成回调
@@ -112,6 +115,17 @@ const rx_downloader::CompleteCallback GenerateDataCallback(
       const auto remote_file_size = thread_data->remote_file_size.load();
       info["file_size"] = remote_file_size;
       info["x_request_id"] = thread_data->x_request_id;
+      info["int32_error_code"] = thread_data->int32_error_code.load();
+      const auto download_file_path = thread_data->download_file_path.load();
+      if (!download_file_path.empty()) {
+        info["download_file_path"] = download_file_path;
+      }
+      const auto download_breakpoint_data =
+          thread_data->current_download_breakpoint_data.load();
+      if (!download_breakpoint_data.empty()) {
+        info["download_breakpoint_data"] = download_breakpoint_data;
+      }
+
       /// 已传输数据量
       auto transferred_size = thread_data->already_download_bytes.load() +
                               thread_data->current_download_bytes.load();

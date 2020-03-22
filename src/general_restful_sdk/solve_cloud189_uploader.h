@@ -18,7 +18,7 @@ int32_t CreateUpload(const std::string& upload_info,
                      std::string& success_uuid);
 
 /// 传入CreateUpload返回的uuid；如果传入的uuid无效，什么也不会发生
-void StartUpload(const std::string& cancel_uuid);
+void StartUpload(const std::string& success_uuid);
 
 /// 返回0，代表传入的uuid合法，因此成功地发出了取消请求
 /// 但此时不代表已经立即停止，仅仅是请求发出。

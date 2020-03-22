@@ -1,5 +1,8 @@
 ﻿#include "file_downloader_helper.h"
 
+#include "tools/string_format.hpp"
+
+using assistant::tools::string::StringFormat;
 using Cloud189::Restful::details::downloader_thread_data;
 using httpbusiness::downloader::proof::downloader_proof;
 using httpbusiness::downloader::proof::downloader_stage;
@@ -25,18 +28,95 @@ ProofObsCallback check_file_md5(
         break;
       }
       /// 校验路径是否是个合法的文件 0x8000
-      const auto save_file_path =
-          thread_data->download_folder_path + thread_data->file_name;
+      const auto save_file_path = thread_data->temp_download_file_path.load();
       const auto& uv_thread = thread_data->uv_thread_ptr;
-      result = rx_uv_fs::rx_uv_fs_factory::Stat(uv_thread, save_file_path)
-                   .map([](int32_t value) -> downloader_proof {
-                     downloader_proof result{downloader_stage::CheckFileMd5,
-                                             stage_result::GiveupRetry};
-                     if (0x8000 == value) {
-                       result.result = stage_result::Succeeded;
-                     }
-                     return result;
-                   });
+      result =
+          rx_uv_fs::rx_uv_fs_factory::Stat(uv_thread, save_file_path)
+              .flat_map([thread_data_weak](
+                            int32_t value) -> rxcpp::observable<bool> {
+                rxcpp::observable<bool> result =
+                    rxcpp::observable<>::just(false);
+                do {
+                  auto thread_data = thread_data_weak.lock();
+                  if (nullptr == thread_data) {
+                    break;
+                  }
+
+                  if (0x8000 != value) {
+                    break;
+                  }
+                  int32_t try_number = 0;
+                  FILE* tmp_fp = nullptr;
+                  std::string tmp_path;
+
+                  /// 在此生成目标文件名，用于将临时文件名重命名为目标文件名
+                  /// 获取目录名和文件名
+                  const auto& download_folder_path =
+                      thread_data->download_folder_path;
+                  const auto& file_name = thread_data->file_name;
+                  const auto temp_download_file_path =
+                      thread_data->temp_download_file_path.load();
+                  std::string just_name, name_extension;
+                  auto iter = file_name.rfind(".");
+                  if (iter != std::string::npos) {
+                    just_name = file_name.substr(0, iter);
+                    name_extension =
+                        file_name.substr(iter, file_name.size() - iter);
+                  } else {
+                    just_name = file_name;
+                    name_extension.clear();
+                  }
+
+                  do {
+                    if (nullptr != tmp_fp) {
+                      fclose(tmp_fp);
+                      tmp_fp = nullptr;
+                    }
+                    tmp_path =
+                        0 == try_number
+                            ? StringFormat("%s%s", download_folder_path.c_str(),
+                                           file_name.c_str())
+                            : StringFormat("%s%s (%d)%s",
+                                           download_folder_path.c_str(),
+                                           just_name.c_str(), try_number,
+                                           name_extension.c_str());
+                    tmp_fp = assistant::core::readwrite::details::fopen(
+                        tmp_path.c_str(), "r+");
+
+                    /// 设置如此的条件的原因是，"r+"要求目标文件已存在，如果不存在，则会打开失败；
+                    /// 此时tmp_path恰好可以用作创建临时文件
+                    /// 设置次数限制，是为了避免死循环
+                  } while (nullptr != tmp_fp && 1000 >= ++try_number);
+                  if (nullptr != tmp_fp) {
+                    fclose(tmp_fp);
+                    tmp_fp = nullptr;
+                    /// 意味着没有搜索到符合条件的目标名，不用再试
+                    break;
+                  } else {
+                    /// 先解除文件锁定保护，准备进行文件名重命名
+                    auto protect_fp =
+                        thread_data->file_protect.exchange(nullptr);
+                    fclose(protect_fp);
+
+                    /// 保存重命名后的文件路径
+                    thread_data->download_file_path.store(tmp_path);
+                    const auto& uv_thread_ptr = thread_data->uv_thread_ptr;
+                    result = rx_uv_fs::rx_uv_fs_factory::Rename(
+                        uv_thread_ptr, temp_download_file_path, tmp_path);
+                  }
+
+                } while (false);
+
+                return result;
+              })
+              .map([](bool rename_result) -> downloader_proof {
+                downloader_proof result{downloader_stage::CheckFileMd5,
+                                        stage_result::GiveupRetry};
+                if (rename_result) {
+                  result.result = stage_result::Succeeded;
+                }
+                return result;
+              });
 
     } while (false);
 

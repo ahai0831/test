@@ -3,6 +3,7 @@
 #include <rx_multiworker.hpp>
 
 #include "cloud189/apis/list_files.h"
+#include "cloud189/error_code/error_code.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
 using assistant::HttpRequest;
@@ -292,14 +293,36 @@ ProofObsCallback resolve_each_sub_folder(
                   std::string data_info;
                   WriterHelper(data_json, data_info);
                   data_callback(data_info);
+                  /// 增加对用户手动取消的处理
+                  if (thread_data->frozen.load()) {
+                    folderdownload_shared->Stop();
+                  }
                 } while (false);
               })
               .last()
-              .map([folderdownload_shared](
+              .map([folderdownload_shared, thread_data_weak](
                        folderdownload_report_type&) -> folder_downloader_proof {
-                return folder_downloader_proof{
+                folder_downloader_proof result{
                     folder_downloader_stage::ResolveEachSubFolder,
-                    stage_result::Succeeded};
+                    stage_result::GiveupRetry};
+                do {
+                  auto thread_data = thread_data_weak.lock();
+                  if (nullptr == thread_data) {
+                    break;
+                  }
+                  /// TODO: 增加对剩余物料数量的检测。
+
+                  /// 增加对用户手动取消的处理
+                  if (thread_data->frozen.load()) {
+                    result.result = stage_result::UserCanceled;
+                    thread_data->int32_error_code =
+                        Cloud189::ErrorCode::nderr_usercanceled;
+                    break;
+                  }
+
+                } while (false);
+
+                return result;
               });
     } while (false);
     return result;

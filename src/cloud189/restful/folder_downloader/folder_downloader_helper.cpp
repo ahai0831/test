@@ -43,14 +43,19 @@ const rx_folder_downloader::CompleteCallback GenerateDataCallback(
         thread_data_weak,
     const std::function<void(const std::string&)>& data_callback) {
   /// 生成总控使用的完成时回调
-  return [data_callback](const rx_folder_downloader&) -> void {
-    Json::Value root;
-    root["is_complete"] = bool(true);
-    root["download_folder_path"];
-    root["sub_file_data"];
-    const auto root_str = WriterHelper(root);
-    data_callback(root_str);
-  };
+  return
+      [thread_data_weak, data_callback](const rx_folder_downloader&) -> void {
+        Json::Value root;
+        root["is_complete"] = bool(true);
+        root["download_folder_path"];
+        root["sub_file_data"];
+        const auto thread_data = thread_data_weak.lock();
+        if (nullptr != thread_data) {
+          root["int32_error_code"] = thread_data->int32_error_code.load();
+        }
+        const auto root_str = WriterHelper(root);
+        data_callback(root_str);
+      };
 }
 
 /// 仅供内部解耦无需外部调用，因此无需单独一个头文件

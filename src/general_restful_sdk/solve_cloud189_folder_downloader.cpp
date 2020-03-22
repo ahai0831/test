@@ -16,8 +16,9 @@ using ::Cloud189::Restful::FolderDownloader;
 
 namespace general_restful_sdk_ast {
 namespace Cloud189 {
-int32_t DoFolderDownload(const std::string &download_info,
-                         void (*on_callback)(const char *)) {
+int32_t CreateFolderDownload(const std::string &download_info,
+                             void (*on_callback)(const char *),
+                             std::string &success_uuid) {
   int32_t res_flag = -1;
   const auto &ast = GetAstInfo();
   Json::Value download_json;
@@ -31,6 +32,18 @@ int32_t DoFolderDownload(const std::string &download_info,
     if (uuid.empty()) {
       break;
     }
+    /// 增加对uuid的碰撞校验
+    bool is_exist_uuid = false;
+    ast->uuid_map.FindDelegate(
+        uuid, [&is_exist_uuid](const int32_t &) { is_exist_uuid = true; });
+    ast->cloud189_folder_downloader_map.FindDelegate(
+        uuid, [&is_exist_uuid](const std::unique_ptr<FolderDownloader> &) {
+          is_exist_uuid = true;
+        });
+    if (is_exist_uuid) {
+      break;
+    }
+
     /// 解析其中的其他必须字段，进行兼容
     const auto domain = GetString(download_json["domain"]);
     if (domain.compare("Cloud189") != 0) {
@@ -79,22 +92,64 @@ int32_t DoFolderDownload(const std::string &download_info,
     auto folder_downloader =
         std::make_unique<FolderDownloader>(download_info, callback);
     auto &folder_downloader_obj = *folder_downloader;
-    /// TODO：
     /// 检查初始化是否有意外，初始化有意外，则无需加入任务容器，也无需启动之
+    if (!folder_downloader->Valid()) {
+      break;
+    }
 
     /// 加入任务容器
     ast->uuid_map.Put(uuid, (1 << 3));
     auto key_in_map = uuid;
     ast->cloud189_folder_downloader_map.Emplace(key_in_map, folder_downloader);
 
-    /// 启动任务
-    folder_downloader_obj.AsyncStart();
-    ///  至此认为初始化并启动总控成功
+    ///  至此认为初始化总控成功
+    success_uuid = uuid;
     res_flag = 0;
 
   } while (false);
 
   return res_flag;
+}
+
+void StartFolderDownload(const std::string &success_uuid) {
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    ast->cloud189_folder_downloader_map.FindDelegate(
+        success_uuid,
+        [](const std::unique_ptr<FolderDownloader> &folder_downloader) {
+          if (nullptr != folder_downloader) {
+            folder_downloader->AsyncStart();
+          }
+        });
+  } while (false);
+}
+
+int32_t UserCancelFolderDownload(const std::string &cancel_uuid) {
+  int32_t cancel_res = -1;
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    bool find_result = false;
+    ast->cloud189_folder_downloader_map.FindDelegate(
+        cancel_uuid,
+        [&find_result](
+            const std::unique_ptr<FolderDownloader> &folder_downloader) {
+          if (nullptr != folder_downloader) {
+            folder_downloader->UserCancel();
+            find_result = true;
+          }
+        });
+    if (!find_result) {
+      break;
+    }
+    cancel_res = 0;
+  } while (false);
+  return cancel_res;
 }
 
 }  // namespace Cloud189

@@ -129,14 +129,14 @@ int32_t CreateUpload(const std::string &upload_info,
   return res_flag;
 }
 
-void StartUpload(const std::string &cancel_uuid) {
+void StartUpload(const std::string &success_uuid) {
   do {
     const auto &ast = GetAstInfo();
     if (nullptr == ast) {
       break;
     }
     ast->cloud189_uploader_map.FindDelegate(
-        cancel_uuid, [](const std::unique_ptr<Uploader> &uploader) {
+        success_uuid, [](const std::unique_ptr<Uploader> &uploader) {
           if (nullptr != uploader) {
             uploader->AsyncStart();
           }

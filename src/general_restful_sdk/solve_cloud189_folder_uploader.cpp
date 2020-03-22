@@ -16,9 +16,9 @@ using ::Cloud189::Restful::FolderUploader;
 
 namespace general_restful_sdk_ast {
 namespace Cloud189 {
-int32_t DoFolderUpload(const std::string &folder_info,
-                       void (*on_callback)(const char *),
-                       std::string &success_uuid) {
+int32_t CreateFolderUpload(const std::string &folder_info,
+                           void (*on_callback)(const char *),
+                           std::string &success_uuid) {
   int32_t res_flag = -1;
   const auto &ast = GetAstInfo();
   Json::Value upload_json;
@@ -56,9 +56,9 @@ int32_t DoFolderUpload(const std::string &folder_info,
     if ('/' != local_folder_path.back()) {
       break;
     }
-    /*if ('/' != parent_folder_id.back()) {
+    if ('/' != server_folder_path.back()) {
       break;
-    }*/
+    }
     /// 生成回传回调的中间回调
     std::shared_ptr<int32_t> ec_init = std::make_shared<int32_t>(0);
     std::weak_ptr<int32_t> ec_init_weak(ec_init);
@@ -117,14 +117,14 @@ int32_t DoFolderUpload(const std::string &folder_info,
   return res_flag;
 }
 
-void StartFolderUpload(const std::string &cancel_uuid) {
+void StartFolderUpload(const std::string &success_uuid) {
   do {
     const auto &ast = GetAstInfo();
     if (nullptr == ast) {
       break;
     }
     ast->cloud189_folder_uploader_map.FindDelegate(
-        cancel_uuid, [](const std::unique_ptr<FolderUploader> &uploader) {
+        success_uuid, [](const std::unique_ptr<FolderUploader> &uploader) {
           if (nullptr != uploader) {
             uploader->AsyncStart();
           }
