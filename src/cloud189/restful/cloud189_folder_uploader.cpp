@@ -73,8 +73,9 @@ typedef struct folderupload_worker_function_generator {
       const std::weak_ptr<folderuploader_thread_data>& weak,
       const FolderUpload::MaterialVector& materials)
       : thread_data_weak(weak) {
-    auto folderupload_worker = std::bind(
-        &folderupload_worker_function_generator::folderupload_worker, this, std::placeholders::_1);
+    auto folderupload_worker =
+        std::bind(&folderupload_worker_function_generator::folderupload_worker,
+                  this, std::placeholders::_1);
     folderupload_unique =
         std::move(FolderUpload::Create(materials, folderupload_worker, 1));
   }
@@ -299,9 +300,9 @@ typedef struct folderupload_worker_function_generator {
 
 Cloud189::Restful::FolderUploader::FolderUploader(
     const std::string& upload_info,
-    std::function<void(const std::string&)> data_callback) {
-  thread_data = std::make_shared<folderuploader_thread_data>();
-  data = std::make_unique<folderuploader_internal_data>();
+    std::function<void(const std::string&)> data_callback)
+    : data(std::make_unique<folderuploader_internal_data>()),
+      thread_data(std::make_shared<folderuploader_thread_data>()) {
   folderupload_helper::MaterialVector origin_material;
   /// TODO: 完善此处的逻辑处理，生成正确的字符串物料
   data->origin_info.store(upload_info);
@@ -360,4 +361,17 @@ void Cloud189::Restful::FolderUploader::AsyncStart() {
 
 void Cloud189::Restful::FolderUploader::SyncWait() {}
 
-void Cloud189::Restful::FolderUploader::UserCancel() {}
+void Cloud189::Restful::FolderUploader::UserCancel() {
+  data->folderupload_unique->Stop();
+}
+
+bool Cloud189::Restful::FolderUploader::Valid() {
+  bool result = false;
+  do {
+    /// TODO: 待FolderUploader完备后，再此处进行检验
+    /// 供外部调用。
+
+    result = true;
+  } while (false);
+  return result;
+}

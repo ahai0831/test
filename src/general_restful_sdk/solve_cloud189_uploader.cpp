@@ -38,8 +38,7 @@ int32_t CreateUpload(const std::string &upload_info,
     ast->uuid_map.FindDelegate(
         uuid, [&is_exist_uuid](const int32_t &) { is_exist_uuid = true; });
     ast->cloud189_uploader_map.FindDelegate(
-        uuid, [&is_exist_uuid](
-                  const std::unique_ptr<::Cloud189::Restful::Uploader> &) {
+        uuid, [&is_exist_uuid](const std::unique_ptr<Uploader> &) {
           is_exist_uuid = true;
         });
     if (is_exist_uuid) {
@@ -111,14 +110,18 @@ int32_t CreateUpload(const std::string &upload_info,
       res_flag = *ec_init;
       break;
     }
+
+    if (!uploader_obj.Valid()) {
+      break;
+    }
+
     /// 加入任务容器
     ast->uuid_map.Put(uuid, (1 << 0));
     auto key_in_map = uuid;
     ast->cloud189_uploader_map.Emplace(key_in_map, uploader);
 
-    /// 启动任务
-    uploader_obj.AsyncStart();
-    ///  至此认为初始化并启动总控成功
+    ///  至此认为初始化总控成功，后续可进行初始化
+    success_uuid = uuid;
     res_flag = 0;
 
   } while (false);
@@ -126,7 +129,20 @@ int32_t CreateUpload(const std::string &upload_info,
   return res_flag;
 }
 
-void StartUpload(const std::string &cancel_uuid) {}
+void StartUpload(const std::string &cancel_uuid) {
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    ast->cloud189_uploader_map.FindDelegate(
+        cancel_uuid, [](const std::unique_ptr<Uploader> &uploader) {
+          if (nullptr != uploader) {
+            uploader->AsyncStart();
+          }
+        });
+  } while (false);
+}
 
 int32_t UserCancelUpload(const std::string &cancel_uuid) {
   int32_t cancel_res = -1;
@@ -135,11 +151,17 @@ int32_t UserCancelUpload(const std::string &cancel_uuid) {
     if (nullptr == ast) {
       break;
     }
-    auto cancel_callback = [](const std::unique_ptr<Uploader> &uploader) {
-      auto &uploader_obj = *uploader;
-      uploader_obj.UserCancel();
-    };
-    ast->cloud189_uploader_map.FindDelegate(cancel_uuid, cancel_callback);
+    bool find_result = false;
+    ast->cloud189_uploader_map.FindDelegate(
+        cancel_uuid, [&find_result](const std::unique_ptr<Uploader> &uploader) {
+          if (nullptr != uploader) {
+            uploader->UserCancel();
+            find_result = true;
+          }
+        });
+    if (!find_result) {
+      break;
+    }
     cancel_res = 0;
   } while (false);
   return cancel_res;

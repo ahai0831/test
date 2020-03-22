@@ -993,6 +993,14 @@ bool Uploader::Valid() {
     if (!data->Valid()) {
       break;
     }
+    if (thread_data->parent_folder_id.empty()) {
+      break;
+    }
+    if (thread_data->local_filepath.empty()) {
+      break;
+    }
+    /// TODO: 增加这些初始化失败对应的错误码
+    flag = true;
   } while (false);
   return flag;
 }

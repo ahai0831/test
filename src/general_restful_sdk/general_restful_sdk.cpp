@@ -34,19 +34,26 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
   on_start_json["start_result"] = int32_t(-10000);
   Json::Value process_info_json;
   ReaderHelper(process_info, process_info_json);
+
+  /// 对于异步型流程，按照初始化总控->调用OnStart->真正启动流程的方式调用
+  int32_t solved_result = 0;
+  std::string success_uuid;
+  std::string domain;
+  std::string operation;
   do {
     if (!process_info_json.isObject() && !process_info_json.isNull()) {
       break;
     }
     auto uuid = GetString((process_info_json["uuid"]));
+
     if (uuid.empty()) {
       uuid = assistant::tools::uuid::generate();
       process_info_json["uuid"] = uuid;
     }
     on_start_json["uuid"] = uuid.c_str();
-    const auto domain = GetString(process_info_json["domain"]);
+    domain = GetString(process_info_json["domain"]);
     on_start_json["domain"] = domain;
-    const auto operation = GetString(process_info_json["operation"]);
+    operation = GetString(process_info_json["operation"]);
     on_start_json["operation"] = operation;
     /// 解析其中的其他非必须字段，进行兼容
     auto x_request_id = GetString(process_info_json["x_request_id"]);
@@ -57,8 +64,6 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
 
     const auto solved_info = WriterHelper((process_info_json));
 
-    int32_t solved_result = 0;
-    std::string success_uuid;
     /// 完全抛给总控处理
     if (domain.compare("Cloud189") == 0 && operation.compare("DoUpload") == 0) {
       auto cloud189_doupload_res =
@@ -75,9 +80,16 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
     } else if (domain.compare("Cloud189") == 0 &&
                operation.compare("DoFolderUpload") == 0) {
       auto cloud189_dofolderupload_res =
-          general_restful_sdk_ast::Cloud189::DoFolderUpload(solved_info,
-                                                            on_callback);
+          general_restful_sdk_ast::Cloud189::DoFolderUpload(
+              solved_info, on_callback, success_uuid);
+      solved_result = cloud189_dofolderupload_res;
       on_start_json["start_result"] = cloud189_dofolderupload_res;
+    } else if (domain.compare("Cloud189") == 0 &&
+               operation.compare("UserCancelFolderUpload") == 0) {
+      auto cloud189_cancel_folderupload_res =
+          general_restful_sdk_ast::Cloud189::UserCancelFolderUpload(uuid);
+      solved_result = cloud189_cancel_folderupload_res;
+      on_start_json["start_result"] = cloud189_cancel_folderupload_res;
     } else if (domain.compare("Cloud189") == 0 &&
                operation.compare("DoDownload") == 0) {
       auto cloud189_dodownload_res =
@@ -96,6 +108,15 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
   const auto on_start_str = WriterHelper(on_start_json);
   LogInfo("[AstProcess] OnResolved result: %s", on_start_str.c_str());
   on_start(on_start_str.c_str());
+
+  if (0 == solved_result && !success_uuid.empty()) {
+    if (domain.compare("Cloud189") == 0 && operation.compare("DoUpload") == 0) {
+      general_restful_sdk_ast::Cloud189::StartUpload(success_uuid);
+    } else if (domain.compare("Cloud189") == 0 &&
+               operation.compare("DoFolderUpload") == 0) {
+      general_restful_sdk_ast::Cloud189::StartFolderUpload(success_uuid);
+    }
+  }
 }
 
 void AstConfig(const char *json_str, OnConfigFinished on_config_finished) {

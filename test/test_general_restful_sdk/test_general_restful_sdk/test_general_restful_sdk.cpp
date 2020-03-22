@@ -34,6 +34,7 @@ pAstProcess AstProcess = nullptr;
 struct UUID {
  public:
   std::string uuid;
+  int32_t start_result;
   /* public:
            UUID(){
                    uuid = "";
@@ -102,9 +103,6 @@ static struct DynamicLoading {
 
 static std::promise<void> test_for_finished;
 static std::future<void> complete_signal;
-
-static std::promise<void> test_upload_cancel_finished;
-static std::future<void> complete_upload_cancel_signal;
 
 static std::promise<void> test_for_folder_finished;
 static std::future<void> complete_folder_signal;
@@ -229,8 +227,7 @@ int main(void) {
   test_info_json["domain"] = "Cloud189";
   test_info_json["operation"] = "DoUpload";
   /// 设置必传的业务字段
-  test_info_json["local_path"] =
-      "/Volumes/File/天翼云盘/cloud189_corp_legency_nsign.dmg";
+  test_info_json["local_path"] = "D:/Library/cocostoolkit-20160617.zip";
   test_info_json["parent_folder_id"] = "-11";
   test_info_json["oper_type"] = int32_t(1);
   test_info_json["is_log"] = int32_t(0);
@@ -245,6 +242,7 @@ int main(void) {
         ReaderHelper(start_data, start_data_json);
         const auto start_result = GetInt(start_data_json["start_result"]);
         uuid_obj.uuid = GetString(start_data_json["uuid"]);
+        uuid_obj.start_result = start_result;
         if (0 != start_result) {
           printf("OnStart, failed: %s\n", start_data);
           test_for_finished.set_value();
@@ -275,7 +273,7 @@ int main(void) {
   printf("\n\n\n\n%s\n\n\n", test_cancel_info.c_str());
 // 上传1s后启动暂停上传流程
 #ifdef _WIN32
-  Sleep(1000);
+  Sleep(5000);
 #else
   sleep(5);
 #endif
@@ -287,13 +285,13 @@ int main(void) {
                    GetInt(start_data_json["start_result"]);
                if (0 != start_result) {
                  printf("OnStart, failed: %s\n", start_data);
-                 test_for_finished.set_value();
                } else {
                  printf("\n\n\nOnStart: %s\n", start_data);
                }
              },
-             NULL);
-  complete_upload_cancel_signal;
+             nullptr);
+
+  complete_signal.wait();
 
   return 0;
   /*************************测试文件夹上传*****************************/
