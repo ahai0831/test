@@ -56,9 +56,9 @@ int32_t DoFolderUpload(const std::string &folder_info,
     if ('/' != local_folder_path.back()) {
       break;
     }
-    if ('/' != parent_folder_id.back()) {
+    /*if ('/' != parent_folder_id.back()) {
       break;
-    }
+    }*/
     /// 生成回传回调的中间回调
     std::shared_ptr<int32_t> ec_init = std::make_shared<int32_t>(0);
     std::weak_ptr<int32_t> ec_init_weak(ec_init);

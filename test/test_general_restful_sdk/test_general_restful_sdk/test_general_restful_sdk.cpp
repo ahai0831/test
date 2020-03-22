@@ -223,7 +223,7 @@ int main(void) {
    return 0;*/
   /*************************测试文件上传*****************************/
   /// 在外部生成测试字符串
-  Json::Value test_info_json;
+ /* Json::Value test_info_json;
   test_info_json["domain"] = "Cloud189";
   test_info_json["operation"] = "DoUpload";
   /// 设置必传的业务字段
@@ -260,12 +260,12 @@ int main(void) {
         } else {
           printf("OnCallback: %s\n", callback_data);
         }
-      });
+      });*/
 
   // complete_signal.wait();
   /*************************测试暂停文件上传*****************************/
   /// 在外部生成测试字符串
-  Json::Value test_cancel_json;
+ /* Json::Value test_cancel_json;
   test_cancel_json["domain"] = "Cloud189";
   test_cancel_json["operation"] = "UserCancelUpload";
   test_cancel_json["uuid"] = uuid_obj.uuid;
@@ -293,14 +293,14 @@ int main(void) {
 
   complete_signal.wait();
 
-  return 0;
+  return 0;*/
   /*************************测试文件夹上传*****************************/
   /// 在外部生成测试字符串
   Json::Value test_info_json_folder;
   test_info_json_folder["domain"] = "Cloud189";
   test_info_json_folder["operation"] = "DoFolderUpload";
   /// 设置必传的业务字段
-  test_info_json_folder["local_folder_path"] = "D:/tools/";
+  test_info_json_folder["local_folder_path"] = "I:/test/";
   test_info_json_folder["server_folder_path"] = "/";
   test_info_json_folder["parent_folder_id"] = "-11";
   test_info_json_folder["oper_type"] = int32_t(1);
@@ -315,6 +315,7 @@ int main(void) {
         Json::Value start_data_json;
         ReaderHelper(start_data, start_data_json);
         const auto start_result = GetInt(start_data_json["start_result"]);
+		uuid_obj.uuid = GetString(start_data_json["uuid"]);
         if (0 != start_result) {
           printf("OnStart, failed: %s\n", start_data);
           test_for_folder_finished.set_value();
@@ -333,6 +334,38 @@ int main(void) {
           printf("OnCallback: %s\n", callback_data);
         }
       });
-  complete_folder_signal.wait();
+  //complete_folder_signal.wait();
+  // return 0;
+  /*************************测试暂停文件夹上传*****************************/
+  /// 在外部生成测试字符串
+  Json::Value test_folder_cancel_json;
+  test_folder_cancel_json["domain"] = "Cloud189";
+  test_folder_cancel_json["operation"] = "UserCancelFolderUpload";
+  test_folder_cancel_json["uuid"] = uuid_obj.uuid;
+  auto test_folder_cancel_info = WriterHelper(test_folder_cancel_json);
+  printf("\n\n\n\n%s\n\n\n", test_folder_cancel_info.c_str());
+  // 上传1s后启动暂停上传流程
+#ifdef _WIN32
+  Sleep(5);
+#else
+  sleep(5);
+#endif
+  AstProcess(test_folder_cancel_info.c_str(),
+	  [](const char *start_data) {
+	  Json::Value start_data_json;
+	  ReaderHelper(start_data, start_data_json);
+	  const auto start_result =
+		  GetInt(start_data_json["start_result"]);
+	  if (0 != start_result) {
+		  printf("OnStart, failed: %s\n", start_data);
+	  }
+	  else {
+		  printf("\n\n\nOnStart: %s\n", start_data);
+	  }
+  },
+	  nullptr);
+
+  //complete_signal.wait();
+
   return 0;
 }
