@@ -128,7 +128,22 @@ int32_t CreateUpload(const std::string &upload_info,
 
 void StartUpload(const std::string &cancel_uuid) {}
 
-int32_t UserCancelUpload(const std::string &cancel_uuid) { return int32_t(); }
+int32_t UserCancelUpload(const std::string &cancel_uuid) {
+  int32_t cancel_res = -1;
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    auto cancel_callback = [](const std::unique_ptr<Uploader> &uploader) {
+      auto &uploader_obj = *uploader;
+      uploader_obj.UserCancel();
+    };
+    ast->cloud189_uploader_map.FindDelegate(cancel_uuid, cancel_callback);
+    cancel_res = 0;
+  } while (false);
+  return cancel_res;
+}
 
 }  // namespace Cloud189
 

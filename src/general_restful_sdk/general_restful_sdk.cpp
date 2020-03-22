@@ -67,6 +67,12 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
       solved_result = cloud189_doupload_res;
       on_start_json["start_result"] = cloud189_doupload_res;
     } else if (domain.compare("Cloud189") == 0 &&
+               operation.compare("UserCancelUpload") == 0) {
+      auto cloud189_cancel_upload_res =
+          general_restful_sdk_ast::Cloud189::UserCancelUpload(uuid);
+      solved_result = cloud189_cancel_upload_res;
+      on_start_json["start_result"] = cloud189_cancel_upload_res;
+    } else if (domain.compare("Cloud189") == 0 &&
                operation.compare("DoFolderUpload") == 0) {
       auto cloud189_dofolderupload_res =
           general_restful_sdk_ast::Cloud189::DoFolderUpload(solved_info,
