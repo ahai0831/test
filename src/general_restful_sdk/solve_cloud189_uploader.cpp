@@ -16,8 +16,9 @@ using ::Cloud189::Restful::Uploader;
 
 namespace general_restful_sdk_ast {
 namespace Cloud189 {
-int32_t DoUpload(const std::string &upload_info,
-                 void (*on_callback)(const char *)) {
+int32_t CreateUpload(const std::string &upload_info,
+                     void (*on_callback)(const char *),
+                     std::string &success_uuid) {
   int32_t res_flag = -1;
   const auto &ast = GetAstInfo();
   Json::Value upload_json;
@@ -31,6 +32,20 @@ int32_t DoUpload(const std::string &upload_info,
     if (uuid.empty()) {
       break;
     }
+
+    /// 增加对uuid的碰撞校验
+    bool is_exist_uuid = false;
+    ast->uuid_map.FindDelegate(
+        uuid, [&is_exist_uuid](const int32_t &) { is_exist_uuid = true; });
+    ast->cloud189_uploader_map.FindDelegate(
+        uuid, [&is_exist_uuid](
+                  const std::unique_ptr<::Cloud189::Restful::Uploader> &) {
+          is_exist_uuid = true;
+        });
+    if (is_exist_uuid) {
+      break;
+    }
+
     /// 解析其中的其他必须字段，进行兼容
     const auto domain = GetString(upload_json["domain"]);
     if (domain.compare("Cloud189") != 0) {
@@ -110,6 +125,10 @@ int32_t DoUpload(const std::string &upload_info,
 
   return res_flag;
 }
+
+void StartUpload(const std::string &cancel_uuid) {}
+
+int32_t UserCancelUpload(const std::string &cancel_uuid) { return int32_t(); }
 
 }  // namespace Cloud189
 

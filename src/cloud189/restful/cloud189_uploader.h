@@ -18,9 +18,12 @@ struct Uploader {
   /// uploader传参必须参数之一，为一个字符串，避免大量字段
   /// 在构造函数中解析json字符串
 
+  /// 在此约定：传入的uploade_info需要有效
+  /// 构造完毕后，必须调用一次Valid()方法，以验证传入参数有效性
   Uploader(const std::string &upload_info,
            std::function<void(const std::string &)> data_callback);
   ~Uploader();
+  bool Valid();
   void AsyncStart();
   void SyncWait();
   void UserCancel();

@@ -31,9 +31,9 @@ pAstConfig AstConfig = nullptr;
 pAstProcess AstProcess = nullptr;
 
 #ifdef _WIN32
-const char *dll_name = "upload_dll";
+const char *dll_name = "general_restful_sdk";
 #else
-const char *dll_name = "libupload_dll.dylib";
+const char *dll_name = "libgeneral_restful_sdk.dylib";
 #endif
 
 /// dynamic loading dll or dylib here

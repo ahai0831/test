@@ -1,9 +1,9 @@
-executable("test_upload_dll") {
+executable("test_general_restful_sdk") {
   sources = [
-    "test_upload_dll.cpp",
+    "test_general_restful_sdk.cpp",
   ]
   data_deps = [
-    "//src/upload_dll",
+    "//src/general_restful_sdk",
   ]
   deps = [
     "//third_party/jsoncpp",

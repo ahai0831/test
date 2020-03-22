@@ -1,5 +1,5 @@
 ﻿#define GENERAL_RESTFUL_SDK_EXPORTS
-#include "upload_dll.h"
+#include "general_restful_sdk.h"
 
 #include <iostream>
 #include <thread>
@@ -56,10 +56,15 @@ void AstProcess(const char *process_info, OnProcessStart on_start,
     }
 
     const auto solved_info = WriterHelper((process_info_json));
+
+    int32_t solved_result = 0;
+    std::string success_uuid;
     /// 完全抛给总控处理
     if (domain.compare("Cloud189") == 0 && operation.compare("DoUpload") == 0) {
       auto cloud189_doupload_res =
-          general_restful_sdk_ast::Cloud189::DoUpload(solved_info, on_callback);
+          general_restful_sdk_ast::Cloud189::CreateUpload(
+              solved_info, on_callback, success_uuid);
+      solved_result = cloud189_doupload_res;
       on_start_json["start_result"] = cloud189_doupload_res;
     } else if (domain.compare("Cloud189") == 0 &&
                operation.compare("DoFolderUpload") == 0) {
