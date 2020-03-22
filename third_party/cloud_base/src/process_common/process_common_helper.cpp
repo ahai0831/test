@@ -20,17 +20,23 @@ bool GetCurrentApplicationDataPath(std::string& appdata_path) {
   return result;
 #else
   bool result = false;
-  std::string app_name =
-      cloud_base::process_common_unix::GetCurrentMacOsXApplicationName();
+  // std::string app_name = cloud_base::process_common_unix::GetCurrentMacOsXApplicationName();
   std::string log_home_path;
   result = cloud_base::process_common_unix::get_log_path(log_home_path);
-  if (result && app_name.empty()) {
-    std::string process_name =
-        cloud_base::process_common_unix::GetCurrentUnixApplicationName();
-    appdata_path = log_home_path + '/' + process_name;
-  } else if (result) {
+  // if (result && app_name.empty()) {
+  //   std::string process_name =
+  //       cloud_base::process_common_unix::GetCurrentUnixApplicationName();
+  //   appdata_path = log_home_path + '/' + process_name;
+  // } else if (result) {
+  //   appdata_path = log_home_path;
+  // }
+
+  if (result){
     appdata_path = log_home_path;
+  }else{
+    appdata_path = "";
   }
+
   return result;
 #endif
 }
