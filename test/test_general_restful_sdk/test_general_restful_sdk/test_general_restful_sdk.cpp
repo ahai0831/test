@@ -1,4 +1,5 @@
-﻿#include "test_headers.h"
+﻿#include "stdio.h"
+#include "test_headers.h"
 int main(void) {
   /// AstConfig调用传入Session信息，因此必须最先调用此case
   test_ast_config();
@@ -11,7 +12,14 @@ int main(void) {
 
   test_ast_process_cloud189_folder_download();
 
+  printf("\n\nusercancel and resume test:\n");
   test_ast_process_cloud189_file_download_resume_from_breakpoint();
+
+  test_ast_process_cloud189_usercancel_file_upload();
+
+  test_ast_process_cloud189_usercancel_folder_upload();
+
+  test_ast_process_cloud189_usercancel_folder_download();
 
   return 0;
 }

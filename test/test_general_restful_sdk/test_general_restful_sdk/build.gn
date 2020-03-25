@@ -9,6 +9,9 @@ executable("test_general_restful_sdk") {
     "test_ast_process_cloud189_folder_upload.cpp",
     "test_ast_process_cloud189_file_download.cpp",
     "test_ast_process_cloud189_folder_download.cpp",
+    "test_ast_process_cloud189_usercancel_file_upload.cpp",
+    "test_ast_process_cloud189_usercancel_folder_upload.cpp",
+    "test_ast_process_cloud189_usercancel_folder_download.cpp",
     "test_ast_process_cloud189_file_download_resume_from_breakpoint.cpp",
   ]
   data_deps = [
