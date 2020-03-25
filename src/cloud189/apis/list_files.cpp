@@ -24,6 +24,7 @@ using restful_common::jsoncpp_helper::GetBool;
 using restful_common::jsoncpp_helper::GetInt;
 using restful_common::jsoncpp_helper::GetInt64;
 using restful_common::jsoncpp_helper::GetString;
+using cloud_base::process_common_helper::GetCurrentApplicationVersion;
 
 namespace {
 // 这些是请求中一些固定的参数
@@ -91,8 +92,7 @@ bool HttpRequestEncode(const std::string& params_json,
         folderId.c_str(), GetFlag(), recursive, fileType, mediaType, mediaAttr,
         iconOption, orderBy.c_str(), descending, pageNum, pageSize,
         x_request_id.c_str(), GetClientType().c_str(),
-        cloud_base::process_common_helper::GetCurrentApplicationVersion()
-            .c_str(),
+        GetCurrentApplicationVersion().c_str(),
         GetChannelId().c_str(),
         restful_common::rand_helper::GetRandString().c_str());
 

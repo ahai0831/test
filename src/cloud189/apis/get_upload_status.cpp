@@ -9,6 +9,8 @@
 
 #include <filesystem_helper/filesystem_helper.h>
 #include <process_version/process_version.h>
+#include <process_common/process_common_helper.h>
+
 #include <tools/string_format.hpp>
 
 #include "cloud189/error_code/error_code.h"
@@ -21,6 +23,8 @@
 using Cloud189::ParamsHelper::GetClientType;
 using Cloud189::ParamsHelper::GetChannelId;
 using Cloud189::ParamsHelper::GetHost;
+
+using cloud_base::process_common_helper::GetCurrentApplicationVersion;
 
 namespace {
 // 这些是请求中一些固定的参数
@@ -75,7 +79,7 @@ bool HttpRequestEncode(const std::string& params_json,
         "&ResumePolicy=%d"
         "&clientType=%s&version=%s&channelId=%s&rand=%s",
         uploadFileId.c_str(), GetResumePolicy(), GetClientType().c_str(),
-        "1.0.0.0", GetChannelId().c_str(),
+        GetCurrentApplicationVersion().c_str(), GetChannelId().c_str(),
         restful_common::rand_helper::GetRandString().c_str());
 
     // set header
