@@ -16,6 +16,10 @@
 #include "cloud189/session_helper/session_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 #include "restful_common/rand_helper/rand_helper.hpp"
+#include "cloud189/params_helper/params_helper.hpp"
+
+
+using Cloud189::ParamsHelper::GetClientType;
 
 namespace {
 // 这些是请求中一些固定的参数
@@ -27,14 +31,13 @@ const static int flag = 1;
 const static int resume_policy = 1;
 
 std::string GetMethod() { return method; }
-std::string GetClientType() { return client_type; }
+// std::string GetClientType() { return client_type; }
 std::string GetChannelId() { return channel_id; }
 std::string GetContentType() { return content_type; }
 int GetFlag() { return flag; }
 int GetResumePolicy() { return resume_policy; }
 
 }  // namespace
-
 namespace Cloud189 {
 namespace Apis {
 namespace ComfirmUploadFileComplete {
