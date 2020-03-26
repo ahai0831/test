@@ -24,17 +24,14 @@
 
 
 using Cloud189::ParamsHelper::GetClientType;
+using Cloud189::ParamsHelper::GetChannelId;
 namespace {
 // 这些是请求中一些固定的参数
 const static std::string method = "PUT";
-const static std::string client_type = "TELEPC";
-const static std::string channel_id = "web_cloud.189.cn";
 const static std::string content_type = "application/octet-stream";
 const static int resume_policy = 1;
 
 std::string GetMethod() { return method; }
-//std::string GetClientType() { return client_type; }
-std::string GetChannelId() { return channel_id; }
 std::string GetContentType() { return content_type; }
 int GetResumePolicy() { return resume_policy; }
 }  // namespace

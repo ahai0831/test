@@ -8,9 +8,6 @@
 #include <pugixml.hpp>
 
 #include <process_common/process_common_helper.h>
-
-//#include <v2/tools.h>
-//#include <v2/uuid.h>
 #include <tools/string_format.hpp>
 
 #include "cloud189/error_code/error_code.h"
@@ -21,6 +18,8 @@
 
 
 using Cloud189::ParamsHelper::GetClientType;
+using Cloud189::ParamsHelper::GetChannelId;
+using Cloud189::ParamsHelper::GetHost;
 using restful_common::jsoncpp_helper::GetBool;
 using restful_common::jsoncpp_helper::GetInt;
 using restful_common::jsoncpp_helper::GetInt64;
@@ -28,18 +27,13 @@ using restful_common::jsoncpp_helper::GetString;
 
 namespace {
 // 这些是请求中一些固定的参数
-const static std::string host = "https://api.cloud.189.cn";
 const static std::string uri = "/listFiles.action";
 const static std::string method = "GET";
 const static int flag = 1;
-const static std::string client_type = "TELEPC";
-const static std::string channel_id = "web_cloud.189.cn";
 
-std::string GetHost() { return host; }
 std::string GetURI() { return uri; }
 std::string GetMethod() { return method; }
-//std::string GetClientType() { return client_type; }
-std::string GetChannelId() { return channel_id; }
+
 int GetFlag() { return flag; }
 
 }  // namespace
