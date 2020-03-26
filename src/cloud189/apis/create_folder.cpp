@@ -21,7 +21,10 @@
 using cloud_base::process_common_helper::GetCurrentApplicationVersion;
 using cloud_base::url_encode::http_post_form::url_encode;
 using restful_common::jsoncpp_helper::GetString;
+#include "cloud189/params_helper/params_helper.hpp"
 
+
+using Cloud189::ParamsHelper::GetClientType;
 namespace {
 // 这些是请求中一些固定的参数
 const static std::string host = "https://api.cloud.189.cn";
@@ -34,7 +37,7 @@ const static std::string channel_id = "web_cloud.189.cn";
 std::string GetHost() { return host; }
 std::string GetURI() { return uri; }
 std::string GetMethod() { return method; }
-std::string GetClientType() { return client_type; }
+//std::string GetClientType() { return client_type; }
 std::string GetChannelId() { return channel_id; }
 // int GetFlag() { return flag; }
 
