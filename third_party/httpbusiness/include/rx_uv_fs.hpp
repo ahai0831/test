@@ -207,6 +207,47 @@ inline void uv_fs_mkdir_wrapper(uv_loop_t& loop, const std::string& path,
 }
 }  // namespace uv_fs_mkdir
 
+namespace uv_fs_rename {
+/// 入参内的bool为true，代表rename操作成功
+typedef bool Type;
+typedef std::function<void(Type)> Callback;
+namespace details {
+inline void rename_callback(uv_fs_t* req) {
+  /// req必然非空指针
+  Type result{false};
+  result = 0 == req->result;
+
+  do {
+    if (nullptr == req->data) {
+      break;
+    }
+    const auto& callback = *static_cast<Callback*>(req->data);
+    if (nullptr == callback) {
+      break;
+    }
+    callback(result);
+    delete static_cast<Callback*>(req->data);
+    req->data = nullptr;
+  } while (false);
+
+  if (nullptr != req) {
+    uv_fs_req_cleanup(req);
+    delete req;
+  }
+}
+}  // namespace details
+inline void uv_fs_rename_wrapper(uv_loop_t& loop, const std::string& path,
+                                 const std::string& new_path,
+                                 Callback callback) {
+  uv_fs_t* req = new (std::nothrow) uv_fs_t({0});
+  auto callback_ptr = new (std::nothrow) Callback(callback);
+  req->data = static_cast<void*>(callback_ptr);
+  //::uv_fs_mkdir(&loop, req, path.c_str(), mode, details::mkdir_callback);
+  ::uv_fs_rename(&loop, req, path.c_str(), new_path.c_str(),
+                 details::rename_callback);
+}
+}  // namespace uv_fs_rename
+
 namespace rx_uv_fs_factory {
 inline rxcpp::observable<uv_fs_stat::Type> Stat(
     std::weak_ptr<uv_loop_with_thread> thread, const std::string& path) {
@@ -282,6 +323,34 @@ inline rxcpp::observable<uv_fs_mkdir::Type> Mkdir(
         }
       });
 }
+
+inline rxcpp::observable<uv_fs_rename::Type> Rename(
+    std::weak_ptr<uv_loop_with_thread> thread, const std::string& path,
+    const std::string& new_path) {
+  return rxcpp::observable<>::create<uv_fs_rename::Type>(
+      [thread, path,
+       new_path](rxcpp::subscriber<uv_fs_rename::Type> s) -> void {
+        auto thread_ptr = thread.lock();
+        if (s.is_subscribed() && nullptr != thread_ptr) {
+          /// 必须以值捕获的方式，保持rxcpp::subscriber<XXX>生命周期
+          uv_fs_rename::Callback subscriber_func =
+              [s](uv_fs_rename::Type result) -> void {
+            s.on_next(result);
+            s.on_completed();
+          };
+
+          rx_uv_fs::uv_loop_with_thread::uv_todo_wrapper rename_task =
+              std::bind(uv_fs_rename::uv_fs_rename_wrapper,
+                        std::placeholders::_1, path, new_path, subscriber_func);
+          thread_ptr->Do(rename_task);
+        } else if (s.is_subscribed()) {
+          /// 发射一个负面的响应，保证完备
+          s.on_next(false);
+          s.on_completed();
+        }
+      });
+}
+
 }  // namespace rx_uv_fs_factory
 }  // namespace rx_uv_fs
 

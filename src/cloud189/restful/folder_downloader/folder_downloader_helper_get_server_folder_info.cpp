@@ -1,6 +1,7 @@
 ﻿#include "folder_downloader_helper.h"
 
 #include "cloud189/apis/get_folder_info.h"
+#include "cloud189/error_code/error_code.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
 using assistant::HttpRequest;
@@ -54,6 +55,13 @@ ProofObsCallback get_server_folder_info(
                 do {
                   auto thread_data = thread_data_weak.lock();
                   if (nullptr == thread_data) {
+                    break;
+                  }
+                  /// 增加对用户手动取消的处理
+                  if (thread_data->frozen.load()) {
+                    result.result = stage_result::UserCanceled;
+                    thread_data->int32_error_code =
+                        Cloud189::ErrorCode::nderr_usercanceled;
                     break;
                   }
                   std::string response_info;

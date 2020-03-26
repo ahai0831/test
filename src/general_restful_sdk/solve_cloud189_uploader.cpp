@@ -16,8 +16,9 @@ using ::Cloud189::Restful::Uploader;
 
 namespace general_restful_sdk_ast {
 namespace Cloud189 {
-int32_t DoUpload(const std::string &upload_info,
-                 void (*on_callback)(const char *)) {
+int32_t CreateUpload(const std::string &upload_info,
+                     void (*on_callback)(const char *),
+                     std::string &success_uuid) {
   int32_t res_flag = -1;
   const auto &ast = GetAstInfo();
   Json::Value upload_json;
@@ -31,6 +32,19 @@ int32_t DoUpload(const std::string &upload_info,
     if (uuid.empty()) {
       break;
     }
+
+    /// 增加对uuid的碰撞校验
+    bool is_exist_uuid = false;
+    ast->uuid_map.FindDelegate(
+        uuid, [&is_exist_uuid](const int32_t &) { is_exist_uuid = true; });
+    ast->cloud189_uploader_map.FindDelegate(
+        uuid, [&is_exist_uuid](const std::unique_ptr<Uploader> &) {
+          is_exist_uuid = true;
+        });
+    if (is_exist_uuid) {
+      break;
+    }
+
     /// 解析其中的其他必须字段，进行兼容
     const auto domain = GetString(upload_json["domain"]);
     if (domain.compare("Cloud189") != 0) {
@@ -96,19 +110,61 @@ int32_t DoUpload(const std::string &upload_info,
       res_flag = *ec_init;
       break;
     }
+
+    if (!uploader_obj.Valid()) {
+      break;
+    }
+
     /// 加入任务容器
     ast->uuid_map.Put(uuid, (1 << 0));
     auto key_in_map = uuid;
     ast->cloud189_uploader_map.Emplace(key_in_map, uploader);
 
-    /// 启动任务
-    uploader_obj.AsyncStart();
-    ///  至此认为初始化并启动总控成功
+    ///  至此认为初始化总控成功，后续可进行初始化
+    success_uuid = uuid;
     res_flag = 0;
 
   } while (false);
 
   return res_flag;
+}
+
+void StartUpload(const std::string &success_uuid) {
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    ast->cloud189_uploader_map.FindDelegate(
+        success_uuid, [](const std::unique_ptr<Uploader> &uploader) {
+          if (nullptr != uploader) {
+            uploader->AsyncStart();
+          }
+        });
+  } while (false);
+}
+
+int32_t UserCancelUpload(const std::string &cancel_uuid) {
+  int32_t cancel_res = -1;
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    bool find_result = false;
+    ast->cloud189_uploader_map.FindDelegate(
+        cancel_uuid, [&find_result](const std::unique_ptr<Uploader> &uploader) {
+          if (nullptr != uploader) {
+            uploader->UserCancel();
+            find_result = true;
+          }
+        });
+    if (!find_result) {
+      break;
+    }
+    cancel_res = 0;
+  } while (false);
+  return cancel_res;
 }
 
 }  // namespace Cloud189

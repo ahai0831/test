@@ -302,6 +302,11 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
     std::string file_path =
         nullptr != thread_data ? thread_data->local_filepath : std::string();
 
+    /// TODO: 首先应考虑，此路径应是一个文件。在unix系统中，
+    /// 一个目录仍可作为一个文件“打开”，但并不能从中读取到数据。因此必须先判断。
+
+    /// TODO: 获取不到文件大小，也应进行判断
+    /// 注意这两个判断都要加上错误码的处理，以便留下记录
     /// 计算MD5开始前，获取文件大小
     uint64_t file_size = 0;
     cloud_base::file_common::GetFileSize(file_path, file_size);
@@ -309,6 +314,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       thread_data->file_size.store(file_size);
     }
 
+    /// TODO: md5的计算，需要，利用完备的cypto库，并在
+    /// join的内存模型中，进行计算，规避潜在的线程坑。
     /// 一旦计算成功，还需比较是否已有上一次的续传记录
     /// 检验上一次续传记录规则：上一次续传MD5和上传ID非空；MD5一致；认为上次的续传记录有效
     std::function<uploader_proof(std::string&)> md5_result_callback =
@@ -387,6 +394,8 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       const auto& x_request_id = thread_data->x_request_id;
       const auto oper_type = thread_data->oper_type;
       const auto is_log = thread_data->is_log;
+
+      /// TODO: serious 这里没有考虑输入的参数不合法 情形。
       Cloud189::Apis::CreateUploadFile::HttpRequestEncode(
           Cloud189::Apis::CreateUploadFile::JsonStringHelper(
               parent_folder_id, file_path, file_md5, x_request_id, oper_type,
@@ -935,9 +944,12 @@ Uploader::Uploader(const std::string& upload_info,
           thread_data->local_filepath, GenerateOrders(thread_data),
           GenerateDataCallback(thread_data, data_callback))) {
   thread_data->master_control_data = data->master_control->data;
+
+  /// 这么做，非常麻烦，没必要了
   if (!data->Valid()) {
     thread_data->int32_error_code =
         Cloud189::ErrorCode::nderr_file_access_error;
+    /// TODO: 有必要清理掉这个调用
     data->null_file_callback(*data->master_control);
   } else {
     thread_data->init_success = true;
@@ -974,6 +986,24 @@ void Uploader::UserCancel() {
 }
 
 Uploader::~Uploader() = default;
+
+bool Uploader::Valid() {
+  bool flag = false;
+  do {
+    if (!data->Valid()) {
+      break;
+    }
+    if (thread_data->parent_folder_id.empty()) {
+      break;
+    }
+    if (thread_data->local_filepath.empty()) {
+      break;
+    }
+    /// TODO: 增加这些初始化失败对应的错误码
+    flag = true;
+  } while (false);
+  return flag;
+}
 
 /// 为此Uploader提供一个Helper函数，用于生成合规的json字符串
 std::string uploader_info_helper(const std::string& local_path,

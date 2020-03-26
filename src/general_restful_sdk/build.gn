@@ -1,15 +1,15 @@
-config("upload_dll_using") {
+config("general_restful_sdk_using") {
   include_dirs = [ "." ]
 }
 
-shared_library("upload_dll") {
+shared_library("general_restful_sdk") {
   deps = [
     "//src/cloud189/restful:cloud189_uploader",
     "//src/cloud189/restful:folder_uploader",
     "//src/cloud189/restful/file_downloader",
     "//src/cloud189/restful/folder_downloader",
     "//src/cloud189/session_helper",
-    "//src/upload_dll/log_system",
+    "//src/general_restful_sdk/log_system",
     "//third_party/httpbusiness",
     "//third_party/jsoncpp",
   ]
@@ -24,13 +24,13 @@ shared_library("upload_dll") {
     "solve_cloud189_downloader.h",
     "solve_cloud189_folder_downloader.cpp",
     "solve_cloud189_folder_downloader.h",
-    "upload_dll.cpp",
-    "upload_dll.h",
+    "general_restful_sdk.cpp",
+    "general_restful_sdk.h",
     "pile.cpp",
   ]
   public = [
-    "upload_dll.h",
+    "general_restful_sdk.h",
   ]
   configs += [ "//src:src_using" ]
-  public_configs = [ ":upload_dll_using" ]
+  public_configs = [ ":general_restful_sdk_using" ]
 }

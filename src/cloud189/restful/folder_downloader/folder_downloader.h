@@ -26,6 +26,7 @@ struct FolderDownloader {
   void AsyncStart();
   void SyncWait();
   void UserCancel();
+  bool Valid();
 
  private:
   std::shared_ptr<details::folderdownloader_thread_data> const thread_data;

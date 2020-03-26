@@ -23,6 +23,8 @@ source_set("file_downloader") {
     "file_downloader_helper_generate_temp_file.cpp",
     "file_downloader_helper_file_download.cpp",
     "file_downloader_helper_check_file_md5.cpp",
+    "file_downloader_download_breakpoint_data.h",
+    "file_downloader_download_breakpoint_data.cpp",
   ]
   public = [
     "file_downloader.h",

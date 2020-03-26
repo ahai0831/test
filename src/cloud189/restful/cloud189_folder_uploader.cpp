@@ -9,6 +9,7 @@
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
 #include "cloud189/apis/create_folder.h"
+#include "cloud189/error_code/error_code.h"
 
 using restful_common::jsoncpp_helper::GetString;
 using restful_common::jsoncpp_helper::ReaderHelper;
@@ -55,7 +56,12 @@ struct folderuploader_internal_data {
 struct folderuploader_thread_data {
   std::shared_ptr<rx_uv_fs::uv_loop_with_thread> uv_thread;
   folderuploader_thread_data()
-      : uv_thread(std::make_shared<rx_uv_fs::uv_loop_with_thread>()) {}
+      : uv_thread(std::make_shared<rx_uv_fs::uv_loop_with_thread>()),
+        frozen(false),
+        int32_error_code(0) {}
+
+  std::atomic<bool> frozen;
+  std::atomic<int32_t> int32_error_code;
 };
 }  // namespace details
 }  // namespace Restful
@@ -73,8 +79,9 @@ typedef struct folderupload_worker_function_generator {
       const std::weak_ptr<folderuploader_thread_data>& weak,
       const FolderUpload::MaterialVector& materials)
       : thread_data_weak(weak) {
-    auto folderupload_worker = std::bind(
-        &folderupload_worker_function_generator::folderupload_worker, this, std::placeholders::_1);
+    auto folderupload_worker =
+        std::bind(&folderupload_worker_function_generator::folderupload_worker,
+                  this, std::placeholders::_1);
     folderupload_unique =
         std::move(FolderUpload::Create(materials, folderupload_worker, 1));
   }
@@ -299,9 +306,9 @@ typedef struct folderupload_worker_function_generator {
 
 Cloud189::Restful::FolderUploader::FolderUploader(
     const std::string& upload_info,
-    std::function<void(const std::string&)> data_callback) {
-  thread_data = std::make_shared<folderuploader_thread_data>();
-  data = std::make_unique<folderuploader_internal_data>();
+    std::function<void(const std::string&)> data_callback)
+    : data(std::make_unique<folderuploader_internal_data>()),
+      thread_data(std::make_shared<folderuploader_thread_data>()) {
   folderupload_helper::MaterialVector origin_material;
   /// TODO: 完善此处的逻辑处理，生成正确的字符串物料
   data->origin_info.store(upload_info);
@@ -321,6 +328,8 @@ Cloud189::Restful::FolderUploader::FolderUploader(
   data->folderupload_unique =
       folderupload_helper::Create(thread_data, origin_material);
 
+  const auto thread_data_weak =
+      std::weak_ptr<folderuploader_thread_data>(thread_data);
   /// 为数据源生成匹配的OnNext以及OnComplete回调
   data->data_source =
       data->folderupload_unique->GetDataSource()
@@ -339,13 +348,18 @@ Cloud189::Restful::FolderUploader::FolderUploader(
                 const auto json_str = WriterHelper(root);
                 data_callback(json_str);
               },
-              [data_callback]() {
+              [data_callback, thread_data_weak]() {
                 Json::Value root;
                 root["parent_folder_id"];
                 root["local_folder_path"];
                 root["sub_file_data"];
                 root["is_complete"] = bool(true);
                 root["int32_error_code"] = int32_t(0);
+                auto thread_data = thread_data_weak.lock();
+                if (nullptr != thread_data) {
+                  root["int32_error_code"] =
+                      thread_data->int32_error_code.load();
+                }
                 const auto json_str = WriterHelper(root);
                 data_callback(json_str);
               })
@@ -360,4 +374,19 @@ void Cloud189::Restful::FolderUploader::AsyncStart() {
 
 void Cloud189::Restful::FolderUploader::SyncWait() {}
 
-void Cloud189::Restful::FolderUploader::UserCancel() {}
+void Cloud189::Restful::FolderUploader::UserCancel() {
+  thread_data->frozen.store(true);
+  thread_data->int32_error_code.store(Cloud189::ErrorCode::nderr_usercanceled);
+  data->folderupload_unique->Stop();
+}
+
+bool Cloud189::Restful::FolderUploader::Valid() {
+  bool result = false;
+  do {
+    /// TODO: 待FolderUploader完备后，再此处进行检验
+    /// 供外部调用。
+
+    result = true;
+  } while (false);
+  return result;
+}

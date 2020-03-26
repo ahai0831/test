@@ -46,13 +46,19 @@ struct folderdownloader_thread_data {
         folder_path(folder_path_),
         download_path(download_path_),
         x_request_id(x_request_id_),
-        data_callback(data_callback_) {}
+        data_callback(data_callback_),
+        frozen(false),
+        int32_error_code(0) {}
 
   /// 线程安全
   assistant::tools::lockfree_string_closure<std::string>
       remote_root_server_folder_id;
   assistant::tools::lockfree_string_closure<std::string>
       remote_root_server_folder_name;
+
+  /// 保存停止标志位
+  std::atomic<bool> frozen;
+  std::atomic<int32_t> int32_error_code;  /// 错误码
 
   /// TODO: 待禁用的构造函数
 };

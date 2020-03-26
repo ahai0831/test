@@ -25,6 +25,36 @@ void FolderDownloader::AsyncStart() {
 
 void FolderDownloader::SyncWait() {}
 
-void FolderDownloader::UserCancel() {}
+void FolderDownloader::UserCancel() { thread_data->frozen.store(true); }
+bool FolderDownloader::Valid() {
+  bool flag = false;
+  do {
+    /// folder_id 必传
+    if (thread_data->folder_id.empty()) {
+      break;
+    }
+
+    /// folder_path，必传，必须以‘/’结尾，但不能代表云端根目录"/"
+    if (thread_data->folder_path.empty()) {
+      break;
+    }
+    if ('/' != thread_data->folder_path.back()) {
+      break;
+    }
+    if (thread_data->folder_path.compare("/") == 0) {
+      break;
+    }
+
+    /// download_path必传，且必须以'/'结尾
+    if (thread_data->download_path.empty()) {
+      break;
+    }
+    if ('/' != thread_data->download_path.back()) {
+      break;
+    }
+    flag = true;
+  } while (false);
+  return flag;
+}
 }  // namespace Restful
 }  // namespace Cloud189

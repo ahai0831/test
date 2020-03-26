@@ -9,6 +9,6 @@ group("test") {
 }
 group("src") {
   deps = [
-    "//src/upload_dll",
+    "//src/general_restful_sdk",
   ]
 }

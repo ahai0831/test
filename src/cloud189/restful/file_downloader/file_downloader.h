@@ -25,10 +25,11 @@ struct Downloader {
   void AsyncStart();
   void SyncWait();
   void UserCancel();
+  bool Valid();
 
  private:
-  std::shared_ptr<details::downloader_thread_data> thread_data;
-  std::unique_ptr<details::downloader_internal_data> data;
+  std::shared_ptr<details::downloader_thread_data> const thread_data;
+  std::unique_ptr<details::downloader_internal_data> const data;
 
  private:
   /// 禁用此uploader的默认构造、复制构造、移动构造和=号操作符

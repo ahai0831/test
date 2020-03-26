@@ -16,8 +16,9 @@ using ::Cloud189::Restful::Downloader;
 
 namespace general_restful_sdk_ast {
 namespace Cloud189 {
-int32_t DoDownload(const std::string &download_info,
-                   void (*on_callback)(const char *)) {
+int32_t CreateDownload(const std::string &download_info,
+                       void (*on_callback)(const char *),
+                       std::string &success_uuid) {
   int32_t res_flag = -1;
   const auto &ast = GetAstInfo();
   Json::Value download_json;
@@ -29,6 +30,17 @@ int32_t DoDownload(const std::string &download_info,
     /// 解析其中的uuid字段
     const auto uuid = GetString(download_json["uuid"]);
     if (uuid.empty()) {
+      break;
+    }
+    /// 增加对uuid的碰撞校验
+    bool is_exist_uuid = false;
+    ast->uuid_map.FindDelegate(
+        uuid, [&is_exist_uuid](const int32_t &) { is_exist_uuid = true; });
+    ast->cloud189_downloader_map.FindDelegate(
+        uuid, [&is_exist_uuid](const std::unique_ptr<Downloader> &) {
+          is_exist_uuid = true;
+        });
+    if (is_exist_uuid) {
       break;
     }
     /// 解析其中的其他必须字段，进行兼容
@@ -43,10 +55,8 @@ int32_t DoDownload(const std::string &download_info,
     /// 根据文档，余下的字段是业务字段，由Uploader自身进行兼容
 
     /// 生成回传回调的中间回调
-    std::shared_ptr<int32_t> ec_init = std::make_shared<int32_t>(0);
-    std::weak_ptr<int32_t> ec_init_weak(ec_init);
     std::function<void(const std::string &)> callback =
-        [ec_init_weak, uuid, domain, operation,
+        [uuid, domain, operation,
          on_callback](const std::string &info) -> void {
       Json::Value callback_data_json;
       ReaderHelper(info, callback_data_json);
@@ -57,11 +67,6 @@ int32_t DoDownload(const std::string &download_info,
         bool init_success = false;
         if (5 == stage) {
           is_complete = GetBool(callback_data_json["is_complete"]);
-          // const auto int32_error_code =
-          //    GetInt(callback_data_json["int32_error_code"]);
-          // if (0 != int32_error_code) {
-          //  init_success = GetBool(callback_data_json["init_success"]);
-          //}
         }
 
         /// 还需插入uuid,domain,operation等字段
@@ -84,23 +89,61 @@ int32_t DoDownload(const std::string &download_info,
     auto downloader = std::make_unique<Downloader>(download_info, callback);
     auto &downloader_obj = *downloader;
     /// 检查初始化是否有意外，初始化有意外，则无需加入任务容器，也无需启动之
-    if (*ec_init != 0) {
-      res_flag = *ec_init;
-      // break;
+    if (!downloader->Valid()) {
+      break;
     }
+
     /// 加入任务容器
     ast->uuid_map.Put(uuid, (1 << 1));
     auto key_in_map = uuid;
     ast->cloud189_downloader_map.Emplace(key_in_map, downloader);
 
-    /// 启动任务
-    downloader_obj.AsyncStart();
-    ///  至此认为初始化并启动总控成功
+    ///  至此认为初始化总控成功
+    success_uuid = uuid;
     res_flag = 0;
 
   } while (false);
 
   return res_flag;
+}
+
+void StartDownload(const std::string &success_uuid) {
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    ast->cloud189_downloader_map.FindDelegate(
+        success_uuid, [](const std::unique_ptr<Downloader> &downloader) {
+          if (nullptr != downloader) {
+            downloader->AsyncStart();
+          }
+        });
+  } while (false);
+}
+
+int32_t UserCancelDownload(const std::string &cancel_uuid) {
+  int32_t cancel_res = -1;
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    bool find_result = false;
+    ast->cloud189_downloader_map.FindDelegate(
+        cancel_uuid,
+        [&find_result](const std::unique_ptr<Downloader> &downloader) {
+          if (nullptr != downloader) {
+            downloader->UserCancel();
+            find_result = true;
+          }
+        });
+    if (!find_result) {
+      break;
+    }
+    cancel_res = 0;
+  } while (false);
+  return cancel_res;
 }
 
 }  // namespace Cloud189

@@ -1,0 +1,24 @@
+executable("test_general_restful_sdk") {
+  sources = [
+    "test_general_restful_sdk.cpp",
+    "ffi_simulation.h",
+    "ffi_simulation.cpp",
+    "test_headers.h",
+    "test_ast_config.cpp",
+    "test_ast_process_cloud189_file_upload.cpp",
+    "test_ast_process_cloud189_folder_upload.cpp",
+    "test_ast_process_cloud189_file_download.cpp",
+    "test_ast_process_cloud189_folder_download.cpp",
+    "test_ast_process_cloud189_usercancel_file_upload.cpp",
+    "test_ast_process_cloud189_usercancel_folder_upload.cpp",
+    "test_ast_process_cloud189_usercancel_folder_download.cpp",
+    "test_ast_process_cloud189_file_download_resume_from_breakpoint.cpp",
+  ]
+  data_deps = [
+    "//src/general_restful_sdk",
+  ]
+  deps = [
+    "//third_party/jsoncpp",
+  ]
+  configs += [ "//src:src_using" ]
+}

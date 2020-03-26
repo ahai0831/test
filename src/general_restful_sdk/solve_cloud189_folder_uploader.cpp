@@ -16,8 +16,9 @@ using ::Cloud189::Restful::FolderUploader;
 
 namespace general_restful_sdk_ast {
 namespace Cloud189 {
-int32_t DoFolderUpload(const std::string &folder_info,
-                       void (*on_callback)(const char *)) {
+int32_t CreateFolderUpload(const std::string &folder_info,
+                           void (*on_callback)(const char *),
+                           std::string &success_uuid) {
   int32_t res_flag = -1;
   const auto &ast = GetAstInfo();
   Json::Value upload_json;
@@ -42,6 +43,22 @@ int32_t DoFolderUpload(const std::string &folder_info,
     /// 是否满足启动上传的条件，若是则继续；若否则返回false
     /// 根据文档，余下的字段是业务字段，由Uploader自身进行兼容
 
+    /// TODO: 由于FolderUploader特殊，临时在此检验业务字段
+    /// 后续应统一调整到Valid中进行校验
+    const auto local_folder_path = GetString(upload_json["local_folder_path"]);
+    const auto server_folder_path =
+        GetString(upload_json["server_folder_path"]);
+    const auto parent_folder_id = GetString(upload_json["parent_folder_id"]);
+    if (local_folder_path.empty() || server_folder_path.empty() ||
+        parent_folder_id.empty()) {
+      break;
+    }
+    if ('/' != local_folder_path.back()) {
+      break;
+    }
+    if ('/' != server_folder_path.back()) {
+      break;
+    }
     /// 生成回传回调的中间回调
     std::shared_ptr<int32_t> ec_init = std::make_shared<int32_t>(0);
     std::weak_ptr<int32_t> ec_init_weak(ec_init);
@@ -91,14 +108,52 @@ int32_t DoFolderUpload(const std::string &folder_info,
     auto key_in_map = uuid;
     ast->cloud189_folder_uploader_map.Emplace(key_in_map, folder_uploader);
 
-    /// 启动任务
-    uploader_obj.AsyncStart();
     ///  至此认为初始化并启动总控成功
+    success_uuid = uuid;
     res_flag = 0;
 
   } while (false);
 
   return res_flag;
+}
+
+void StartFolderUpload(const std::string &success_uuid) {
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    ast->cloud189_folder_uploader_map.FindDelegate(
+        success_uuid, [](const std::unique_ptr<FolderUploader> &uploader) {
+          if (nullptr != uploader) {
+            uploader->AsyncStart();
+          }
+        });
+  } while (false);
+}
+
+int32_t UserCancelFolderUpload(const std::string &cancel_uuid) {
+  int32_t cancel_res = -1;
+  do {
+    const auto &ast = GetAstInfo();
+    if (nullptr == ast) {
+      break;
+    }
+    bool find_result = false;
+    ast->cloud189_folder_uploader_map.FindDelegate(
+        cancel_uuid,
+        [&find_result](const std::unique_ptr<FolderUploader> &uploader) {
+          if (nullptr != uploader) {
+            uploader->UserCancel();
+            find_result = true;
+          }
+        });
+    if (!find_result) {
+      break;
+    }
+    cancel_res = 0;
+  } while (false);
+  return cancel_res;
 }
 
 }  // namespace Cloud189

@@ -1,6 +1,7 @@
 ﻿#include "file_downloader_helper.h"
 
 #include "cloud189/apis/file_data_download.h"
+#include "cloud189/error_code/error_code.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
 using assistant::HttpRequest;
@@ -43,6 +44,10 @@ ProofObsCallback get_remote_file_size(
       /// get_remote_file_size_request.extends.Set("header_only", "true");
       get_remote_file_size_request.extends.Set("follow_location", "true");
       get_remote_file_size_request.extends.Set("range", "0-0");
+      /// process, uuid , for potential stop
+      std::string unused_uuid = assistant::tools::uuid::generate();
+      get_remote_file_size_request.extends.Set("uuid", unused_uuid);
+      thread_data->current_request_uuid.store(unused_uuid);
 
       /// test
       // get_remote_file_size_request.extends.Set("proxy",
@@ -58,6 +63,16 @@ ProofObsCallback get_remote_file_size(
                 do {
                   auto thread_data = thread_data_weak.lock();
                   if (nullptr == thread_data) {
+                    break;
+                  }
+                  /// 请求到此已完成，无需再记录UUID
+                  thread_data->current_request_uuid.Clear();
+
+                  /// 增加对用户手动取消的处理
+                  if (thread_data->frozen.load()) {
+                    result.result = stage_result::UserCanceled;
+                    thread_data->int32_error_code =
+                        Cloud189::ErrorCode::nderr_usercanceled;
                     break;
                   }
                   /// TODO: Solve not 206

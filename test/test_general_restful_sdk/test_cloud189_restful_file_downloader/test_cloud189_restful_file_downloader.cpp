@@ -17,10 +17,12 @@ int main(void) {
       "dddd3bf5-95c5-4735-a1e2-644a670e617d_family",
       "2D6FBBD2630E71A626614DFFD599696E");
   Json::Value root;
-  root["file_id"] = "2149022475894387";
-  root["file_name"] = "mingw-w64-install (1).exe";
-  root["md5"] = "9670C3701F0B546CA63A3E6D7749E59E";
+  root["file_id"] = "9147022472321875";
+  root["file_name"] = "MSYS-20111123.zip";
+  root["md5"] = "CCE436DE44B5ACF0F4F9A96BD4C1EF03";
   root["download_folder_path"] = "D:/test/";
+  // root["last_download_breakpoint_data"] =
+  // "eyJkb3dubG9hZF9mb2xkZXJfcGF0aCI6IkQ6L3Rlc3QvIiwiZmlsZV9pZCI6IjkxNDcwMjI0NzIzMjE4NzUiLCJmaWxlX25hbWUiOiJNU1lTLTIwMTExMTIzLnppcCIsIm1kNSI6IkNDRTQzNkRFNDRCNUFDRjBGNEY5QTk2QkQ0QzFFRjAzIiwidGVtcF9kb3dubG9hZF9maWxlX3BhdGgiOiJEOi90ZXN0L01TWVMtMjAxMTExMjMuemlwXzkuZWNkbCIsInRvX2JlX2NvbnRpbnVlZCI6eyJsZW5ndGgiOjQ3MjQwMzAzLCJvZmZzZXQiOjM3NjkzNzh9LCJ2ZXIiOiIwLjEifQ==";
   const auto download_info = restful_common::jsoncpp_helper::WriterHelper(root);
   std::unique_ptr<Downloader> dlr;
   auto callback = [&dlr](const std::string& str) {
