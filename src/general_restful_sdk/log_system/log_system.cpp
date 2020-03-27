@@ -71,7 +71,7 @@ inline void InitOut() {
         appDataPath);
     std::string log_file_name;
 #ifdef _WIN32
-    std::string log_save_path = appDataPath + "\\" + "logs/nativeLogs";
+    std::string log_save_path = appDataPath + "\\" + "logs\\nativeLogs";
     bool isPathExist =
         cloud_base::file_common::guarantee_directory_exists(log_save_path);
     if (isPathExist) {
