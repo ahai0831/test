@@ -1,5 +1,5 @@
-#ifndef PARAMS_HELPER_H
-#define PARAMS_HELPER_H
+#ifndef CLOUD189_PARAMS_HELPER_H
+#define CLOUD189_PARAMS_HELPER_H
 
 #include <string>
 namespace Cloud189 {
@@ -18,4 +18,4 @@ inline std::string GetChannelId() { return "web_cloud.189.cn"; }
 
 }  // namespace ParamsHelper
 }  // namespace Cloud189
-#endif  // PARAMS_HELPER_H
+#endif  // CLOUD189_PARAMS_HELPER_H

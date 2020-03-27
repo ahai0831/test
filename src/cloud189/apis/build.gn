@@ -6,6 +6,7 @@ source_set("cloud189_upload") {
   deps = [
     "//src/cloud189/error_code",
     "//src/cloud189/session_helper",
+    "//src/cloud189/params_helper",
     "//third_party/assistant",
     "//third_party/cloud_base",
     "//third_party/jsoncpp",
@@ -34,6 +35,7 @@ source_set("cloud189_create_folder") {
   deps = [
     "//src/cloud189/error_code",
     "//src/cloud189/session_helper",
+    "//src/cloud189/params_helper",
     "//third_party/assistant",
     "//third_party/cloud_base",
     "//third_party/jsoncpp",
@@ -53,6 +55,7 @@ source_set("cloud189_download") {
   deps = [
     "//src/cloud189/error_code",
     "//src/cloud189/session_helper",
+    "//src/cloud189/params_helper",
     "//third_party/assistant",
     "//third_party/cloud_base",
     "//third_party/jsoncpp",
@@ -75,6 +78,7 @@ source_set("cloud189_list_files") {
   deps = [
     "//src/cloud189/error_code",
     "//src/cloud189/session_helper",
+    "//src/cloud189/params_helper",
     "//third_party/assistant",
     "//third_party/cloud_base",
     "//third_party/jsoncpp",
