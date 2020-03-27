@@ -64,14 +64,14 @@ static struct InitOutOnce {
 inline void InitOut() {
   std::call_once(initout_flag, []() {
     std::string log_name = assistant::tools::string::StringFormat(
-        "logs-%s-%" PRIu64 ".log", "upload_dll",
+        "logs-%s-%" PRIu64 ".log", "general_restful_sdk",
         cloud_base::date_helper::get_millisecond_time_stamp());
     std::string appDataPath;
     cloud_base::process_common_helper::GetCurrentApplicationDataPath(
         appDataPath);
     std::string log_file_name;
 #ifdef _WIN32
-    std::string log_save_path = appDataPath + "\\" + "logs";
+    std::string log_save_path = appDataPath + "\\" + "logs\\nativeLogs";
     bool isPathExist =
         cloud_base::file_common::guarantee_directory_exists(log_save_path);
     if (isPathExist) {
