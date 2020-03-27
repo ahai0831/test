@@ -7,7 +7,6 @@
 #include <json/json.h>
 #include <pugixml.hpp>
 
-#include <process_common/process_common_helper.h>
 #include <tools/string_format.hpp>
 
 #include "cloud189/error_code/error_code.h"

@@ -1,10 +1,21 @@
-#ifndef PARAMS_HELPER_H
-#define PARAMS_HELPER_H
+#ifndef CLOUD189_PARAMS_HELPER_H
+#define CLOUD189_PARAMS_HELPER_H
 
+#include <string>
 namespace Cloud189 {
 namespace ParamsHelper {
-const static char* client_type = "TELEPC";
-const static char* channel_id = "web_cloud.189.cn";
+inline std::string GetHost() { return "https://api.cloud.189.cn"; }
+inline std::string GetClientType() {
+#ifdef _WIN32
+  return "TELEPC";
+#elif __linux__
+  return "";
+#else
+  return "TELEMAC";
+#endif
+}
+inline std::string GetChannelId() { return "web_cloud.189.cn"; }
+
 }  // namespace ParamsHelper
 }  // namespace Cloud189
-#endif  // PARAMS_HELPER_H
+#endif  // CLOUD189_PARAMS_HELPER_H

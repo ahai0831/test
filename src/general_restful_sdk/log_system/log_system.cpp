@@ -78,7 +78,7 @@ inline void InitOut() {
       log_file_name = log_save_path + "\\" + log_name;
     }
 #else
-        std::string log_save_path = appDataPath + '/' + "logs";
+        std::string log_save_path = appDataPath + '/' + "logs/nativeLogs";
         bool isPathExist =
             cloud_base::file_common::guarantee_directory_exists(log_save_path);
         if (isPathExist) {

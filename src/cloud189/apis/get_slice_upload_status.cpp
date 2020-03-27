@@ -9,30 +9,30 @@
 
 #include <filesystem_helper/filesystem_helper.h>
 #include <process_version/process_version.h>
-#include <v2/tools.h>
-#include <v2/uuid.h>
 #include <tools/string_format.hpp>
 
 #include "cloud189/error_code/error_code.h"
 #include "cloud189/session_helper/session_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 #include "restful_common/rand_helper/rand_helper.hpp"
+#include "cloud189/params_helper/params_helper.hpp"
+
+
+using Cloud189::ParamsHelper::GetClientType;
+using Cloud189::ParamsHelper::GetChannelId;
+using Cloud189::ParamsHelper::GetHost;
 
 namespace {
 // 这些是请求中一些固定的参数
-const static std::string host = "https://api.cloud.189.cn";
+
 const static std::string uri = "/multitask/getSliceUploadFile.action";
 const static std::string method = "GET";
 const static int flag = 1;
 const static int resume_policy = 1;
-const static std::string client_type = "TELEPC";
-const static std::string channel_id = "web_cloud.189.cn";
 
-std::string GetHost() { return host; }
 std::string GetURI() { return uri; }
 std::string GetMethod() { return method; }
-std::string GetClientType() { return client_type; }
-std::string GetChannelId() { return channel_id; }
+
 int GetFlag() { return flag; }
 int GetResumePolicy() { return resume_policy; }
 
