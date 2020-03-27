@@ -72,8 +72,12 @@ const rx_downloader::CompleteCallback GenerateDataCallback(
             info["file_size"] = remote_file_size;
             info["x_request_id"] = thread_data->x_request_id;
             /// 已传输数据量
-            auto transferred_size = thread_data->already_download_bytes.load() +
-                                    thread_data->current_download_bytes.load();
+            const auto already_download_bytes =
+                thread_data->already_download_bytes.load();
+            const auto current_download_bytes =
+                thread_data->current_download_bytes.load();
+            auto transferred_size =
+                already_download_bytes + current_download_bytes;
             if (transferred_size > thread_data->remote_file_size.load()) {
               transferred_size = thread_data->remote_file_size.load();
             }
@@ -85,6 +89,16 @@ const rx_downloader::CompleteCallback GenerateDataCallback(
               current_stage = int32_t(mc_data->current_stage.load());
             }
             info["stage"] = current_stage;
+            /// 仅在stage==3的情况下，加入`average_speed`字段
+            if (3 == current_stage) {
+              const auto seconds = ++thread_data->seconds_in_stage3;
+              if (seconds > 0 && current_download_bytes > 0) {
+                const auto average_speed =
+                    static_cast<int64_t>(current_download_bytes / seconds);
+                info["average_speed"] = average_speed;
+              }
+            }
+
             if (current_stage >= 3) {
             }
             /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
