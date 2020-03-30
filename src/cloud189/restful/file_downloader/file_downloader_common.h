@@ -70,8 +70,8 @@ struct downloader_thread_data {
         uv_thread_ptr(std::make_shared<rx_uv_fs::uv_loop_with_thread>()),
         frozen(false),
         int32_error_code(0),
-        speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
-  }
+        speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()),
+        seconds_in_stage3(0) {}
   /// 线程安全的数据成员
   assistant::tools::lockfree_string_closure<std::string> download_url;
   assistant::tools::lockfree_string_closure<std::string> real_remote_url;
@@ -110,6 +110,9 @@ struct downloader_thread_data {
   /// 注意仅供外部保存，内部对此数据项仅写入，不读取不使用
   assistant::tools::lockfree_string_closure<std::string>
       current_download_breakpoint_data;
+
+  /// 用作stage3下提供的`average_speed`字段，所需的计数器
+  std::atomic<int32_t> seconds_in_stage3;
 
  private:
   downloader_thread_data() = delete;

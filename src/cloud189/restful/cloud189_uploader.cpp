@@ -6,6 +6,7 @@
 #endif
 
 #include <filecommon/filecommon_helper.h>
+
 #include <rx_assistant.hpp>
 #include <rx_md5.hpp>
 #include <rx_uploader.hpp>
@@ -106,8 +107,8 @@ struct uploader_thread_data {
         int32_error_code(0),
         init_success(false),
         frozen(false),
-        speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
-  }
+        speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()),
+        seconds_in_stage3(0) {}
   /// 线程安全的数据成员
   lockfree_string_closure<std::string> file_md5;
   lockfree_string_closure<std::string> upload_file_id;
@@ -141,6 +142,9 @@ struct uploader_thread_data {
   std::atomic<bool> frozen;
   /// 保存当前请求的UUID，以供停止请求
   lockfree_string_closure<std::string> current_request_uuid;
+
+  /// 用作stage3下提供的`average_speed`字段，所需的计数器
+  std::atomic<int32_t> seconds_in_stage3;
 
  private:
   uploader_thread_data() = delete;
@@ -201,6 +205,10 @@ GenerateDataCallback(
             info["file_size"] = thread_data->file_size.load();
             info["x_request_id"] = thread_data->x_request_id;
             /// 已传输数据量
+            const auto already_upload_bytes =
+                thread_data->already_upload_bytes.load();
+            const auto current_upload_bytes =
+                thread_data->current_upload_bytes.load();
             auto transferred_size = thread_data->already_upload_bytes.load() +
                                     thread_data->current_upload_bytes.load();
             if (transferred_size > thread_data->file_size.load()) {
@@ -218,6 +226,15 @@ GenerateDataCallback(
             if (current_stage >= 3) {
               info["data_exist"] = thread_data->data_exist.load();
               info["file_upload_url"] = thread_data->file_upload_url.load();
+            }
+            /// 仅在stage==3的情况下，加入`average_speed`字段
+            if (3 == current_stage) {
+              const auto seconds = ++thread_data->seconds_in_stage3;
+              if (seconds > 0 && current_upload_bytes > 0) {
+                const auto average_speed =
+                    static_cast<int64_t>(current_upload_bytes / seconds);
+                info["average_speed"] = average_speed;
+              }
             }
             /// 在errorcode机制完善后，需要在ec为0的情况下，才加相应业务字段
             if (current_stage >= 5 && ec == 0) {
@@ -689,6 +706,7 @@ httpbusiness::uploader::proof::proof_obs_packages GenerateOrders(
       /// 上传文件这一流程即将开始时，清空current_upload_bytes字段
       /// 避免涉及到弱网络有重传时，对进度记录不准确
       thread_data->current_upload_bytes.store(0);
+      thread_data->seconds_in_stage3.store(0);
 
       /// TODO: 这一段的代码风格和内存占用，有待完善
       HttpRequest file_upload_request("");

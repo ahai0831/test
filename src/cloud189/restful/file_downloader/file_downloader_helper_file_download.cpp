@@ -40,6 +40,7 @@ ProofObsCallback file_download(
           thread_data->current_download_bytes.exchange(0));
       const auto already_download_bytes =
           thread_data->already_download_bytes.load();
+      thread_data->seconds_in_stage3.store(0);
       /// Download File
       assistant::HttpRequest file_download_request(real_remote_url);
       file_download_request.extends.Set(
