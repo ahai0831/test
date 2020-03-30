@@ -71,7 +71,11 @@ struct downloader_thread_data {
         frozen(false),
         int32_error_code(0),
         speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()),
-        seconds_in_stage3(0) {}
+        seconds_in_stage3(0),
+        stat_result(0),
+        rename_result(0),
+        speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
+  }
   /// 线程安全的数据成员
   assistant::tools::lockfree_string_closure<std::string> download_url;
   assistant::tools::lockfree_string_closure<std::string> real_remote_url;
@@ -113,6 +117,10 @@ struct downloader_thread_data {
 
   /// 用作stage3下提供的`average_speed`字段，所需的计数器
   std::atomic<int32_t> seconds_in_stage3;
+  /// 保存MD5校验期间的结果数据，用于问题排查
+  std::atomic<int32_t> stat_result;
+  assistant::tools::lockfree_string_closure<std::string> md5_result;
+  std::atomic<bool> rename_result;
 
  private:
   downloader_thread_data() = delete;

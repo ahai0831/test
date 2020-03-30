@@ -130,6 +130,19 @@ const rx_downloader::CompleteCallback GenerateDataCallback(
       info["file_size"] = remote_file_size;
       info["x_request_id"] = thread_data->x_request_id;
       info["int32_error_code"] = thread_data->int32_error_code.load();
+      /// 增加MD5校验流程中的结果
+      const auto stat_result = thread_data->stat_result.load();
+      if (0x8000 != stat_result) {
+        info["stat_result"] = stat_result;
+      }
+      const auto md5_result = thread_data->md5_result.load();
+      if (md5_result != thread_data->md5) {
+        info["md5_result"] = md5_result;
+      }
+      const auto rename_result = thread_data->rename_result.load();
+      if (!rename_result) {
+        info["rename_result"] = rename_result;
+      }
       const auto download_file_path = thread_data->download_file_path.load();
       if (!download_file_path.empty()) {
         info["download_file_path"] = download_file_path;

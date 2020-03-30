@@ -12,6 +12,8 @@
 
 #include <rxcpp/rx.hpp>
 
+#include "rx_md5.hpp"
+
 namespace rx_uv_fs {
 
 /// Provide a uv_loop run in thread that would join while destruction
@@ -106,7 +108,7 @@ inline void uv_fs_stat_wrapper(uv_loop_t& loop, const std::string& path,
 }  // namespace uv_fs_stat
 
 namespace uv_fs_scandir {
-typedef struct {
+typedef struct uv_fs_scandir_type__ {
   std::vector<std::string> files;
   std::vector<std::string> dirs;
 } Type;
@@ -242,11 +244,30 @@ inline void uv_fs_rename_wrapper(uv_loop_t& loop, const std::string& path,
   uv_fs_t* req = new (std::nothrow) uv_fs_t({0});
   auto callback_ptr = new (std::nothrow) Callback(callback);
   req->data = static_cast<void*>(callback_ptr);
-  //::uv_fs_mkdir(&loop, req, path.c_str(), mode, details::mkdir_callback);
+
   ::uv_fs_rename(&loop, req, path.c_str(), new_path.c_str(),
                  details::rename_callback);
 }
 }  // namespace uv_fs_rename
+
+/// 在此增加基于uv的事件循环线程进行同步阻塞式计算文件MD5的流程
+/// 注意MD5的计算过程，将持续占用指定uv的线程，有异于其他fs_xxx
+namespace uv_sync_md5 {
+/// 入参内的std::string代表MD5，非空字符串代表计算完成
+typedef std::string Type;
+/// std::function<bool()>为形式。一旦返回值为false，立即打断计算过程
+typedef rx_assistant::md5::CheckStopCallback CheckStopCallback;
+typedef std::function<void(Type)> Callback;
+
+inline void uv_sync_md5_wrapper(uv_loop_t&, const std::string& path,
+                                const CheckStopCallback& stop_cb,
+                                Callback callback) {
+  const auto result = rx_assistant::md5::md5_sync_calculate_with_process(
+      path, -1, -1, rx_assistant::rx_md5::details::DefaultMd5ProcessCallback,
+      stop_cb);
+  callback(result);
+}
+}  // namespace uv_sync_md5
 
 namespace rx_uv_fs_factory {
 inline rxcpp::observable<uv_fs_stat::Type> Stat(
@@ -346,6 +367,32 @@ inline rxcpp::observable<uv_fs_rename::Type> Rename(
         } else if (s.is_subscribed()) {
           /// 发射一个负面的响应，保证完备
           s.on_next(false);
+          s.on_completed();
+        }
+      });
+}
+
+inline rxcpp::observable<uv_sync_md5::Type> Md5(
+    std::weak_ptr<uv_loop_with_thread> thread, const std::string& path,
+    const uv_sync_md5::CheckStopCallback& stop_cb) {
+  return rxcpp::observable<>::create<uv_sync_md5::Type>(
+      [thread, path, stop_cb](rxcpp::subscriber<uv_sync_md5::Type> s) -> void {
+        auto thread_ptr = thread.lock();
+        if (s.is_subscribed() && nullptr != thread_ptr) {
+          /// 必须以值捕获的方式，保持rxcpp::subscriber<XXX>生命周期
+          uv_sync_md5::Callback subscriber_func =
+              [s](uv_sync_md5::Type result) -> void {
+            s.on_next(result);
+            s.on_completed();
+          };
+
+          rx_uv_fs::uv_loop_with_thread::uv_todo_wrapper md5_task =
+              std::bind(uv_sync_md5::uv_sync_md5_wrapper, std::placeholders::_1,
+                        path, stop_cb, subscriber_func);
+          thread_ptr->Do(md5_task);
+        } else if (s.is_subscribed()) {
+          /// 发射一个负面的响应，保证完备
+          s.on_next(uv_sync_md5::Type());
           s.on_completed();
         }
       });
