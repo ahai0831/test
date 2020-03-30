@@ -66,7 +66,7 @@ bool Downloader::Valid() {
     if (thread_data->file_name.empty()) {
       break;
     }
-    if (thread_data->md5.empty()) {
+    if (thread_data->md5.empty() || 32 != thread_data->md5.size()) {
       break;
     }
     if (thread_data->download_folder_path.empty()) {

@@ -13,6 +13,15 @@ namespace Cloud189 {
 namespace Restful {
 namespace file_downloader_helper {
 namespace details {
+namespace {
+int strCmp(const std::string& s1, const std::string& s2) {
+#ifdef _WIN32
+  return stricmp(s1.c_str(), s2.c_str());
+#else
+  return strcasecmp(s1.c_str(), s2.c_str());
+#endif
+}
+}  // namespace
 ProofObsCallback check_file_md5(
     const std::weak_ptr<downloader_thread_data>& thread_data_weak) {
   return [thread_data_weak](
@@ -86,7 +95,7 @@ ProofObsCallback check_file_md5(
                     break;
                   }
                   const auto& md5 = thread_data->md5;
-                  if (md5 != value) {
+                  if (0 != strCmp(md5, value)) {
                     break;
                   }
                   int32_t try_number = 0;
