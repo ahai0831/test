@@ -73,9 +73,7 @@ struct downloader_thread_data {
         speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()),
         seconds_in_stage3(0),
         stat_result(0),
-        rename_result(0),
-        speed_count(std::make_unique<httpbusiness::speed_counter_with_stop>()) {
-  }
+        rename_result(0) {}
   /// 线程安全的数据成员
   assistant::tools::lockfree_string_closure<std::string> download_url;
   assistant::tools::lockfree_string_closure<std::string> real_remote_url;

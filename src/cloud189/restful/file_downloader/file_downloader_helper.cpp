@@ -151,8 +151,24 @@ const rx_downloader::CompleteCallback GenerateDataCallback(
           thread_data->current_download_breakpoint_data.load();
       if (!download_breakpoint_data.empty()) {
         info["download_breakpoint_data"] = download_breakpoint_data;
-      }
+      } else if (!thread_data->download_breakpoint_data.empty()) {
+        /// 满足以下条件之一，保证在计算MD5时反复暂停回复，breakpoint_data不会丢失
+        /// 1. breakpoint_data未被使用
+        /// useless 值为false
+        /// 2. 在计算MD5阶段，收到用户暂停指令
+        /// already_download_bytes==remote_file_size&&frozen
 
+        const auto useless = thread_data->breakpoint_data_useless.load();
+
+        const auto already_download_bytes =
+            thread_data->already_download_bytes.load();
+        const auto frozen = thread_data->frozen.load();
+        if (!useless ||
+            (already_download_bytes == remote_file_size && frozen)) {
+          info["download_breakpoint_data"] =
+              thread_data->download_breakpoint_data;
+        }
+      }
       /// 已传输数据量
       auto transferred_size = thread_data->already_download_bytes.load() +
                               thread_data->current_download_bytes.load();

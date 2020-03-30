@@ -1,5 +1,5 @@
-﻿#include "file_downloader_helper.h"
-
+﻿#include "cloud189/error_code/error_code.h"
+#include "file_downloader_helper.h"
 #include "tools/string_format.hpp"
 
 using assistant::tools::string::StringFormat;
@@ -92,7 +92,14 @@ ProofObsCallback check_file_md5(
                   /// 此处补充到线程信息中保存
                   thread_data->md5_result.store(value);
                   if (value.empty()) {
+                    const auto frozen = thread_data->frozen.load();
+                    if (frozen) {
+                      thread_data->int32_error_code =
+                          Cloud189::ErrorCode::nderr_usercanceled;
+                    }
                     break;
+                  } else {
+                    /// 在value非空的情况下不进行frozen的判断
                   }
                   const auto& md5 = thread_data->md5;
                   if (0 != strCmp(md5, value)) {
@@ -170,6 +177,9 @@ ProofObsCallback check_file_md5(
                   if (!rename_result) {
                     break;
                   }
+                  /// 这种情况下，校验MD5、重命名都成功了，可以认为无需保存续传数据了
+                  thread_data->current_download_breakpoint_data.Clear();
+
                   result.result = stage_result::Succeeded;
 
                 } while (false);
