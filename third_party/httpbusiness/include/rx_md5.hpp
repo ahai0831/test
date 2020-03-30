@@ -19,7 +19,7 @@ namespace md5 {
 
 namespace details {
 typedef std::function<void(void *, uint64_t)> mmap_md5_callback;
-static void mmap_md5_access_callback(void *memory, uint64_t len,
+inline void mmap_md5_access_callback(void *memory, uint64_t len,
                                      void *callback_data) {
   auto &callback = *(mmap_md5_callback *)callback_data;
   callback(memory, len);
@@ -33,7 +33,7 @@ static void mmap_md5_access_callback(void *memory, uint64_t len,
 typedef std::function<void(int64_t)> Md5ProcessCallback;
 /// 返回值代表了外部一旦传入false时，立即停止
 typedef std::function<bool()> CheckStopCallback;
-inline static std::string md5_sync_calculate_with_process(
+inline std::string md5_sync_calculate_with_process(
     const std::string &file_path, const int64_t range_left,
     const int64_t range_right, Md5ProcessCallback process_cb,
     CheckStopCallback checkstop_cb) {
@@ -49,10 +49,10 @@ inline static std::string md5_sync_calculate_with_process(
   std::unique_ptr<assistant::core::readwrite::ReadByFile> readonly_file;
 #endif
   do {
-//     const std::wstring filepath_w /*= assistant::tools::string::utf8ToWstring(file_path)*/;
+
     /// 改成获取文件元数据
     uint64_t file_size = 0;
-    //const auto file_exist =cloud_base::filesystem_helper::GetFileSize(filepath_w, file_size);
+
     const auto file_exist =
         cloud_base::file_common::GetFileSize(file_path, file_size);
     if (!file_exist) {
@@ -221,11 +221,11 @@ struct md5_async_factory {
 /// 返回MD5计算结果的数据源，线程运行模型使用新线程并detach()进行，纯异步
 namespace rx_md5 {
 namespace details {
-inline static const void DefaultMd5ProcessCallback(int64_t) {}
-inline static const bool DefaultCheckStopCallback() { return true; }
+inline const void DefaultMd5ProcessCallback(int64_t) {}
+inline const bool DefaultCheckStopCallback() { return true; }
 }  // namespace details
 /// 暂时无需进度
-inline static rxcpp::observable<std::string> create(
+inline rxcpp::observable<std::string> create(
     const std::string &file_path, const int64_t range_left,
     const int64_t range_right, md5::Md5ProcessCallback process_cb,
     md5::CheckStopCallback checkstop_cb) {
@@ -248,25 +248,24 @@ inline static rxcpp::observable<std::string> create(
       });
 }
 
-inline static rxcpp::observable<std::string> create(
-    const std::string &file_path, const int64_t range_left,
-    const int64_t range_right) {
+inline rxcpp::observable<std::string> create(const std::string &file_path,
+                                             const int64_t range_left,
+                                             const int64_t range_right) {
   return create(file_path, range_left, range_right,
                 details::DefaultMd5ProcessCallback,
                 details::DefaultCheckStopCallback);
 }
-inline static rxcpp::observable<std::string> create(
-    const std::string &file_path) {
+inline rxcpp::observable<std::string> create(const std::string &file_path) {
   return create(file_path, -1, -1, details::DefaultMd5ProcessCallback,
                 details::DefaultCheckStopCallback);
 }
-inline static rxcpp::observable<std::string> create(
+inline rxcpp::observable<std::string> create(
     const std::string &file_path, const int64_t range_left,
     const int64_t range_right, md5::CheckStopCallback check_stop) {
   return create(file_path, range_left, range_right,
                 details::DefaultMd5ProcessCallback, check_stop);
 }
-inline static rxcpp::observable<std::string> create(
+inline rxcpp::observable<std::string> create(
     const std::string &file_path, md5::CheckStopCallback check_stop) {
   return create(file_path, -1, -1, details::DefaultMd5ProcessCallback,
                 check_stop);

@@ -75,21 +75,21 @@ void test_ast_process_cloud189_file_download_resume_from_breakpoint() {
   test_usercancel_json["operation"] = "UserCancelDownload";
   test_usercancel_json["uuid"] = breaked_uuid;
   auto test_usercancel_json_info = WriterHelper(test_usercancel_json);
-  AstProcess(
-      test_usercancel_json_info.c_str(),
-      [](const char *start_data) {
-        Json::Value start_data_json;
-        ReaderHelper(start_data, start_data_json);
-        const auto start_result = GetInt(start_data_json["start_result"]);
-        printf("OnStart: %s%s\n",
-               0 != start_result ? "UserCancelDownload failed: " : "",
-               start_data);
-      },
-      nullptr);
+  AstProcess(test_usercancel_json_info.c_str(),
+             [](const char *start_data) {
+               Json::Value start_data_json;
+               ReaderHelper(start_data, start_data_json);
+               const auto start_result =
+                   GetInt(start_data_json["start_result"]);
+               printf("OnStart: %s%s\n",
+                      0 != start_result ? "UserCancelDownload failed: " : "",
+                      start_data);
+             },
+             nullptr);
 
   /// 原本的任务在此阻塞式等待结束
   complete_signal.wait();
-
+  printf("--------------------------------\n");
   /// 再次启动任务
   /// 初始化promise和future
   do {

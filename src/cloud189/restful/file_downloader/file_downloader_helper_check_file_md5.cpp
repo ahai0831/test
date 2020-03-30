@@ -1,5 +1,5 @@
-﻿#include "file_downloader_helper.h"
-
+﻿#include "cloud189/error_code/error_code.h"
+#include "file_downloader_helper.h"
 #include "tools/string_format.hpp"
 
 using assistant::tools::string::StringFormat;
@@ -13,6 +13,15 @@ namespace Cloud189 {
 namespace Restful {
 namespace file_downloader_helper {
 namespace details {
+namespace {
+int strCmp(const std::string& s1, const std::string& s2) {
+#ifdef _WIN32
+  return stricmp(s1.c_str(), s2.c_str());
+#else
+  return strcasecmp(s1.c_str(), s2.c_str());
+#endif
+}
+}  // namespace
 ProofObsCallback check_file_md5(
     const std::weak_ptr<downloader_thread_data>& thread_data_weak) {
   return [thread_data_weak](
@@ -30,10 +39,48 @@ ProofObsCallback check_file_md5(
       /// 校验路径是否是个合法的文件 0x8000
       const auto save_file_path = thread_data->temp_download_file_path.load();
       const auto& uv_thread = thread_data->uv_thread_ptr;
+      /// 处理流程：1. 保证需要被校验的临时文件，是个“文件”
+      /// 2. 计算此文件MD5是否匹配；
+      /// 3. 对此文件MD5进行rename；
+      /// 另外，为了保证排查问题，需要在thread_data中保存这三个结果
+      /// 一旦有异常，应插入回调的字段中，以便排查问题
       result =
           rx_uv_fs::rx_uv_fs_factory::Stat(uv_thread, save_file_path)
               .flat_map([thread_data_weak](
-                            int32_t value) -> rxcpp::observable<bool> {
+                            int32_t value) -> rxcpp::observable<std::string> {
+                rxcpp::observable<std::string> result =
+                    rxcpp::observable<>::just(std::string());
+                do {
+                  auto thread_data = thread_data_weak.lock();
+                  if (nullptr == thread_data) {
+                    break;
+                  }
+                  /// 此处补充到线程信息中保存
+                  thread_data->stat_result.store(value);
+                  if (0x8000 != value) {
+                    break;
+                  }
+                  /// 先解除文件锁定保护，准备进行文件MD5计算
+                  auto protect_fp = thread_data->file_protect.exchange(nullptr);
+                  if (nullptr != protect_fp) {
+                    fclose(protect_fp);
+                    protect_fp = nullptr;
+                  }
+
+                  const auto save_file_path =
+                      thread_data->temp_download_file_path.load();
+                  const auto& uv_thread = thread_data->uv_thread_ptr;
+                  const auto& frozen = thread_data->frozen;
+                  rx_uv_fs::uv_sync_md5::CheckStopCallback stop_cb =
+                      [&frozen]() -> bool { return !frozen.load(); };
+                  result = rx_uv_fs::rx_uv_fs_factory::Md5(
+                      uv_thread, save_file_path, stop_cb);
+
+                } while (false);
+                return result;
+              })
+              .flat_map([thread_data_weak](
+                            std::string value) -> rxcpp::observable<bool> {
                 rxcpp::observable<bool> result =
                     rxcpp::observable<>::just(false);
                 do {
@@ -42,7 +89,20 @@ ProofObsCallback check_file_md5(
                     break;
                   }
 
-                  if (0x8000 != value) {
+                  /// 此处补充到线程信息中保存
+                  thread_data->md5_result.store(value);
+                  if (value.empty()) {
+                    const auto frozen = thread_data->frozen.load();
+                    if (frozen) {
+                      thread_data->int32_error_code =
+                          Cloud189::ErrorCode::nderr_usercanceled;
+                    }
+                    break;
+                  } else {
+                    /// 在value非空的情况下不进行frozen的判断
+                  }
+                  const auto& md5 = thread_data->md5;
+                  if (0 != strCmp(md5, value)) {
                     break;
                   }
                   int32_t try_number = 0;
@@ -92,29 +152,37 @@ ProofObsCallback check_file_md5(
                     tmp_fp = nullptr;
                     /// 意味着没有搜索到符合条件的目标名，不用再试
                     break;
-                  } else {
-                    /// 先解除文件锁定保护，准备进行文件名重命名
-                    auto protect_fp =
-                        thread_data->file_protect.exchange(nullptr);
-                    fclose(protect_fp);
-
-                    /// 保存重命名后的文件路径
-                    thread_data->download_file_path.store(tmp_path);
-                    const auto& uv_thread_ptr = thread_data->uv_thread_ptr;
-                    result = rx_uv_fs::rx_uv_fs_factory::Rename(
-                        uv_thread_ptr, temp_download_file_path, tmp_path);
                   }
 
+                  /// 保存重命名后的文件路径
+                  thread_data->download_file_path.store(tmp_path);
+                  const auto& uv_thread_ptr = thread_data->uv_thread_ptr;
+                  result = rx_uv_fs::rx_uv_fs_factory::Rename(
+                      uv_thread_ptr, temp_download_file_path, tmp_path);
                 } while (false);
 
                 return result;
               })
-              .map([](bool rename_result) -> downloader_proof {
+              .map([thread_data_weak](bool rename_result) -> downloader_proof {
                 downloader_proof result{downloader_stage::CheckFileMd5,
                                         stage_result::GiveupRetry};
-                if (rename_result) {
+                do {
+                  auto thread_data = thread_data_weak.lock();
+                  if (nullptr == thread_data) {
+                    break;
+                  }
+
+                  /// 此处补充到线程信息中保存
+                  thread_data->rename_result.store(rename_result);
+                  if (!rename_result) {
+                    break;
+                  }
+                  /// 这种情况下，校验MD5、重命名都成功了，可以认为无需保存续传数据了
+                  thread_data->current_download_breakpoint_data.Clear();
+
                   result.result = stage_result::Succeeded;
-                }
+
+                } while (false);
                 return result;
               });
 

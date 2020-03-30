@@ -41,6 +41,12 @@ ProofObsCallback file_download(
       const auto already_download_bytes =
           thread_data->already_download_bytes.load();
       thread_data->seconds_in_stage3.store(0);
+      if (already_download_bytes == remote_file_size) {
+        /// 保证零字节文件下载，以及之前在MD5校验阶段被打断的下载，无需真正下载数据
+        result = rxcpp::observable<>::just(downloader_proof{
+            downloader_stage::FileDownload, stage_result::Succeeded});
+        break;
+      }
       /// Download File
       assistant::HttpRequest file_download_request(real_remote_url);
       file_download_request.extends.Set(
@@ -136,15 +142,6 @@ ProofObsCallback file_download(
                     result.transfered_length = current_already_download_bytes;
                   }
 
-                  /// 若已下载数据的总长度恰好等于文件大小，那么可以直接成功
-                  if (kFileSize == result.transfered_length) {
-                    result.result = stage_result::Succeeded;
-                    /// 暂时认为，这种情况，无需对外传出续传数据了
-                    /// TODO: 一旦有MD5校验导致的失败流程，要仔细斟酌此处
-                    thread_data->current_download_breakpoint_data.Clear();
-                    break;
-                  }
-
                   /// 恰好在此时，可更新一次current_download_breakpoint_data
                   /// 输入的信息：file_id, file_name, md5, download_folder_path,
                   /// 上述四项，必须完全匹配
@@ -172,6 +169,15 @@ ProofObsCallback file_download(
                   if (res_1 && !base64_str.empty()) {
                     thread_data->current_download_breakpoint_data.store(
                         base64_str.c_str());
+                  }
+
+                  /// 若已下载数据的总长度恰好等于文件大小，那么可以直接成功
+                  if (kFileSize == result.transfered_length) {
+                    result.result = stage_result::Succeeded;
+                    /// 这种情况依然需对外传出续传数据，避免MD5校验过程中暂停
+                    /// 导致下次续传还要从头开始下载
+                    /// thread_data->current_download_breakpoint_data.Clear();
+                    break;
                   }
 
                   /// 延迟到此时，文件下载长度与应下载不一致

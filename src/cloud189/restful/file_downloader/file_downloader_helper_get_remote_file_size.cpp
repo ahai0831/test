@@ -1,7 +1,6 @@
-﻿#include "file_downloader_helper.h"
-
-#include "cloud189/apis/file_data_download.h"
+﻿#include "cloud189/apis/file_data_download.h"
 #include "cloud189/error_code/error_code.h"
+#include "file_downloader_helper.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
 
 using assistant::HttpRequest;
@@ -75,6 +74,17 @@ ProofObsCallback get_remote_file_size(
                         Cloud189::ErrorCode::nderr_usercanceled;
                     break;
                   }
+
+                  const auto& real_remote_url = value.res.effective_url;
+                  /// 增加0字节文件下载的处理
+                  if (200 == value.res.status_code &&
+                      value.res.extends.Get("content_length_download") == "0") {
+                    thread_data->remote_file_size.store(0);
+                    thread_data->real_remote_url.store(real_remote_url);
+                    result.result = stage_result::Succeeded;
+                    break;
+                  }
+
                   /// TODO: Solve not 206
                   if (value.res.status_code != 206) {
                     result.result = stage_result::GiveupRetry;
@@ -84,7 +94,6 @@ ProofObsCallback get_remote_file_size(
                       value.res.extends.Get("content_range_tatal");
                   thread_data->remote_file_size.store(
                       strtoll(content_range_tatal.c_str(), nullptr, 0));
-                  const auto& real_remote_url = value.res.effective_url;
                   thread_data->real_remote_url.store(real_remote_url);
 
                   /// Succeeded
