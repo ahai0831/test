@@ -1,0 +1,94 @@
+﻿
+本文档适用于：开发人员。
+目的：描述`//src/cloud189/apis/`（或其他二级目录下的`apis/`子目录）内的源文件编写规范。
+
+修订记录：
+2020/3/31 dengjzh1 初稿
+
+
+
+单个源文件，由一对文件名相同的*.h和*.cpp组成，这一编译单元，描述了将符合要求的json字符串转换成HttpRequest、将HttpResponse转换成json字符串的业务逻辑。
+请注意，单个源文件命名格式，为全小写，加下划线。
+
+至于后续的网络请求的实际完成过程，通过将HttpRequest传递给网络库Assistant，并异步取到HttpResponse这一过程中，得到完成。
+
+具体规范：
+
+1. 头文件内的预处理定义的保护，必须有。#ifndef #define #endif。
+用于命名的宏定义，格式大致为CLOUD189_XXXXXX_H_，的形式。其中CLOUD189为命名空间的全大写形式。
+
+2. 头文件内引用的头文件，必须达到最简原则。理论上只引入HttpRequest、HttpResponse声明所在的头文件即可。
+如果没有必要，不要在头文件中包含用不到的头文件。这会污染引用此头文件的编译单元。
+如何验证：在头文件中被引用的头文件是无用的？ 在一个空的测试项目中，引用此头文件。逐个删除其中的头文件，如果被引用的某个头文件被删以后，项目依然可通过编译。那么这个被引用的头文件，就是可以被去掉的。
+注意，不要在头文件的全局处，引入任何using namespace 某命名空间的用法。这样做，会导致“命名空间污染”。同理，也不应使用using 某命名空间下某符号名的形式。
+（备注：可以有些许变通，但属于高级技巧，在这个子目录下的源文件中，几乎用不到。）
+
+3. 必须包含命名空间。
+命名空间要求：
+顶级命名空间为产品名，例如cloud189（注意，由于历史遗留问题，可能暂时还被写作cloud189，应在某个需求不紧急的时间点，改为全小写形式。目前先保持一致）。
+次级命名空间为apis（注意，由于历史遗留问题，可能暂时还被写作Apis，应在某个需求不紧急的时间点，改为全小写形式。目前先保持一致）。
+三级命名空间，与文件名保持一致，需要为全小写加下划线的形式。
+注意，有些服务器的接口名，可能命名不够“信达雅”，此处的命名空间名和文件名，应做到这一要求，避免调用者看到源文件的名字却猜不到用途。
+
+4. 包含的函数声明：
+bool HttpRequestEncode(const std::string& params_json, assistant::HttpRequest& request);
+bool HttpResponseDecode(const assistant::HttpResponse& response, const assistant::HttpRequest& request, std::string& response_info);
+返回值bool值，返回false，代表进行处理的过程中发生了失败，不应使用输出参数。
+输入参数：应使用 `const 类型 &`的形式。常量引用可以避免传参过程中，出现额外的拷贝开销。
+输出参数：应使用`类型 &`的形式。这里使用引用，用作输出参数。
+（备注：不使用指针作为输出参数的原因？引用几乎不会遇到空指针的问题；并且将输出参数对应的变量，构造交给外部，做到“谁分配，谁释放”）。
+
+5. JsonStringHelper说明
+函数声明：
+std::string JsonStringHelper(const std::string& params1, const std::string& params2, const int32_t params3, const std::string& x_request_id);
+这个函数的目的，是为了辅助生成供HttpRequestEncode使用的Json字符串。
+（备注：不允许直接修改HttpRequestEncode的函数声明。这样解耦的原因，不在此处赘述）
+返回值std::string，生成的Json字符串。
+输入参数：应使用 `const 类型 &`的形式。对于基本类型（如C语言整数系列类型，bool类型等），应使用 `const 类型`的形式。
+x_request_id：这个字段必须有，且在各输入参数中，放到最后，如实地在json字符串中拼接即可。
+此函数几乎不会做任何形式的数据字段校验，或预处理。仅仅是单纯地拼接字符串。这样做的原因是：
+统一将数据字段校验，或预处理的逻辑写到一个地方，那就是HttpRequestEncode中，增强代码可维护性。
+
+注释的要求：因为理论上，对某个apis下的源文件，应根据文档使用。但为了增强代码和文档的可维护性，将这份“文档”作为注释写到头文件中。
+为便于维护，约定将生成HttpRequest所需输入参数的注释，写到JsonStringHelper的函数声明前。
+开发者应保证JsonStringHelper对Json字符串的拼接、HttpRequest对Json字符串的访问，应与注释的内容完全一致。
+以下对注释的规范，进行举例：
+`/// params1,[std::string],[表明上传文件的父文件夹id]`
+`/// params3,[int32_t],[表明上传后操作方式：
+/// 1-遇到相同文件名(只检查文件名)，执行重命名操作。
+/// 3-遇到相同文件名（只检查文件名），执行覆盖原文件]`
+`/// x_request_id,[std::string],[代表请求的headers中的X-Request-ID字段，若传空字符串，内部调用Assitant的uuid模块生成]`
+
+另外强调，对字段名，应注意是小写加下划线的形式。但注意不要在拼接请求的Url或Data时把字段名搞混了，拼接请求一定要和API接口文档保持一致。
+
+6. 对HttpRequestEncode的注释要求
+应说明清楚，对传入的Json字符串的解析形式，举例：
+`/// jsoncpp parse 原地解析
+/// jsoncpp reader 严格模式
+`
+并应保证在实现内部，使用的解析方式和模式，与注释中一致。
+另应说明清楚，拼接好的网络请求的方法类型，举例：
+`/// 请求方式：POST
+/// header规定：Content—Type: application/x-www-form-urlencoded
+/// 请求需要的参数放到body
+`
+注意，对POST请求和GET请求的区别，此处不再赘述。开发者自行查阅相关资料，并保证拼接好的HttpRequest符合规范。
+另外注意对一些，不需要传入，但函数过程的内部，会进行处理的字段，也应加上相关说明，举例：
+`/// clientType, [string],
+/// [json字符串不用传，参数放到url中, 表明客户端类型，例如TELEPC]
+/// version, [string],
+/// [json字符串不用传, 参数放到url中, 表明客户端版本，需要调用函数获取]
+/// channelId, [string],
+/// [json字符串不用传, 参数放到url中, 表明渠道id，例如web_cloud.189.cn]
+/// rand, [string]
+/// [json字符串不用传, 参数放到url中,
+/// 随机数，现固定为4位随机数加下划线加8位随机数（1234_12345678）] 
+/// SessionKey,[string], Signature, [string], Date, [string],
+/// [这三个参数json字符串不用传，参数放到header中，调用SessionHelper直接原子地设置这三个参数]
+`
+注意，在此处加了文档以后，即形成契约。开发者应保证对应的实现，与此处的注释完全一致。
+代码评审的过程中，务必重视实际实现与文档契约，是否一致。
+最佳实践：先写好文档，再根据文档去实现；如果要修改涉及文档的某个实现，先改好文档，再校验关于文档提及的每个地方，修改实现。
+
+
+

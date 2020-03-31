@@ -1,0 +1,92 @@
+﻿
+本文档适用于：开发人员。
+目的：描述`//src/cloud189/apis/`（或其他二级目录下的`apis/`子目录）内的源文件编写规范。
+
+修订记录：
+2020/3/31 dengjzh1 初稿
+
+
+
+单个源文件，由一对文件名相同的*.h和*.cpp组成，这一编译单元，描述了将符合要求的json字符串转换成HttpRequest、将HttpResponse转换成json字符串的业务逻辑。
+请注意，单个源文件命名格式，为全小写，加下划线。
+
+至于后续的网络请求的实际完成过程，通过将HttpRequest传递给网络库Assistant，并异步取到HttpResponse这一过程中，得到完成。
+
+本文档对相应的源文件实现，作具体规范：
+
+1. 源文件中，对头文件的引用顺序，请参见Google C++ 代码规范中，对#include路径及顺序的说明。
+此处提供链接，不再赘述。若链接失效，请开发者自行搜索相关文档。
+`https://zh-google-styleguide.readthedocs.io/en/latest/google-cpp-styleguide/headers/#include`
+
+2. using 的使用。注意，仍然要求，禁止使用using namespace 某命名空间的用法。
+可以使用using 某命名空间下某符号名的形式。
+请参见Google C++ 代码规范中，对命名空间的说明。建议精细阅读此页文档，避免后续犯常识性错误。
+`https://zh-google-styleguide.readthedocs.io/en/latest/google-cpp-styleguide/scoping/#namespaces`
+
+3. JsonStringHelper
+用途不再赘述。需要注意，实现过程中，可以使用`assistant::tools::string::StringFormat`进行字符串拼装。
+在遇到中文字符串（超出ASCII码表示范围）时，推荐使用Jsoncpp或类似的第三方库进行拼接，可以产生标准的Json字符串。
+（需要注意，不止一次遇到，初学者传入的不是utf8字符串，却责怪第三方库拼接有问题的情况，所以此处应由调用者保证，中文字符串一定要传入utf8字符串）
+int64_t，注意，这里可以使用复杂的R"()"手法，也可以用第三方库进行拼接。前者效率最高，后者容易使用。
+（不建议初学者滥用前者，特别是在用到int64_t类型的情况下）
+
+4. HttpRequestEncode
+bool HttpRequestEncode(const std::string& params_json, assistant::HttpRequest& request);
+用途不再赘述。
+
+4.1 do{}while(false); 的使用
+对于逻辑判断非常多的代码段，如果不断地if内嵌套if，代码逻辑没问题，但远远看去就如同造了一座横置的金字塔，可读性和可维护性都不强。
+这方面的介绍非常容易找到，此处不再赘述。值得一提的是，这里非常适合使用这种方式。
+在函数的开头使用`bool result = false;`，在do{}while(false)；内部即将执行完毕时，加入`result = true;`；在函数的结尾使用`return result;`。
+通过这种形式，在do{}while(false)；内部使用多次if(xxx){break;}，对非预期的情况进行跳出，保证对整个函数而言，实现是优雅、正确的。
+（备注，这种方式是否使用，争论已久，但必须强调，这是来自MS的奇技；并且这种技巧和RAII或RRID结合使用，在特定场合下有奇效）
+
+4.2 jsoncpp的helper使用
+建议使用`#include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"`来引入对jsoncpp的使用，并增强调用的可读性。
+例如，通过`using restful_common::jsoncpp_helper::ReaderHelper;`引入的解析Json字符串支持，一行函数调用即可进行Json字符串解析。
+但需要注意的是，由于传入的Json字符串不保证是规范的，甚至不能保证它是个“Json字符串”，因此对解析得到的Json::Value，应进行如下判断：
+`    if (!json.isObject() && !json.isNull()) {
+      break;
+    }
+`
+以此避免jsoncpp库后续可能抛出的异常。
+
+4.3 对错误情况的处理
+需要明确的是，这个函数实现要求是“几乎无副作用的”。换句话说，在输入不正确，或其他条件不具备的情况下，应及时跳出，`break;`，而非抛出异常或写一些全局变量。
+这里说几乎的原因是，为了方便调用（除非有人想调用了一次HttpRequestEncode，以后再调用一次AddSignature？），会利用`Cloud189::SessionHelper::AddCloud189Signature`中的Session信息，生成签名。
+但此处调用是线程安全并且是原子性的。
+回到正题，在一些极端的情况下，Session信息未保存（比如上层调用者忘记保存Session信息），那么应判断`Cloud189::SessionHelper::AddCloud189Signature(request);`的返回值，如果是负面的，应及时`break;`。
+同理，根据前面写在头文件中的注释文档，应检查相关的业务字段是否合法。若某个字段非法，或传入空字符串，也应进行同样的跳出处理。
+顺便提两句：对POST方法的请求的拼接要按规范来；有一些非业务字段是临时随机生成或取写死的字符串，不要漏掉这些字段的处理。
+
+
+5. HttpResponseDecode
+bool HttpResponseDecode(const assistant::HttpResponse& response, const assistant::HttpRequest& request, std::string& response_info);
+用途不再赘述。
+此函数是纯函数。因此，依然需要通过前面4.1提到的技巧保证完备性。
+
+5.1 int32_error_code的说明
+为了避免int32_error_code为0（0代表正常），但实际解析的结果不正确，一开始就应该给json的"int32_error_code"赋一个默认值，默认值来源于错误码枚举类型中代表未知错误的值。
+对每一次break，都应保证给int32_error_code赋了对应的错误的值。通过这种方式，保证错误检查的完备性。
+但对int32_error_code的赋值应注意顺序，优先给予信息量更大的值。比如，若一个错误码代表“信安检查错误”，那么赋这个值优先于赋代表400状态码的值。
+在最坏的情况下，有可能状态码为0（因为请求甚至没有达到服务端，由于网络原因而被打断了），应该读取CURL错误码代表的值，作为错误码。
+
+另外，要保证对所有需要的业务字段的解析，这一部分字段的说明，可以放在头文件内函数声明前的注释中，也可以由调用者看这一块代码实现去使用。参见"未竟事宜"。
+
+5.2 atoi系列函数 vs strtol系列函数
+有时需要从响应中解析整形类型的值，建议优先使用strtol系列的C函数。用法不在此处赘述。
+
+5.3 完备性
+对HttpResponseDecode其实是非常复杂的，但正因此没有必要在规范中写太多。
+希望会能熟练编写HttpResponseDecode的开发人员，能够对这一节乃至整个文档进行完善。
+
+6. 未竟事宜
+在设计中，仅有一个HttpResponseDecode的使用看似并不完备，原因是，使用另外一个Helper方法去解析它输出的Json字符串，既笨重，也没有必要。
+调用者完全可以自行解析所需的字段。原因是很多时候，调用者不会刚需到要用到所有字段，不如让调用者灵活取用。
+
+另，通过Json字符串进行解耦，是一定会有性能损失的。但损失有多大，这个可以量化，对常见的Json字符串生成、解析，主流的硬件平台下，每秒可进行十万次级别的处理。
+换句话说，以微秒级的CPU性能损失为代价，换取了无需使用各种结构体定义，可以统一各种apis调用风格，这是很合算的买卖。
+
+另外，JsonStringHelper的实现并不唯一。
+完全可以通过C++元编程和模板类的特性，实现对特定类（class）的序列化和反序列化，写法更加简洁。
+但是，一代人有一代人的任务，这种写法写起来也并不复杂，在此不再赘述。
