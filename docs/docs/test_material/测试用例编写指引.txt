@@ -14,7 +14,7 @@
 对`//test/`目录下，各子目录进行说明
 `//test/test_third_party/` 在此目录中，对其他第三方库，再建立一层子目录，再在其中编写相应的测试用例。
 `//test/test_general_restful_sdk/` 在此目录中，对general_restful_sdk，编写相应的测试用例。这些测试用例，一方面说明了，如何使用C++调用此SDK。另一方面，对一些危险的临界条件进行测试，在自测阶段对过去修复过的严重“问题”，进行回归。
-`//test/test_cloud189/` 在此目录中，再建一层子目录。比如以`//test/test_third_party/test_apis/` 为例，编写相应的各apis网络请求的测试用例。这些测试用例，一方面说明了，如何使用此接口。另一方面，对一些危险的临界条件进行测试，比如弱网情况下，解析Response中的int322_error_code，返回值是否如实代表网络错误。
+`//test/test_cloud189/` 在此目录中，再建一层子目录。比如以`//test/test_cloud189/test_apis/` 为例，编写相应的各apis网络请求的测试用例。这些测试用例，一方面说明了，如何使用此接口。另一方面，对一些危险的临界条件进行测试，比如弱网情况下，解析Response中的int322_error_code，返回值是否如实代表网络错误。
 `//test/test_family_cloud/` 同上，针对家庭云相关。
 `//test/test_enterprise_cloud/` 同上，针对企业云相关。
 以后对一个内部项目或一个产品，都有专用的二级子目录。
