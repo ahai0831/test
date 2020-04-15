@@ -1,4 +1,4 @@
-#include <future>
+ï»¿#include <future>
 #include <memory>
 
 #include "cloud189/restful/folder_downloader/folder_downloader.h"
@@ -30,7 +30,7 @@ int main(void) {
         restful_common::jsoncpp_helper::GetBool(root["is_complete"]);
     if (is_complete) {
       test_for_finished.set_value();
-      /// ´Ë´¦Ë³Ğò²»µ±¿ÉÖÂËÀËø£¬ÓëÎö¹¹Ä£ĞÍºÍÏß³ÌÄ£ĞÍÓĞ¹Ø
+      /// æ­¤å¤„é¡ºåºä¸å½“å¯è‡´æ­»é”ï¼Œä¸ææ„æ¨¡å‹å’Œçº¿ç¨‹æ¨¡å‹æœ‰å…³
       dlr = nullptr;
     }
   };

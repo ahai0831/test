@@ -23,10 +23,8 @@ source_set("httpbusiness") {
     "include/speed_counter.hpp",
   ]
 
-  deps = [
-    "//third_party/cloud_base",
-  ]
   public_deps = [
+    "//third_party/cloud_base",
     "//third_party/assistant",
     "//third_party/rxcpp",
   ]

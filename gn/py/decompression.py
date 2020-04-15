@@ -11,7 +11,7 @@ if __name__ == '__main__':
     abs_module_path = os.path.abspath(__file__)
     abs_module_dir = abs_module_path[:abs_module_path.rfind("\\")] + "\\"
     target_bat_file = os.path.join(
-        abs_module_dir, '..\\..\\vcproj\\batch-scripts\\decompression.bat')
+        abs_module_dir, '..\\..\\gn\\bat\\decompression.bat')
 
     zip_path = ''
     zip_dec_path = ''

@@ -1,4 +1,4 @@
-#include "filecommon_win.h"
+ï»¿#include "filecommon_win.h"
 
 #include <io.h>
 
@@ -253,8 +253,8 @@ bool GetFileSize(const std::wstring &file_path, uint64_t &file_size) {
 
     HANDLE hFile = CreateFileW(
         file_path.c_str(),
-        0,  // ¼´Ê¹¾Ü¾øGENERIC_READ·ÃÎÊ£¬Ó¦ÓÃ³ÌĞòÒ²¿ÉÒÔ²éÑ¯Ä³Ğ©ÔªÊı¾İ£¬ÀıÈçÎÄ¼ş£¬Ä¿Â¼»òÉè±¸ÊôĞÔ
-        FILE_SHARE_READ,        // ¹²Ïí¶Á
+        0,  // å³ä½¿æ‹’ç»GENERIC_READè®¿é—®ï¼Œåº”ç”¨ç¨‹åºä¹Ÿå¯ä»¥æŸ¥è¯¢æŸäº›å…ƒæ•°æ®ï¼Œä¾‹å¦‚æ–‡ä»¶ï¼Œç›®å½•æˆ–è®¾å¤‡å±æ€§
+        FILE_SHARE_READ,        // å…±äº«è¯»
         NULL,                   // default security
         OPEN_EXISTING,          // existing file only
         FILE_ATTRIBUTE_NORMAL,  // normal file
@@ -289,11 +289,11 @@ bool GetFileLastChange(const std::wstring &file_path,
     }
     char ModifyTime[30] = {'\0'};
 
-    //  ´ò¿ªÎÄ¼şÒÔ»ñÈ¡ÎÄ¼şÊôĞÔ
+    //  æ‰“å¼€æ–‡ä»¶ä»¥è·å–æ–‡ä»¶å±æ€§
     HANDLE hFile = CreateFileW(
         file_path.c_str(),
-        0,  // ¼´Ê¹¾Ü¾øGENERIC_READ·ÃÎÊ£¬Ó¦ÓÃ³ÌĞòÒ²¿ÉÒÔ²éÑ¯Ä³Ğ©ÔªÊı¾İ£¬ÀıÈçÎÄ¼ş£¬Ä¿Â¼»òÉè±¸ÊôĞÔ
-        0,  // ²»¹²Ïí¶ÁĞ´
+        0,  // å³ä½¿æ‹’ç»GENERIC_READè®¿é—®ï¼Œåº”ç”¨ç¨‹åºä¹Ÿå¯ä»¥æŸ¥è¯¢æŸäº›å…ƒæ•°æ®ï¼Œä¾‹å¦‚æ–‡ä»¶ï¼Œç›®å½•æˆ–è®¾å¤‡å±æ€§
+        0,  // ä¸å…±äº«è¯»å†™
         NULL,                   // default security
         OPEN_EXISTING,          // existing file only
         FILE_ATTRIBUTE_NORMAL,  // normal file
@@ -302,23 +302,23 @@ bool GetFileLastChange(const std::wstring &file_path,
       break;
     }
 
-    //  »ñÈ¡ÎÄ¼şĞÅÏ¢
+    //  è·å–æ–‡ä»¶ä¿¡æ¯
     FILETIME ftModify;
     if (!GetFileTime(hFile, nullptr, nullptr, &ftModify)) {
       break;
     }
 
-    //  ³õÊ¼»¯stLocal
+    //  åˆå§‹åŒ–stLocal
     SYSTEMTIME stLocal = {0};
-    //  Êı¾İÀàĞÍ×ª»»
+    //  æ•°æ®ç±»å‹è½¬æ¢
     if (!FileTimeToSystemTime(&ftModify, &stLocal)) {
       break;
     }
 
-    //  ¸ñÊ½»¯×Ö·û´®
+    //  æ ¼å¼åŒ–å­—ç¬¦ä¸²
     sprintf(ModifyTime, "%04u-%02u-%02u %02u:%02u:%02u", stLocal.wYear,
             stLocal.wMonth, stLocal.wDay, stLocal.wHour + 8, stLocal.wMinute,
-            stLocal.wSecond);  //  ÎÄ¼şĞŞ¸ÄÊ±¼ä
+            stLocal.wSecond);  //  æ–‡ä»¶ä¿®æ”¹æ—¶é—´
     file_modify_date = ModifyTime;
 
   } while (false);

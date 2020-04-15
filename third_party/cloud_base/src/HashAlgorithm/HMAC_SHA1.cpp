@@ -1,4 +1,4 @@
-//******************************************************************************
+Ôªø//******************************************************************************
 //* HMAC_SHA1.cpp : Implementation of HMAC SHA1 algorithm
 //*                 Comfort to RFC 2104
 //*
@@ -19,7 +19,7 @@ void CHMAC_SHA1::HMAC_SHA1(BYTE *text, int text_len, BYTE *key, int key_len,
   memset(m_opad, 0x5c, sizeof(m_opad));
 
   /* STEP 1 */
-  if (key_len > SHA1_BLOCK_SIZE)  //¥Û”⁄64Œª
+  if (key_len > SHA1_BLOCK_SIZE)  //Â§ß‰∫é64‰Ωç
   {
     CSHA1::Reset();
     CSHA1::Update((UINT_8 *)key, key_len);

@@ -1,4 +1,4 @@
-#include "string_convert.h"
+ï»¿#include "string_convert.h"
 
 #ifdef _WIN32
 #include <codecvt>
@@ -12,12 +12,12 @@ static const auto kBerr = "";
 static const auto kWerr = L"";
 #ifdef _WIN32
 typedef std::codecvt_utf8<wchar_t> UTF8;
-/// ÓÉÓÚwstring_convertµÄ¹¹Ôìº¯Êı²»Ö§³ÖÍ¬Ê±´«ÈëÖ¸¶¨µÄ_Pcvt_argÓë_Berr_argºÍ_Werr_arg
-/// ÎªÁË±£Ö¤Òì³£°²È«£¬ĞèÍ¨¹ı¶¨ÒåÒ»¸öÀàÀ´¼Ì³Ğstd::codecvt_byname£¬ÒÔÖ§³ÖÖ¸¶¨_Berr_argºÍ_Werr_arg
+/// ç”±äºwstring_convertçš„æ„é€ å‡½æ•°ä¸æ”¯æŒåŒæ—¶ä¼ å…¥æŒ‡å®šçš„_Pcvt_argä¸_Berr_argå’Œ_Werr_arg
+/// ä¸ºäº†ä¿è¯å¼‚å¸¸å®‰å…¨ï¼Œéœ€é€šè¿‡å®šä¹‰ä¸€ä¸ªç±»æ¥ç»§æ‰¿std::codecvt_bynameï¼Œä»¥æ”¯æŒæŒ‡å®š_Berr_argå’Œ_Werr_arg
 typedef class chs_codecvt
     : public std::codecvt_byname<wchar_t, char, std::mbstate_t> {
  public:
-  /// ×¢Òâ"CHS"ÓëÆ½Ì¨Ïà¹Ø£¬ÈôĞèÒª¿çÆ½Ì¨µÄÊµÏÖ£¬Ğè¸ù¾İÆ½Ì¨¶¨Òå²»Í¬µÄcvt_name
+  /// æ³¨æ„"CHS"ä¸å¹³å°ç›¸å…³ï¼Œè‹¥éœ€è¦è·¨å¹³å°çš„å®ç°ï¼Œéœ€æ ¹æ®å¹³å°å®šä¹‰ä¸åŒçš„cvt_name
   chs_codecvt() : codecvt_byname("CHS") {}
 } CHS;
 #endif
@@ -54,14 +54,14 @@ void StringSplit(const std::string& str, const std::string& split_char,
   size_t start = 0;
   size_t length = str.length();
   for (size_t i = 0; i < length; i++) {
-    if (str[i] == splitchar && i == 0)  //µÚÒ»¸ö¾ÍÓöµ½·Ö¸î·û
+    if (str[i] == splitchar && i == 0)  //ç¬¬ä¸€ä¸ªå°±é‡åˆ°åˆ†å‰²ç¬¦
     {
       start += 1;
     } else if (str[i] == splitchar) {
       std::string idStr = str.substr(start, i - start);
       vec.push_back(idStr);
       start = i + 1;
-    } else if (i == length - 1)  //µ½´ïÎ²²¿
+    } else if (i == length - 1)  //åˆ°è¾¾å°¾éƒ¨
     {
       std::string idStr = str.substr(start, i + 1 - start);
       vec.push_back(idStr);
