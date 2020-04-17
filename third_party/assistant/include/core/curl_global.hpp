@@ -1,10 +1,10 @@
-#pragma once
+ï»¿#pragma once
 #ifndef _CORE_CURL_GLOBAL_H__
 #define _CORE_CURL_GLOBAL_H__
 #include <curl/curl.h>
 namespace assistant {
 namespace core {
-/// ÓÃ·¨£º¶¨ÒåÔÚÄ³´¦¼´¿É£¬»á×Ô¶¯Ö´ĞĞcurlµÄglobal³õÊ¼»¯
+/// ç”¨æ³•ï¼šå®šä¹‰åœ¨æŸå¤„å³å¯ï¼Œä¼šè‡ªåŠ¨æ‰§è¡Œcurlçš„globalåˆå§‹åŒ–
 struct libcurl_global_closure {
   libcurl_global_closure() { static libcurl_global_init_clean global; }
   ~libcurl_global_closure() = default;
@@ -14,7 +14,7 @@ struct libcurl_global_closure {
   libcurl_global_closure& operator=(const libcurl_global_closure&) = delete;
 
  private:
-  /// ¶¨ÒåÎªË½ÓĞ£¬±ÜÃâÍâ²¿Îóµ÷ÓÃ
+  /// å®šä¹‰ä¸ºç§æœ‰ï¼Œé¿å…å¤–éƒ¨è¯¯è°ƒç”¨
   struct libcurl_global_init_clean {
     libcurl_global_init_clean() { curl_global_init(CURL_GLOBAL_ALL); }
     ~libcurl_global_init_clean() { curl_global_cleanup(); }

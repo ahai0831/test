@@ -1,4 +1,4 @@
-#ifndef _ERROR_CODE
+ï»¿#ifndef _ERROR_CODE
 #define _ERROR_CODE
 
 #include <string>
@@ -7,30 +7,30 @@ namespace Cloud189 {
 namespace ErrorCode {
 
 enum nderr {
-  ////////////////////////////////±¾µØ´íÎóÂë
-  ///ÒÔ10000¿ªÊ¼//////////////////////////////////////////
-  // 1X000-1X999Îª±¾µØ´íÎóÆäËû¹éÀà
+  ////////////////////////////////æœ¬åœ°é”™è¯¯ç 
+  ///ä»¥10000å¼€å§‹//////////////////////////////////////////
+  // 1X000-1X999ä¸ºæœ¬åœ°é”™è¯¯å…¶ä»–å½’ç±»
 
-  //-------10000-10999Îª±¾µØ´íÎó·ÇÍøÂçÏà¹Ø´íÎóÂë------- start
+  //-------10000-10999ä¸ºæœ¬åœ°é”™è¯¯éç½‘ç»œç›¸å…³é”™è¯¯ç ------- start
   nderr_unknown = 10000,      //-1 10000
-  nderr_session_expired,      //-2 10001		// Ç©ÃûÍøÂçÒì³£
-  nderr_id_not_found,         //-4 10002		// ÎÄ¼ş»òÎÄ¼ş¼Ğ²»´æÔÚ
+  nderr_session_expired,      //-2 10001		// ç­¾åç½‘ç»œå¼‚å¸¸
+  nderr_id_not_found,         //-4 10002		// æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ä¸å­˜åœ¨
   nderr_no_privilege,         //-7 10003
-  nderr_parent_id_not_found,  //-17 10004		// ÕÒ²»µ½¸¸ÎÄ¼ş¼Ğid
+  nderr_parent_id_not_found,  //-17 10004		// æ‰¾ä¸åˆ°çˆ¶æ–‡ä»¶å¤¹id
 
   nderr_state_not_match,             //-998 10005
   nderr_file_is_modified,            //-995 10006
   nderr_download_file_access_error,  //-993 10007
   nderr_not_logged_in,               //-991 10008
-  nderr_response_data_exception,     //-987 10009	// ÏìÓ¦Êı¾İÒì³£
+  nderr_response_data_exception,     //-987 10009	// å“åº”æ•°æ®å¼‚å¸¸
   nderr_no_more,                     //-984 10010
   nderr_unexpected,                  //-983 10011
 
-  nderr_file_locked,              // 40000 10012	// ÎÄ¼ş±»Õ¼ÓÃ
+  nderr_file_locked,              // 40000 10012	// æ–‡ä»¶è¢«å ç”¨
   nderr_no_diskspace,             // 40002 10013
-                                  // // ±¾µØ´ÅÅÌ¿Õ¼ä²»×ã
+                                  // // æœ¬åœ°ç£ç›˜ç©ºé—´ä¸è¶³
   nderr_case_not_match,           // 40006 10014
-  nderr_fail_to_move_file,        // 40008 10015 // ÎÄ¼şÒÆ¶¯Ê§°Ü
+  nderr_fail_to_move_file,        // 40008 10015 // æ–‡ä»¶ç§»åŠ¨å¤±è´¥
   nderr_zero_size_file,           // 40009 10016
   nderr_not_initialize,           // 40010 10017
   nderr_path_not_exists,          // 40013 10018
@@ -39,67 +39,67 @@ enum nderr {
   nderr_transaction_not_began,    // 40028 10021
   nderr_operation_not_completed,  // 40029 10022
 
-  nderr_exsit_same_id,  // 40038 10023              //Êı¾İ¿âÖĞ´æÔÚÍ¬ID¼ÇÂ¼
-  nderr_exsit_same_path,  // 40039 10024             //Êı¾İ¿âÖĞ´æÔÚÍ¬path¼ÇÂ¼
+  nderr_exsit_same_id,  // 40038 10023              //æ•°æ®åº“ä¸­å­˜åœ¨åŒIDè®°å½•
+  nderr_exsit_same_path,  // 40039 10024             //æ•°æ®åº“ä¸­å­˜åœ¨åŒpathè®°å½•
   nderr_file_access_denied,  // 40041 10025				//
-                             // ÎÄ¼şÃ»ÓĞ·ÃÎÊÈ¨ÏŞ
+                             // æ–‡ä»¶æ²¡æœ‰è®¿é—®æƒé™
   nderr_downLoadalikeoften,  // 40046 10026
-                             // //ÏÂÔØÏàÍ¬ÈÎÎñÆµ·±
-  nderr_db_exception,  // 40048 10027                        // Êı¾İ¿âÒì³£
+                             // //ä¸‹è½½ç›¸åŒä»»åŠ¡é¢‘ç¹
+  nderr_db_exception,  // 40048 10027                        // æ•°æ®åº“å¼‚å¸¸
   nderr_ecloudfile_access_error,  // 40049 10028
-                                  // //ÌìÒíÔÆÅÌÏµÍ³ÎÄ¼ş£¬½ûÖ¹ÉÏ´«
+                                  // //å¤©ç¿¼äº‘ç›˜ç³»ç»Ÿæ–‡ä»¶ï¼Œç¦æ­¢ä¸Šä¼ 
   nderr_file_data_exception,      // 40050 10029
-                              // //ÎÄ¼şÊı¾İÒì³££¬µ¼ÖÂÉÏ´«Ê§°Ü£¨ÕıÔÚ±»Ê¹ÓÃµÄÎÄ¼şÖØĞÂ±à¼­£¬µ¼ÖÂ£©
-                              //-------10000-10999Îª±¾µØ´íÎó·ÇÍøÂçÏà¹Ø´íÎóÂë-------
+                              // //æ–‡ä»¶æ•°æ®å¼‚å¸¸ï¼Œå¯¼è‡´ä¸Šä¼ å¤±è´¥ï¼ˆæ­£åœ¨è¢«ä½¿ç”¨çš„æ–‡ä»¶é‡æ–°ç¼–è¾‘ï¼Œå¯¼è‡´ï¼‰
+                              //-------10000-10999ä¸ºæœ¬åœ°é”™è¯¯éç½‘ç»œç›¸å…³é”™è¯¯ç -------
                               // end
 
-  //-------11000-11999Îª±¾µØ´íÎóÍøÂçÏà¹Ø´íÎóÂë------- start
+  //-------11000-11999ä¸ºæœ¬åœ°é”™è¯¯ç½‘ç»œç›¸å…³é”™è¯¯ç ------- start
   nderr_transfer_data_error =
       11000,  // 40031 11000
-              //-------11000-11999Îª±¾µØ´íÎóÍøÂçÏà¹Ø´íÎóÂë------- end
+              //-------11000-11999ä¸ºæœ¬åœ°é”™è¯¯ç½‘ç»œç›¸å…³é”™è¯¯ç ------- end
               //////////////////////////////////////////////////////////////////////////
 
-  ///////////////////////////////////·şÎñÆ÷´íÎóÂë
-  ///ÒÔ50000¿ªÊ¼///////////////////////////////////////
-  // 5X000-5X999Îª·şÎñÆ÷ÆäËû¹éÀà
+  ///////////////////////////////////æœåŠ¡å™¨é”™è¯¯ç 
+  ///ä»¥50000å¼€å§‹///////////////////////////////////////
+  // 5X000-5X999ä¸ºæœåŠ¡å™¨å…¶ä»–å½’ç±»
 
-  //-------50000-50999Îª·şÎñÆ÷·ÇÍøÂç´íÎóÂë------- start
-  nderr_invalidarg = 50000,  //-3   50000	 // ·Ç·¨²ÎÊı
-  nderr_user_not_exists,     //-8  50001	// ÓÃ»§ÕËºÅ²»´æÔÚ
-  nderr_password_not_match,  //- 9 -> 50002  // ÃÜÂë²»ÕıÈ·
-  nderr_already_exists,      //- 10 -> 50003		// ÎÄ¼ş»òÎÄ¼ş¼ĞÒÑ´æÔÚ
-  nderr_limit_exceeded,      //- 11 - > 50004  // µ¥¸öÎÄ¼ş´óĞ¡³¬³öÏŞÖÆ
-  nderr_not_enough_quota,    //-13 50005		// ÍøÅÌ¿Õ¼ä²»×ã
-  nderr_parent_not_folder,   //-16  50006	// ¸¸ÎÄ¼ş¼ĞÀàĞÍ²»ÕıÈ·
+  //-------50000-50999ä¸ºæœåŠ¡å™¨éç½‘ç»œé”™è¯¯ç ------- start
+  nderr_invalidarg = 50000,  //-3   50000	 // éæ³•å‚æ•°
+  nderr_user_not_exists,     //-8  50001	// ç”¨æˆ·è´¦å·ä¸å­˜åœ¨
+  nderr_password_not_match,  //- 9 -> 50002  // å¯†ç ä¸æ­£ç¡®
+  nderr_already_exists,      //- 10 -> 50003		// æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹å·²å­˜åœ¨
+  nderr_limit_exceeded,      //- 11 - > 50004  // å•ä¸ªæ–‡ä»¶å¤§å°è¶…å‡ºé™åˆ¶
+  nderr_not_enough_quota,    //-13 50005		// ç½‘ç›˜ç©ºé—´ä¸è¶³
+  nderr_parent_not_folder,   //-16  50006	// çˆ¶æ–‡ä»¶å¤¹ç±»å‹ä¸æ­£ç¡®
 
-  nderr_sessionbreak,                //- 100 -> 50007	// ·Ç·¨µÇÂ¼»á»°Key
-  nderr_invalidsign,                 //-101  50008				// ·Ç·¨Ç©Ãû
-  nderr_uploadfile_verify_failed,    //-102  50009	// ÉÏ´«ÎÄ¼şĞ£ÑéÊ§°Ü
-  nderr_uploadfile_not_found,        //-103  50010		// ÉÏ´«ÎÄ¼ş²»´æÔÚ
+  nderr_sessionbreak,                //- 100 -> 50007	// éæ³•ç™»å½•ä¼šè¯Key
+  nderr_invalidsign,                 //-101  50008				// éæ³•ç­¾å
+  nderr_uploadfile_verify_failed,    //-102  50009	// ä¸Šä¼ æ–‡ä»¶æ ¡éªŒå¤±è´¥
+  nderr_uploadfile_not_found,        //-103  50010		// ä¸Šä¼ æ–‡ä»¶ä¸å­˜åœ¨
   nderr_uploadfile_save_failed,      //-104  50011		//
-                                     //ÉÏ´«ÎÄ¼ş±£´æÖÁÔÆ´æ´¢Ê§°Ü
-  nderr_invalid_parent_folder,       //-105  50012		// ÎŞĞ§µÄ¸¸Ä¿Â¼
-  nderr_uploadfile_accessviolation,  //-106  50013	// ÉÏ´«ÎÄ¼ş·ÃÎÊ³åÍ»
+                                     //ä¸Šä¼ æ–‡ä»¶ä¿å­˜è‡³äº‘å­˜å‚¨å¤±è´¥
+  nderr_invalid_parent_folder,       //-105  50012		// æ— æ•ˆçš„çˆ¶ç›®å½•
+  nderr_uploadfile_accessviolation,  //-106  50013	// ä¸Šä¼ æ–‡ä»¶è®¿é—®å†²çª
 
   nderr_not_found,   // 40018 -> 50014
   nderr_repeat_qos,  // 40022  50015
-                     // //µ±Ç°ÏßÂ·ÒÑÔÚÌáËÙÖĞ£¬²»ÄÜÖØ¸´ÌáËÙ
-  nderr_notin_qos,   // 40023  50016  ÓÃ»§Î´ÔÚÌáËÙÖĞ£¬²»ÄÜ¹Ø±Õ
-  nderr_cannot_qos,  // 40024  50017 //µ±Ç°ÏßÂ·²»¾ß±¸ÌáËÙÌõ¼ş
-  nderr_platform_timeout_qos,  // 40025  50018  //¹éÊôµØÌáËÙÆ½Ì¨ÏìÓ¦³¬Ê±
-  nderr_platform_failure_qos,  // 40026  50019  //¹éÊôµØÌáËÙÆ½Ì¨²Ù×÷Ê§°Ü
-  nderr_belongcodenotsupport,  // 40027  50020  //ÓÃ»§µØÇø²»Ö§³ÖÖÇÄÜÌáËÙ
+                     // //å½“å‰çº¿è·¯å·²åœ¨æé€Ÿä¸­ï¼Œä¸èƒ½é‡å¤æé€Ÿ
+  nderr_notin_qos,   // 40023  50016  ç”¨æˆ·æœªåœ¨æé€Ÿä¸­ï¼Œä¸èƒ½å…³é—­
+  nderr_cannot_qos,  // 40024  50017 //å½“å‰çº¿è·¯ä¸å…·å¤‡æé€Ÿæ¡ä»¶
+  nderr_platform_timeout_qos,  // 40025  50018  //å½’å±åœ°æé€Ÿå¹³å°å“åº”è¶…æ—¶
+  nderr_platform_failure_qos,  // 40026  50019  //å½’å±åœ°æé€Ÿå¹³å°æ“ä½œå¤±è´¥
+  nderr_belongcodenotsupport,  // 40027  50020  //ç”¨æˆ·åœ°åŒºä¸æ”¯æŒæ™ºèƒ½æé€Ÿ
   nderr_errordownloadfilenotfound,           // 40032  50021
   nderr_errordownloadfiledeleted,            // 40033  50022
   nderr_errordownloadfileinvalidparam,       // 40034  50023
   nderr_errordownloadfileinvalidsessionkey,  // 40036  50024
   nderr_errordownloadfilesharetimeout,       // 40037  50025
-  nderr_permission_denied,          // 40040  50026// Ã»ÓĞ²Ù×÷µÄÈ¨ÏŞ
-  nderr_groupspacenumberoverlimit,  // 40047 50027//Èº¿Õ¼ä³¬¹ıÊıÄ¿ÏŞÖÆ
-  nderr_sharefile_overlimitnumber,  // 40050 50028//Ë½ÃÜ·ÖÏíÎÄ¼ş³¬³öÏŞÖÆÊıÄ¿
+  nderr_permission_denied,          // 40040  50026// æ²¡æœ‰æ“ä½œçš„æƒé™
+  nderr_groupspacenumberoverlimit,  // 40047 50027//ç¾¤ç©ºé—´è¶…è¿‡æ•°ç›®é™åˆ¶
+  nderr_sharefile_overlimitnumber,  // 40050 50028//ç§å¯†åˆ†äº«æ–‡ä»¶è¶…å‡ºé™åˆ¶æ•°ç›®
 
-  // www 2015.09.14 ²¹³äÍêÉÆ·şÎñÆ÷´íÎóÂë  //¿É²é¿´ÔÆ´æ´¢½Ó¿ÚÎÄµµ¶ÔÓ¦ÒâÒå
-  nderr_infosecurityerrorcode,          // 40051  50029  //401HTTP×´Ì¬Âë
+  // www 2015.09.14 è¡¥å……å®Œå–„æœåŠ¡å™¨é”™è¯¯ç   //å¯æŸ¥çœ‹äº‘å­˜å‚¨æ¥å£æ–‡æ¡£å¯¹åº”æ„ä¹‰
+  nderr_infosecurityerrorcode,          // 40051  50029  //401HTTPçŠ¶æ€ç 
   nderr_infosecuMD5checkerror,          // 40052  50030
   nderr_accessdenyofhighfrequency,      // 40053  50031
   nderr_movefilevaliderror,             // 40054  50032
@@ -109,15 +109,15 @@ enum nderr {
   nderr_specialdirshareerror,           // 40058  50036
   nderr_invaliduploadfilestatus,        // 40059  50037
   nderr_clientuploadthreadnumber,       // 50038
-  nderr_userdayflowoverlimited,         // ÓÃ»§µ±ÈÕÉÏ´«Á÷Á¿³¬ÏŞ
-  nderr_qrcodeinvalid,                  // ¶şÎ¬Âë¹ıÁËÓĞĞ§Ê±¼ä
+  nderr_userdayflowoverlimited,         // ç”¨æˆ·å½“æ—¥ä¸Šä¼ æµé‡è¶…é™
+  nderr_qrcodeinvalid,                  // äºŒç»´ç è¿‡äº†æœ‰æ•ˆæ—¶é—´
   nderr_qrcodeloginfailed,
 
-  // 2017.9.26 ²¹³ä·Ç·¨TokenµÄ´íÎóÂë
-  nderr_userinvalidopentoken,  // 50042 // ·Ç·¨AccessToken
-  nderr_refreshtokenfailed,    // 50043 // Ë¢ĞÂtokenÊ§°Ü
+  // 2017.9.26 è¡¥å……éæ³•Tokençš„é”™è¯¯ç 
+  nderr_userinvalidopentoken,  // 50042 // éæ³•AccessToken
+  nderr_refreshtokenfailed,    // 50043 // åˆ·æ–°tokenå¤±è´¥
 
-  // 2017.11.21 ²¹³ä¸ù¾İRedirectURLµÇÂ¼½Ó¿ÚµÄ´íÎóÂë
+  // 2017.11.21 è¡¥å……æ ¹æ®RedirectURLç™»å½•æ¥å£çš„é”™è¯¯ç 
   nderr_analysisredirecturlabnormal,
   nderr_sessiontimeout,
   nderr_parseloginresponseerror,
@@ -128,14 +128,14 @@ enum nderr {
   nderr_usersessionboisnull,
   nderr_loginfailinbusinessexception,
 
-  // 2017.11.21 ²¹³äÃÅ»§µÇÂ¼½Ó¿ÚµÄÌØÓĞµÄ´íÎóÂë
+  // 2017.11.21 è¡¥å……é—¨æˆ·ç™»å½•æ¥å£çš„ç‰¹æœ‰çš„é”™è¯¯ç 
   nderr_msginternalerror,
 
-  // 2017.11.21 ²¹³äÃÅ»§µÄË¢ĞÂToken½Ó¿ÚµÄ´íÎóÂë
+  // 2017.11.21 è¡¥å……é—¨æˆ·çš„åˆ·æ–°Tokenæ¥å£çš„é”™è¯¯ç 
   nderr_resultofrefreshtokenisnull,
   nderr_resultofrefreshtokenerror,
 
-  // 218.12.25 ¼ÒÍ¥ÔÆÏà¹Ø´íÎóÂë
+  // 218.12.25 å®¶åº­äº‘ç›¸å…³é”™è¯¯ç 
   nderr_family_info_not_exist,
   nderr_family_info_exist,
   nderr_family_kicked_out,
@@ -143,87 +143,87 @@ enum nderr {
   nderr_family_operation_failed,
   nderr_family_BindInfoNotFound,
 
-  // 2019.8.14 ĞÂÔöÄÜÁ¦¿ª·Å£¬accessToken»»sessionKey½Ó¿Ú£¬Ïà¹Ø´íÎóÂë
-  /// ¹©ºÏ×÷·½¶Ô½ÓÌìÒíÔÆÄÜÁ¦¿ª·Åºó£¬ÃâÃÜµÇÂ¼Ê¹ÓÃ
+  // 2019.8.14 æ–°å¢èƒ½åŠ›å¼€æ”¾ï¼ŒaccessTokenæ¢sessionKeyæ¥å£ï¼Œç›¸å…³é”™è¯¯ç 
+  /// ä¾›åˆä½œæ–¹å¯¹æ¥å¤©ç¿¼äº‘èƒ½åŠ›å¼€æ”¾åï¼Œå…å¯†ç™»å½•ä½¿ç”¨
   nderr_oauth2_invalidaccesstoken,
-  nderr_auditerrorcode,// 50063 Ãô¸Ğ´Ê¼ì²é²»Í¨¹ı
-  //-------50000-50999Îª·şÎñÆ÷·ÇÍøÂç´íÎóÂë------- end
+  nderr_auditerrorcode,// 50063 æ•æ„Ÿè¯æ£€æŸ¥ä¸é€šè¿‡
+  //-------50000-50999ä¸ºæœåŠ¡å™¨éç½‘ç»œé”™è¯¯ç ------- end
 
-  //-------51000-51999Îª·şÎñÆ÷ÍøÂçÏà¹Ø´íÎóÂë------- start
-  nderr_internal_error = 51000,          //-989 51000		// ÄÚ²¿´íÎó
+  //-------51000-51999ä¸ºæœåŠ¡å™¨ç½‘ç»œç›¸å…³é”™è¯¯ç ------- start
+  nderr_internal_error = 51000,          //-989 51000		// å†…éƒ¨é”™è¯¯
   nderr_errordownloadfileinternalerror,  // 40035 51001
-                                         //-------51000-51999Îª·şÎñÆ÷ÍøÂçÏà¹Ø´íÎóÂë-------
+                                         //-------51000-51999ä¸ºæœåŠ¡å™¨ç½‘ç»œç›¸å…³é”™è¯¯ç -------
                                          // end
 
   //////////////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////Curl¿â´íÎóÂë
-  ///ÒÔ60000¿ªÊ¼//////////////////////////////////////////
-  // 6X000-6X999ÎªCurl¿âÆäËû¹éÀà
+  ////////////////////////////////Curlåº“é”™è¯¯ç 
+  ///ä»¥60000å¼€å§‹//////////////////////////////////////////
+  // 6X000-6X999ä¸ºCurlåº“å…¶ä»–å½’ç±»
 
-  //-------60000-60999ÎªCurl¿â·ÇÍøÂçÏà¹Ø´íÎóÂë------- start
+  //-------60000-60999ä¸ºCurlåº“éç½‘ç»œç›¸å…³é”™è¯¯ç ------- start
   nderr_usercanceled = 60000,  //-1000  60000
-  nderr_file_access_error,     //-994  60001		// ÎÄ¼ş·ÃÎÊÊ§°Ü
+  nderr_file_access_error,     //-994  60001		// æ–‡ä»¶è®¿é—®å¤±è´¥
   nderr_no_memory,             // 40001  60002
   nderr_cant_take_operation,   // 40007  60003
   nderr_corrupted,             // 40019  60004
-  nderr_transfer_error,  // 40060  60005  //ÎÄ¼ş´«Êä£¬¶ÌÓÚ»ò´óÓÚÔ¤ÆÚ
-  nderr_url_error,       // 40061  60006//±»¾Ü¾ø·ÃÎÊµÄ×ÊÔ´µÄURL
+  nderr_transfer_error,  // 40060  60005  //æ–‡ä»¶ä¼ è¾“ï¼ŒçŸ­äºæˆ–å¤§äºé¢„æœŸ
+  nderr_url_error,       // 40061  60006//è¢«æ‹’ç»è®¿é—®çš„èµ„æºçš„URL
   nderr_download_resume_error,  // 40062
-                                // 60007//ÏÂÔØÎŞ·¨»Ö¸´£¬ÒòÎªÖ¸¶¨µÄÆ«ÒÆÁ¿ÎªÎÄ¼şµÄ±ß½ç
-  nderr_over_filesize_error,  // 40063  60008//×î´óÎÄ¼ş´óĞ¡³¬¹ı
+                                // 60007//ä¸‹è½½æ— æ³•æ¢å¤ï¼Œå› ä¸ºæŒ‡å®šçš„åç§»é‡ä¸ºæ–‡ä»¶çš„è¾¹ç•Œ
+  nderr_over_filesize_error,  // 40063  60008//æœ€å¤§æ–‡ä»¶å¤§å°è¶…è¿‡
   nderr_rewind_error,         // 40064  60009
 
-  // nderr_invalidarg,// Óë·şÎñÆ÷ÖØ¸´
-  //-------60000-60999ÎªCurl¿â·ÇÍøÂçÏà¹Ø´íÎóÂë------- end
+  // nderr_invalidarg,// ä¸æœåŠ¡å™¨é‡å¤
+  //-------60000-60999ä¸ºCurlåº“éç½‘ç»œç›¸å…³é”™è¯¯ç ------- end
 
-  //-------61000-61999ÎªCurl¿âÍøÂçÏà¹Ø´íÎóÂë------- start
+  //-------61000-61999ä¸ºCurlåº“ç½‘ç»œç›¸å…³é”™è¯¯ç ------- start
   nderr_timeout = 61000,       //-985 61000
   nderr_bad_request,           //-988 61001
-  nderr_fail_to_connect,       //-996 61002// Á¬½Ó·şÎñÆ÷Ê§°Ü
+  nderr_fail_to_connect,       //-996 61002// è¿æ¥æœåŠ¡å™¨å¤±è´¥
   nderr_http_response_error,   // 40011 61003
   nderr_network_io_failed,     // 40012 61004
   nderr_socket_waiting_error,  // 40065
-                               // 61005//SocketÊÇÃ»ÓĞ×¼±¸ºÃ·¢ËÍ/½ÓÊÕµÈ´ı£¬Ö±µ½Ëü×¼±¸ºÃÁË£¬È»ºóÔÙÊÔÒ»´Î
+                               // 61005//Socketæ˜¯æ²¡æœ‰å‡†å¤‡å¥½å‘é€/æ¥æ”¶ç­‰å¾…ï¼Œç›´åˆ°å®ƒå‡†å¤‡å¥½äº†ï¼Œç„¶åå†è¯•ä¸€æ¬¡
   nderr_connection_error,  // 40066 61006//No connection available, the session
                            // will be queued
   nderr_content_type_error,  // 40066 61007
-                             //-------61000-61999ÎªCurl¿âÍøÂçÏà¹Ø´íÎóÂë-------
+                             //-------61000-61999ä¸ºCurlåº“ç½‘ç»œç›¸å…³é”™è¯¯ç -------
                              //end
 
   //////////////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////ÌØÊâÔİÎ´Ê¹ÓÃ´íÎóÂë
-  ///±£ÁôÔ­Ñù//////////////////////////////////////////
-  // 2X000-2X999ÎªÎ´Ê¹ÓÃ´íÎóÂëÆäËû¹éÀà
+  ////////////////////////////////ç‰¹æ®Šæš‚æœªä½¿ç”¨é”™è¯¯ç 
+  ///ä¿ç•™åŸæ ·//////////////////////////////////////////
+  // 2X000-2X999ä¸ºæœªä½¿ç”¨é”™è¯¯ç å…¶ä»–å½’ç±»
 
-  //-------20000-20999ÎªÌØÊâÔİÎ´Ê¹ÓÃ´íÎóÂë------- start
+  //-------20000-20999ä¸ºç‰¹æ®Šæš‚æœªä½¿ç”¨é”™è¯¯ç ------- start
   nderr_target_id_not_found = 20000,  // not used
   nderr_id_type_error,                // not used
   nderr_expired,                      // not used
-  nderr_account_freezed,              // ÓÃ»§ÕËºÅÒÑ¶³½á not used
-  nderr_user_arrears,                 // ÓÃ»§Ç··Ñ		not used
+  nderr_account_freezed,              // ç”¨æˆ·è´¦å·å·²å†»ç»“ not used
+  nderr_user_arrears,                 // ç”¨æˆ·æ¬ è´¹		not used
   nderr_request_not_found,            // not used
   nderr_can_not_cancel,               // not used
   nderr_need_refresh,                 // not used
   nderr_connection_break,             // not used
   nderr_server_exception,             // not used
-  nderr_fail_to_create_tmpfile,       // ´´½¨ÁÙÊ±ÎÄ¼şÊ§°Ü not used
-  nderr_file_is_used,                 // ÎÄ¼şÔÚÊ¹ÓÃÖĞ not used
-  nderr_localfolder_not_exists,       // ±¾µØÎÄ¼ş¼Ğ²»´æÔÚ
-  nderr_localfolder_err,              // ²¿·Ö×ÓÎÄ¼ş´«Êä´íÎó not used
-  nderr_transferfolder_delete,  // ´«ÊäÎÄ¼ş¼ĞÈÎÎñÒÑ¾­É¾³ı not used
-  nderr_downloadpicture_err,    // ÏÂÔØÍ¼Æ¬Êı¾İÓĞ´íÎó not used
-                              //-------20000-20999ÎªÌØÊâÔİÎ´Ê¹ÓÃ´íÎóÂë-------
+  nderr_fail_to_create_tmpfile,       // åˆ›å»ºä¸´æ—¶æ–‡ä»¶å¤±è´¥ not used
+  nderr_file_is_used,                 // æ–‡ä»¶åœ¨ä½¿ç”¨ä¸­ not used
+  nderr_localfolder_not_exists,       // æœ¬åœ°æ–‡ä»¶å¤¹ä¸å­˜åœ¨
+  nderr_localfolder_err,              // éƒ¨åˆ†å­æ–‡ä»¶ä¼ è¾“é”™è¯¯ not used
+  nderr_transferfolder_delete,  // ä¼ è¾“æ–‡ä»¶å¤¹ä»»åŠ¡å·²ç»åˆ é™¤ not used
+  nderr_downloadpicture_err,    // ä¸‹è½½å›¾ç‰‡æ•°æ®æœ‰é”™è¯¯ not used
+                              //-------20000-20999ä¸ºç‰¹æ®Šæš‚æœªä½¿ç”¨é”™è¯¯ç -------
                               // end
 
-  // Áô×÷ÒÔºó²ÎÕÕÓÃ
+  // ç•™ä½œä»¥åå‚ç…§ç”¨
   // 	nderr_target_id_not_found = -5,			// not used
   // 	nderr_id_type_error = -6,				// not used
   // 	nderr_expired = -12,					// not used
-  // 	nderr_account_freezed = -14,			// ÓÃ»§ÕËºÅÒÑ¶³½á not
+  // 	nderr_account_freezed = -14,			// ç”¨æˆ·è´¦å·å·²å†»ç»“ not
   // used
-  // 	nderr_user_arrears = -15,				// ÓÃ»§Ç··Ñ
+  // 	nderr_user_arrears = -15,				// ç”¨æˆ·æ¬ è´¹
   // not
   // used
   // 	nderr_request_not_found = -999,			// not used
@@ -231,43 +231,43 @@ enum nderr {
   // 	nderr_need_refresh = -992,				// not used
   // 	nderr_connection_break = 40003,			// not used
   // 	nderr_server_exception = 40004,			// not used
-  // 	nderr_fail_to_create_tmpfile = 40005,	// ´´½¨ÁÙÊ±ÎÄ¼şÊ§°Ü not used
-  // 	nderr_file_is_used = 40030,				// ÎÄ¼şÔÚÊ¹ÓÃÖĞ
+  // 	nderr_fail_to_create_tmpfile = 40005,	// åˆ›å»ºä¸´æ—¶æ–‡ä»¶å¤±è´¥ not used
+  // 	nderr_file_is_used = 40030,				// æ–‡ä»¶åœ¨ä½¿ç”¨ä¸­
   // not
   // used
-  // 	nderr_localfolder_not_exists = 40042,	// ±¾µØÎÄ¼ş¼Ğ²»´æÔÚ not used
-  // 	nderr_localfolder_err = 40043,			// ²¿·Ö×ÓÎÄ¼ş´«Êä´íÎó
+  // 	nderr_localfolder_not_exists = 40042,	// æœ¬åœ°æ–‡ä»¶å¤¹ä¸å­˜åœ¨ not used
+  // 	nderr_localfolder_err = 40043,			// éƒ¨åˆ†å­æ–‡ä»¶ä¼ è¾“é”™è¯¯
   // not
   // used
-  // 	nderr_transferfolder_delete = 40044,	// ´«ÊäÎÄ¼ş¼ĞÈÎÎñÒÑ¾­É¾³ı not
+  // 	nderr_transferfolder_delete = 40044,	// ä¼ è¾“æ–‡ä»¶å¤¹ä»»åŠ¡å·²ç»åˆ é™¤ not
   // used
-  // 	nderr_downloadpicture_err = 40045,		// ÏÂÔØÍ¼Æ¬Êı¾İÓĞ´íÎó
+  // 	nderr_downloadpicture_err = 40045,		// ä¸‹è½½å›¾ç‰‡æ•°æ®æœ‰é”™è¯¯
   // not
   // used
   //////////////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////ĞéÄâ´ÅÅÌ¶ÀÕ¼´íÎóÂë
-  ///±£ÁôÔ­Ñù//////////////////////////////////////////
-  nderr_already_done = 100000,   // ¹ÒÔØÉè±¸Ïà¹Ø
+  ////////////////////////////////è™šæ‹Ÿç£ç›˜ç‹¬å é”™è¯¯ç 
+  ///ä¿ç•™åŸæ ·//////////////////////////////////////////
+  nderr_already_done = 100000,   // æŒ‚è½½è®¾å¤‡ç›¸å…³
   nderr_already_initialized,     // part used int VDiskManager or not used
                                  // becareful
-  nderr_fail_to_load_driver,     // ¼ÓÔØÇı¶¯³ÌĞòÊ§°Ü
-  nderr_fail_to_mount_device,    // ¹ÒÔØÉè±¸Ê§°Ü
-  nderr_fail_to_unmount_device,  // Ğ¶ÔØÉè±¸Ê§°Ü
+  nderr_fail_to_load_driver,     // åŠ è½½é©±åŠ¨ç¨‹åºå¤±è´¥
+  nderr_fail_to_mount_device,    // æŒ‚è½½è®¾å¤‡å¤±è´¥
+  nderr_fail_to_unmount_device,  // å¸è½½è®¾å¤‡å¤±è´¥
   nderr_no_available_drive,
 
-  // Áô×÷ÒÔºó²ÎÕÕÓÃ
-  // 	nderr_already_done = -986,    // ¹ÒÔØÉè±¸Ïà¹Ø
+  // ç•™ä½œä»¥åå‚ç…§ç”¨
+  // 	nderr_already_done = -986,    // æŒ‚è½½è®¾å¤‡ç›¸å…³
   // 	nderr_already_initialized = -990,		// part used int
   // VDiskManager
   // or
   // not used becareful
   // 	nderr_fail_to_load_driver = 40015, //
-  // ¼ÓÔØÇı¶¯³ÌĞòÊ§°Ü
+  // åŠ è½½é©±åŠ¨ç¨‹åºå¤±è´¥
   // 	nderr_fail_to_mount_device = 40016, //
-  // ¹ÒÔØÉè±¸Ê§°Ü
+  // æŒ‚è½½è®¾å¤‡å¤±è´¥
   // 	nderr_fail_to_unmount_device = 40017,				//
-  // Ğ¶ÔØÉè±¸Ê§°Ü
+  // å¸è½½è®¾å¤‡å¤±è´¥
   // 	nderr_no_available_drive = 40021,
   //////////////////////////////////////////////////////////////////////////
 };

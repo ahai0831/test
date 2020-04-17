@@ -1,4 +1,4 @@
-#include "UniqueMachineCode.h"
+ï»¿#include "UniqueMachineCode.h"
 
 #include <comdef.h>
 #include <intrin.h>
@@ -146,7 +146,7 @@ void getcpuid(unsigned int CPUInfo[4], unsigned int InfoType) {
 #if defined(__GNUC__)  // GCC
   __cpuid(InfoType, CPUInfo[0], CPUInfo[1], CPUInfo[2], CPUInfo[3]);
 #elif defined(_MSC_VER)  // MSVC
-#if _MSC_VER >= 1400     // VC2005???¡ì??__cpuid
+#if _MSC_VER >= 1400     // VC2005???Â§??__cpuid
   __cpuid((int *)(void *)CPUInfo, (int)InfoType);
 #else
   getcpuidex(CPUInfo, InfoType, 0);

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef ASSISTANT_TOOLS_H__
 #define ASSISTANT_TOOLS_H__
 
@@ -48,14 +48,14 @@ static void StringSplit(const std::string& str, const std::string& split_char,
   size_t start = 0;
   size_t length = str.length();
   for (size_t i = 0; i < length; i++) {
-    if (str[i] == splitchar && i == 0)  //µÚÒ»¸ö¾ÍÓöµ½·Ö¸î·û
+    if (str[i] == splitchar && i == 0)  //ç¬¬ä¸€ä¸ªå°±é‡åˆ°åˆ†å‰²ç¬¦
     {
       start += 1;
     } else if (str[i] == splitchar) {
       std::string idStr = str.substr(start, i - start);
       vec.push_back(idStr);
       start = i + 1;
-    } else if (i == length - 1)  //µ½´ïÎ²²¿
+    } else if (i == length - 1)  //åˆ°è¾¾å°¾éƒ¨
     {
       std::string idStr = str.substr(start, i + 1 - start);
       vec.push_back(idStr);
