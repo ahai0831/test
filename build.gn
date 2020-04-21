@@ -7,8 +7,8 @@ group("test") {
 #    "//test/test_download/test_file_data_download",
   ]
 }
-group("src") {
-  deps = [
-    "//src/general_restful_sdk",
-  ]
-}
+# group("src") {
+#   deps = [
+#     "//src/general_restful_sdk",
+#   ]
+# }

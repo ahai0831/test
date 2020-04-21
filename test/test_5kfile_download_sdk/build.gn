@@ -1,0 +1,28 @@
+# executable("test_5kfile_download") {
+#   sources = [
+#     "test_5kfile_download.cpp",
+    
+#   ]
+#   deps = [
+#     "//src/cloud189/restful/folder_downloader",
+#     "//src/cloud189/restful/file_downloader",
+#     "//third_party/jsoncpp",
+#     "//src/cloud189/session_helper",
+#   ]
+ 
+#   configs += [ "//src:src_using" ]
+# }
+
+
+executable("test_5kfile_download_sdk") {
+  sources = [
+    "test_5kfile_download_sdk.cpp",
+  ]
+  data_deps = [
+    "//src/general_restful_sdk",
+  ]
+  deps = [
+    "//third_party/jsoncpp",
+  ]
+  configs += [ "//src:src_using" ]
+}
