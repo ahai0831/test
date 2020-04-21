@@ -2,5 +2,6 @@ group("test") {
   deps = [
     "//test/test_general_restful_sdk",
     "//test/test_third_party",
+    "//test/test_5kfile_download",
   ]
 }
