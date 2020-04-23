@@ -1,0 +1,21 @@
+executable("test_create_folder") {
+  sources = [
+    "test_create_folder.cpp",
+  ]
+
+  deps = [
+    "//third_party/jsoncpp",
+    "//third_party/scopeguard",
+    "//third_party/rxcpp",
+    "//third_party/libuv",
+    "//third_party/c-ares",
+    "//third_party/zlib",
+    "//third_party/libcurl",
+    "//third_party/httpbusiness",
+    "//third_party/concurrentqueue",
+    "//third_party/assistant",
+    "//src/cloud189/session_helper",
+    "//src/cloud189/apis:cloud189_download",
+  ]
+  configs += [ "//src:src_using" ]
+}

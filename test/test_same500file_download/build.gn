@@ -1,0 +1,12 @@
+executable("test_same500file_download") {
+  sources = [
+    "test_same500file_download.cpp",
+  ]
+  data_deps = [
+    "//src/general_restful_sdk",
+  ]
+  deps = [
+    "//third_party/jsoncpp",
+  ]
+  configs += [ "//src:src_using" ]
+}

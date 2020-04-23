@@ -133,7 +133,7 @@ void filedownload(std::string file_id,std::string file_name,std::string md5,std:
         Json::Value callback_data_json;
         ReaderHelper(callback_data, callback_data_json);
         const auto is_complete = GetBool(callback_data_json["is_complete"]);
-        printf("%s: %s\n", is_complete ? "OnComplete" : "OnCallback",
+        printf("%s: %s\n", is_complete ? "OnComplete文件" : "OnCallback文件",
                callback_data);
         if (is_complete) {
           test_for_finished[i].set_value();
@@ -187,10 +187,10 @@ int main(void) {
         ReaderHelper(start_data, start_data_json);
         const auto start_result = GetInt(start_data_json["start_result"]);
         if (0 != start_result) {
-          printf("OnStart, failed: %s\n", start_data);
+          printf("文件夹OnStart, failed: %s\n", start_data);
           test_for_folder_finished.set_value();
         } else {
-          printf("OnStart: %s\n", start_data);
+          printf("文件夹OnStart: %s\n", start_data);
         }
       },
       [](const char *callback_data) {
@@ -198,20 +198,29 @@ int main(void) {
         ReaderHelper(callback_data, callback_data_json);
         const auto is_complete = GetBool(callback_data_json["is_complete"]);
         if (is_complete) {
-          printf("OnComplete: %s\n", callback_data);
+          printf("文件夹OnComplete: %s\n", callback_data);
           test_for_folder_finished.set_value();
         } else {
-          printf("OnCallback: %s\n", callback_data);
+          printf("文件夹OnCallback: %s\n", callback_data);
 
           size = callback_data_json["sub_file_data"].size(); //得到json数组的大小
 //            printf("size is %i",size);
           for (static int i = 0; i < size; i++) //逐个获取数组中对象的值
           {
-            std::string file_id = callback_data_json["sub_file_data"][i]["file_id"].asString();
-//              printf("文件id %s",file_id.c_str());
-            std::string file_name = callback_data_json["sub_file_data"][i]["file_name"].asString();
-            std::string md5 = callback_data_json["sub_file_data"][i]["md5"].asString();
-              printf("download_pathis %s",callback_data_json["download_path"].asString().c_str());
+//            std::string file_id = callback_data_json["sub_file_data"][i]["file_id"].asString();
+////              printf("文件id %s",file_id.c_str());
+//            std::string file_name = callback_data_json["sub_file_data"][i]["file_name"].asString();
+//            std::string md5 = callback_data_json["sub_file_data"][i]["md5"].asString();
+              
+              std::string file_id = callback_data_json["sub_file_data"][1]["file_id"].asString();
+              //              printf("文件id %s",file_id.c_str());
+                          std::string file_name = callback_data_json["sub_file_data"][1]["file_name"].asString();
+                          std::string md5 = callback_data_json["sub_file_data"][1]["md5"].asString();
+              
+              printf("download_pathis %s",callback_data_json["download_folder_path"].asString().c_str());
+              if (i == 197) {
+                  printf("进入断点");
+              }
             printf("启动文件下载\n");
             std::thread t(filedownload,file_id.c_str(),file_name.c_str(),md5.c_str(),"/Users/zhaozt/Desktop/download1/",i);
             t.join();
