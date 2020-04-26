@@ -15,7 +15,7 @@ executable("test_create_folder") {
     "//third_party/concurrentqueue",
     "//third_party/assistant",
     "//src/cloud189/session_helper",
-    "//src/cloud189/apis:cloud189_folder",
+    "//src/cloud189/apis:cloud189_create_folder",
   ]
   configs += [ "//src:src_using" ]
 }

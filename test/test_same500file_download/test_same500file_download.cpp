@@ -112,7 +112,7 @@ void filedownload(std::string file_id,std::string file_name,std::string md5,std:
         Json::Value start_data_json;
         ReaderHelper(start_data, start_data_json);
         const auto start_result = GetInt(start_data_json["start_result"]);
-        printf("OnStart: %s%s\n", 0 != start_result ? "failed: " : "",
+        printf("文件OnStart: %s%s\n", 0 != start_result ? "failed: " : "",
                start_data);
         if (0 != start_result) {
           test_for_finished[i].set_value();
@@ -141,8 +141,8 @@ int main(void) {
     complete_signal[i] = test_for_finished[i].get_future();
   }
     Json::Value save_cloud189_session;
-    save_cloud189_session.append("959e24fc-7012-4f09-be35-1c5927604e83");
-    save_cloud189_session.append("5674B732928ABEA84BEB2E861F7C258D");
+    save_cloud189_session.append("083702dd-9a66-406a-b9a0-f39e00089bec");
+    save_cloud189_session.append("E7FD05796B47F1D989BAF51DA15C33F1");
     save_cloud189_session.append("dddd3bf5-95c5-4735-a1e2-644a670e617d_family");
     save_cloud189_session.append("2D6FBBD2630E71A626614DFFD599696E");
     Json::Value config;
@@ -156,10 +156,10 @@ int main(void) {
   {
 //    std::thread t(filedownload,"8151227421580153","1.py","FCDCDEF6488FF1AF9FAEE4F614079094","/Users/zhaozt/Desktop/download1/",i);
 //    t.join();
-      if (i == 201) {
+      if (i == 220) {
           printf("zhanting\n");
       }
-      filedownload("2150027468151523","1.sh","0BFCF480CE77EFB2B6934E33C05992E9","/Users/zhaozt/Desktop/download/",i);
+      filedownload("4150327547512959","1.sh","5F54DE61D8514EF387C8FE7B4D440004","/Users/zhaozt/Desktop/download/",i);
   } 
           
   return 0;

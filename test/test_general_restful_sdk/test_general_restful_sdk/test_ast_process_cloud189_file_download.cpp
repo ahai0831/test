@@ -1,4 +1,4 @@
-﻿#include <future>
+#include <future>
 
 #include "ffi_simulation.h"
 #include "restful_common/jsoncpp_helper/jsoncpp_helper.hpp"
@@ -23,10 +23,10 @@ void test_ast_process_cloud189_file_download() {
   test_info_json["domain"] = "Cloud189";
   test_info_json["operation"] = "DoDownload";
   /// 设置必传的业务字段
-  test_info_json["file_id"] = "7147022658216724";
-  test_info_json["file_name"] = "19MB_500files.part0006.rar";
-  test_info_json["md5"] = "F1EB7945EF543D6A6E9C8B71A435AAD0";
-  test_info_json["download_folder_path"] = "D:/test/";
+  test_info_json["file_id"] = "2150027468151523";
+  test_info_json["file_name"] = "1.sh";
+  test_info_json["md5"] = "0BFCF480CE77EFB2B6934E33C05992E9";
+  test_info_json["download_folder_path"] = "/Users/zhaozt/Desktop/download/";
 
   auto test_info = WriterHelper(test_info_json);
   printf("%s\n", test_info.c_str());

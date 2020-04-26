@@ -1,9 +1,10 @@
 group("test") {
   deps = [
-    # "//test/test_general_restful_sdk",
+     "//test/test_general_restful_sdk",
     # "//test/test_third_party",
-    # "//test/test_same500file_download",
-    # "//test/test_5kfile_download_sdk",
+     "//test/test_same500file_download",
+    #"//test/test_5kfile_download_sdk",
     "//test/test_apis/test_get_download_address",
+    "//test/test_folder/test_create_folder",
   ]
 }
