@@ -9,7 +9,7 @@
 # mkfile -n 16m 8.txt
 # mkfile -n 12.5m 9.txt
 # mkfile -n 2m 10.txt
-# mkfile -n 5m 11.txt123
+# mkfile -n 5m 11.txt123456
 #!/bin/bash
  
 for varible in {1..5000}
